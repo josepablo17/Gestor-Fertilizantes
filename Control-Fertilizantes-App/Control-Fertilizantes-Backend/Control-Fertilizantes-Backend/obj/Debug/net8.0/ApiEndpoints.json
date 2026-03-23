@@ -1,0 +1,76 @@
+[
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.ProductoController",
+    "Method": "Actualizar",
+    "RelativePath": "api/Producto/ActualizarProducto",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "productoActualizarDTO",
+        "Type": "Control_Fertilizantes_Backend.DTOs.ProductoActualizarDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.ProductoController",
+    "Method": "Desactivar",
+    "RelativePath": "api/Producto/Desactivar/{idProducto}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "idProducto",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.ProductoController",
+    "Method": "Insertar",
+    "RelativePath": "api/Producto/InsertarProducto",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "productoCrearDTO",
+        "Type": "Control_Fertilizantes_Backend.DTOs.ProductoCrearDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.ProductoController",
+    "Method": "Listar",
+    "RelativePath": "api/Producto/ListarProducto",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.ProductoController",
+    "Method": "ObtenerPorId",
+    "RelativePath": "api/Producto/ObtenerProducto/{idProducto}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "idProducto",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  }
+]
