@@ -74,87 +74,87 @@ function FormularioProducto({ onProductoGuardado, productoEditar, onCancelarEdic
     }
   };
 
-  return (
-    <div className="seccion-formulario-productos">
-      <div className="titulo-seccion">
-        <h2>{estaEditando ? "Editar Producto" : "Agregar Producto"}</h2>
-        <p>
-          {estaEditando
-            ? "Modifica la información del producto seleccionado."
-            : "Completa los campos para registrar un nuevo producto."}
-        </p>
+ return (
+  <div className="card-modulo">
+    <div className="titulo-seccion">
+      <h2>{estaEditando ? "Editar Producto" : "Agregar Producto"}</h2>
+      <p>
+        {estaEditando
+          ? "Modifica la información del producto seleccionado."
+          : "Completa los campos para registrar un nuevo producto."}
+      </p>
+    </div>
+
+    <form className="formulario-modulo" onSubmit={manejarSubmit}>
+      <div className="campo-formulario">
+        <label htmlFor="nombre">Nombre</label>
+        <input
+          id="nombre"
+          type="text"
+          name="nombre"
+          placeholder="Ejemplo: Urea"
+          value={producto.nombre}
+          onChange={manejarCambio}
+          required
+        />
       </div>
 
-      <form className="formulario-producto" onSubmit={manejarSubmit}>
-        <div className="campo-formulario">
-          <label htmlFor="nombre">Nombre</label>
-          <input
-            id="nombre"
-            type="text"
-            name="nombre"
-            placeholder="Ejemplo: Urea"
-            value={producto.nombre}
-            onChange={manejarCambio}
-            required
-          />
-        </div>
+      <div className="campo-formulario">
+        <label htmlFor="categoria">Categoría</label>
+        <input
+          id="categoria"
+          type="text"
+          name="categoria"
+          placeholder="Ejemplo: Fertilizante"
+          value={producto.categoria}
+          onChange={manejarCambio}
+          required
+        />
+      </div>
 
-        <div className="campo-formulario">
-          <label htmlFor="categoria">Categoría</label>
-          <input
-            id="categoria"
-            type="text"
-            name="categoria"
-            placeholder="Ejemplo: Fertilizante"
-            value={producto.categoria}
-            onChange={manejarCambio}
-            required
-          />
-        </div>
+      <div className="campo-formulario">
+        <label htmlFor="marca">Marca</label>
+        <input
+          id="marca"
+          type="text"
+          name="marca"
+          placeholder="Ejemplo: Genérica"
+          value={producto.marca}
+          onChange={manejarCambio}
+          required
+        />
+      </div>
 
-        <div className="campo-formulario">
-          <label htmlFor="marca">Marca</label>
-          <input
-            id="marca"
-            type="text"
-            name="marca"
-            placeholder="Ejemplo: Genérica"
-            value={producto.marca}
-            onChange={manejarCambio}
-            required
-          />
-        </div>
+      <div className="campo-formulario campo-formulario-completo">
+        <label htmlFor="descripcion">Descripción</label>
+        <textarea
+          id="descripcion"
+          name="descripcion"
+          placeholder="Describe el producto..."
+          value={producto.descripcion}
+          onChange={manejarCambio}
+          rows="4"
+        />
+      </div>
 
-        <div className="campo-formulario campo-formulario-completo">
-          <label htmlFor="descripcion">Descripción</label>
-          <textarea
-            id="descripcion"
-            name="descripcion"
-            placeholder="Describe el producto..."
-            value={producto.descripcion}
-            onChange={manejarCambio}
-            rows="4"
-          />
-        </div>
-
-        <div className="acciones-formulario">
-          {estaEditando && (
-            <button
-              type="button"
-              className="boton-secundario"
-              onClick={manejarCancelar}
-            >
-              Cancelar
-            </button>
-          )}
-
-          <button type="submit" className="boton-primario">
-            {estaEditando ? "Actualizar producto" : "Guardar producto"}
+      <div className="acciones-formulario">
+        {estaEditando && (
+          <button
+            type="button"
+            className="boton-base boton-secundario"
+            onClick={manejarCancelar}
+          >
+            Cancelar
           </button>
-        </div>
-      </form>
-    </div>
-  );
+        )}
+
+        <button type="submit" className="boton-base boton-primario">
+          {estaEditando ? "Actualizar producto" : "Guardar producto"}
+        </button>
+      </div>
+    </form>
+  </div>
+);
 }
 
 export default FormularioProducto;

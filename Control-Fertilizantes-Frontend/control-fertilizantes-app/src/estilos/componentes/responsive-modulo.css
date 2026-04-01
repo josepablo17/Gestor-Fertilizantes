@@ -1,0 +1,116 @@
+@media (max-width: 768px) {
+  .pagina-modulo {
+    padding: 24px 16px;
+  }
+
+  .encabezado-modulo {
+    margin-bottom: 24px;
+  }
+
+  .encabezado-modulo h1 {
+    font-size: 1.75rem;
+  }
+
+  .encabezado-modulo p {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .encabezado-con-acciones {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .encabezado-con-acciones > div:first-child {
+    min-width: 100%;
+  }
+
+  .encabezado-con-acciones .boton-base {
+    width: 100%;
+  }
+
+  .card-modulo {
+    padding: 20px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
+
+  .titulo-seccion {
+    margin-bottom: 16px;
+  }
+
+  .titulo-seccion h2 {
+    font-size: 1.25rem;
+  }
+
+  .titulo-seccion p {
+    line-height: 1.5;
+  }
+
+  .formulario-modulo {
+    grid-template-columns: 1fr;
+  }
+
+  .campo-formulario-completo {
+    grid-column: auto;
+  }
+
+  .acciones-formulario {
+    grid-column: auto;
+    justify-content: stretch;
+    flex-direction: column;
+  }
+
+  .boton-primario,
+  .boton-secundario {
+    width: 100%;
+  }
+
+  .cabecera-lista {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .barra-herramientas {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .grupo-busqueda,
+  .grupo-filtros {
+    width: 100%;
+  }
+
+  .grupo-filtros {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .select-filtro,
+  .boton-limpiar,
+  .boton-agregar {
+    width: 100%;
+  }
+
+  .resumen-lista {
+    margin-top: 4px;
+  }
+
+  .paginacion {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .numeros-paginacion {
+    justify-content: center;
+  }
+
+  .boton-paginacion {
+    width: 100%;
+  }
+
+  .numero-pagina {
+    width: auto;
+    min-width: 42px;
+  }
+}

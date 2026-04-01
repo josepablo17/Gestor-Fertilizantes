@@ -1,4 +1,4 @@
-function EstadoListaProductos({ tipo, mensaje, subtitulo }) {
+function EstadoLista({ tipo, mensaje, subtitulo }) {
   if (tipo === "cargando") {
     return (
       <div className="estado-lista">
@@ -24,4 +24,4 @@ function EstadoListaProductos({ tipo, mensaje, subtitulo }) {
   );
 }
 
-export default EstadoListaProductos;
+export default EstadoLista;

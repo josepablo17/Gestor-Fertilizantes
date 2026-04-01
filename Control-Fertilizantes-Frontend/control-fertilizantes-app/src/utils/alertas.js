@@ -6,6 +6,8 @@ const configuracionBase = {
   customClass: {
     popup: "swal-popup-personalizado",
     title: "swal-titulo-personalizado",
+    htmlContainer: "swal-texto-personalizado",
+    actions: "swal-acciones-personalizadas",
     confirmButton: "swal-boton-confirmar",
     cancelButton: "swal-boton-cancelar"
   },
@@ -39,8 +41,8 @@ export const mostrarConfirmacion = (titulo, texto) => {
     title: titulo,
     text: texto,
     showCancelButton: true,
-    confirmButtonText: "Sí, continuar",
+    confirmButtonText: "Sí, desactivar",
     cancelButtonText: "Cancelar",
-    reverseButtons: true
+    reverseButtons: false
   });
 };

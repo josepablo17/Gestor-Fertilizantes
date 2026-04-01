@@ -1,0 +1,30 @@
+.card-modulo {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  padding: 28px;
+  margin-bottom: 28px;
+}
+
+.titulo-seccion {
+  margin-bottom: 20px;
+}
+
+.titulo-seccion h2 {
+  margin: 0 0 8px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: #111827;
+}
+
+.titulo-seccion p {
+  margin: 0;
+  max-width: 720px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #6b7280;
+}
+

@@ -1,11 +1,14 @@
-function FiltrosProductos({
+function FiltrosPresentacionesProducto({
   busqueda,
   setBusqueda,
   filtroEstado,
   setFiltroEstado,
-  filtroCategoria,
-  setFiltroCategoria,
-  categoriasDisponibles,
+  filtroProducto,
+  setFiltroProducto,
+  filtroUnidadMedida,
+  setFiltroUnidadMedida,
+  productosDisponibles,
+  unidadesMedidaDisponibles,
   onLimpiarFiltros
 }) {
   return (
@@ -13,7 +16,7 @@ function FiltrosProductos({
       <div className="grupo-busqueda">
         <input
           type="text"
-          placeholder="Buscar por nombre, categoría, marca o descripción..."
+          placeholder="Buscar por producto, descripción o unidad de medida..."
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           className="input-busqueda"
@@ -32,14 +35,27 @@ function FiltrosProductos({
         </select>
 
         <select
-          value={filtroCategoria}
-          onChange={(e) => setFiltroCategoria(e.target.value)}
+          value={filtroProducto}
+          onChange={(e) => setFiltroProducto(e.target.value)}
           className="select-filtro"
         >
-          <option value="todas">Todas las categorías</option>
-          {categoriasDisponibles.map((categoria) => (
-            <option key={categoria} value={categoria}>
-              {categoria}
+          <option value="todos">Todos los productos</option>
+          {productosDisponibles.map((producto) => (
+            <option key={producto} value={producto}>
+              {producto}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={filtroUnidadMedida}
+          onChange={(e) => setFiltroUnidadMedida(e.target.value)}
+          className="select-filtro"
+        >
+          <option value="todas">Todas las unidades</option>
+          {unidadesMedidaDisponibles.map((unidad) => (
+            <option key={unidad} value={unidad}>
+              {unidad}
             </option>
           ))}
         </select>
@@ -56,4 +72,4 @@ function FiltrosProductos({
   );
 }
 
-export default FiltrosProductos;
+export default FiltrosPresentacionesProducto;

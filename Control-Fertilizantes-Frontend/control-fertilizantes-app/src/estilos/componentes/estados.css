@@ -1,0 +1,68 @@
+.estado-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.estado-activo {
+  background-color: #ecfdf5;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.estado-inactivo {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.punto-estado {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: currentColor;
+  flex-shrink: 0;
+}
+
+.estado-lista {
+  padding: 28px;
+  border-radius: 16px;
+  background-color: #f8fafc;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.5;
+  border: 1px dashed #cbd5e1;
+}
+
+.estado-error {
+  background-color: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.estado-vacio {
+  text-align: center;
+  padding: 36px 20px;
+}
+
+.estado-vacio h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.estado-vacio p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #6b7280;
+}

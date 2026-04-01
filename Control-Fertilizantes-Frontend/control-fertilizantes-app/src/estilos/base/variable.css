@@ -1,0 +1,51 @@
+:root {
+  /* Colores principales */
+  --color-primario: #2563eb;
+  --color-primario-hover: #1d4ed8;
+  --color-primario-suave: #eff6ff;
+
+  /* Colores texto */
+  --color-texto-principal: #111827;
+  --color-texto-secundario: #374151;
+  --color-texto-muted: #6b7280;
+  --color-placeholder: #9ca3af;
+
+  /* Fondos */
+  --color-fondo-app: #f4f7fb;
+  --color-fondo-blanco: #ffffff;
+  --color-fondo-suave: #f8fafc;
+
+  /* Bordes */
+  --color-borde: #d1d5db;
+  --color-borde-suave: #e5e7eb;
+  --color-borde-tabla: #edf2f7;
+
+  /* Estados */
+  --color-exito-bg: #dcfce7;
+  --color-exito-texto: #166534;
+
+  --color-error-bg: #fee2e2;
+  --color-error-texto: #991b1b;
+
+  --color-alerta-bg: #fef2f2;
+  --color-alerta-texto: #b91c1c;
+  --color-alerta-borde: #fecaca;
+
+  /* Botones secundarios */
+  --color-secundario-bg: #e5e7eb;
+  --color-secundario-hover: #d1d5db;
+
+  /* Radios */
+  --radio-sm: 10px;
+  --radio-md: 12px;
+  --radio-lg: 16px;
+  --radio-xl: 18px;
+  --radio-pill: 999px;
+
+  /* Sombras */
+  --sombra-card: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --sombra-focus: 0 0 0 4px rgba(37, 99, 235, 0.12);
+
+  /* Transiciones */
+  --transicion-rapida: all 0.2s ease;
+}

@@ -1,0 +1,94 @@
+.boton-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 11px 18px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.boton-base:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+}
+
+.boton-primario {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.boton-primario:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.boton-secundario {
+  background-color: #f3f4f6;
+  color: #374151;
+  border-color: #e5e7eb;
+}
+
+.boton-secundario:hover {
+  background-color: #e5e7eb;
+  color: #111827;
+}
+
+.boton-tabla {
+  min-height: 38px;
+  padding: 9px 13px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.boton-editar {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.boton-editar:hover {
+  background-color: #dbeafe;
+  border-color: #93c5fd;
+}
+
+.boton-eliminar {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.boton-eliminar:hover {
+  background-color: #fee2e2;
+  border-color: #fca5a5;
+}
+
+.boton-agregar {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.boton-agregar:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.boton-limpiar {
+  background-color: #f3f4f6;
+  color: #374151;
+  border-color: #e5e7eb;
+}
+
+.boton-limpiar:hover {
+  background-color: #e5e7eb;
+  color: #111827;
+}

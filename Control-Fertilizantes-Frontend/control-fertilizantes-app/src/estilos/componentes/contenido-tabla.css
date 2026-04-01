@@ -1,0 +1,25 @@
+.celda-principal {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.texto-principal {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.texto-secundario {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.texto-truncado {
+  display: inline-block;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #4b5563;
+}

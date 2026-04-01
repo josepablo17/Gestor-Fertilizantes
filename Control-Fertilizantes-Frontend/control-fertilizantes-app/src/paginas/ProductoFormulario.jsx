@@ -4,7 +4,6 @@ import FormularioProducto from "../componentes/productos/FormularioProducto";
 import { obtenerProductoPorId } from "../api/productosApi";
 import { mostrarError } from "../utils/alertas";
 import Loader from "../componentes/Loader"
-import "../estilos/productos.css";
 import "../estilos/loader.css"
 
 function ProductoFormulario() {
@@ -48,41 +47,42 @@ function ProductoFormulario() {
     navigate("/productos");
   };
 
-  return (
-    <div className="pagina-productos">
-      <div className="contenedor-productos">
-        <div className="encabezado-productos encabezado-con-acciones">
-          <div>
-            <h1>{estaEditando ? "Editar Producto" : "Nuevo Producto"}</h1>
-            <p>
-              {estaEditando
-                ? "Actualiza la información del producto seleccionado."
-                : "Completa el formulario para registrar un nuevo producto."}
-            </p>
-          </div>
-
-          <button
-            type="button"
-            className="boton-secundario"
-            onClick={manejarCancelar}
-          >
-            Volver al listado
-          </button>
+ return (
+  <div className="pagina-modulo">
+    <div className="contenedor-modulo">
+      <div className="encabezado-modulo encabezado-con-acciones">
+        <div>
+          <h1>{estaEditando ? "Editar Producto" : "Nuevo Producto"}</h1>
+          <p>
+            {estaEditando
+              ? "Actualiza la información del producto seleccionado."
+              : "Completa el formulario para registrar un nuevo producto."}
+          </p>
         </div>
-              <div className="card-productos">
-                  {cargando ? (
-                      <Loader texto="Cargando información del producto..." alto="260px" />
-                  ) : (
-                      <FormularioProducto
-                          onProductoGuardado={manejarProductoGuardado}
-                          productoEditar={productoEditar}
-                          onCancelarEdicion={manejarCancelar}
-                      />
-                  )}
-              </div>
+
+        <button
+          type="button"
+          className="boton-base boton-secundario"
+          onClick={manejarCancelar}
+        >
+          Volver al listado
+        </button>
+      </div>
+
+      <div className="card-modulo">
+        {cargando ? (
+          <Loader texto="Cargando información del producto..." alto="260px" />
+        ) : (
+          <FormularioProducto
+            onProductoGuardado={manejarProductoGuardado}
+            productoEditar={productoEditar}
+            onCancelarEdicion={manejarCancelar}
+          />
+        )}
       </div>
     </div>
-  );
+  </div>
+);
 }
 
 export default ProductoFormulario;

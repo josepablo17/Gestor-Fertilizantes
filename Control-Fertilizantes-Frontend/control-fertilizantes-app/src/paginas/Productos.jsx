@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ListaProductos from "../componentes/productos/ListaProductos";
-import "../estilos/productos.css";
+import "../estilos/index.css";
 
 function Productos() {
   const [recargarLista, setRecargarLista] = useState(false);
@@ -20,20 +20,20 @@ function Productos() {
   };
 
   return (
-    <div className="pagina-productos">
-      <div className="contenedor-productos">
-        <div className="encabezado-productos encabezado-con-acciones">
+    <div className="pagina-modulo">
+      <div className="contenedor-modulo">
+        <div className="encabezado-modulo encabezado-con-acciones">
           <div>
             <h1>Gestión de Productos</h1>
             <p>Administra el catálogo de fertilizantes registrados en el sistema.</p>
           </div>
 
-          <button className="boton-primario" onClick={irANuevoProducto}>
+          <button className="boton-base boton-primario" onClick={irANuevoProducto}>
             Agregar producto
           </button>
         </div>
 
-        <div className="card-productos">
+        <div className="card-modulo">
           <ListaProductos
             recargar={recargarLista}
             onEditar={irAEditarProducto}
