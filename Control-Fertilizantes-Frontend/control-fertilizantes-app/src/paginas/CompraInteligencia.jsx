@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState,useMemo } from "react";
 import FiltrosCompraInteligencia from "../componentes/compras-inteligencia/FiltrosCompraInteligencia";
 import ResumenInteligenteCompras from "../componentes/compras-inteligencia/ResumenInteligenteCompras";
 import TablaHistorialPrecios from "../componentes/compras-inteligencia/TablaHistorialPrecios";
@@ -8,6 +8,7 @@ import AlertasCompra from "../componentes/compras-inteligencia/AlertasCompras";
 import useCompraInteligencia from "../hooks/useCompraInteligencia";
 import { obtenerProductos } from "../api/productosApi";
 import { obtenerPresentacionesProducto } from "../api/presentacionProductoApi";
+import {obtenerComprasClave} from "../utils/compras-inteligentes";
 
 function CompraInteligencia() {
   const [productos, setProductos] = useState([]);
@@ -82,6 +83,10 @@ function CompraInteligencia() {
     setPresentaciones([]);
   };
 
+  const historialInteligente = useMemo(() => {
+  return obtenerComprasClave(historial);
+  }, [historial]);
+
   return (
     <div className="pagina-compra-inteligencia">
       <div className="contenedor-compra-inteligencia">
@@ -140,7 +145,7 @@ function CompraInteligencia() {
 
                 <GraficoHistorialPrecios historial={historial} />
 
-                <TablaHistorialPrecios historial={historial} />
+                <TablaHistorialPrecios historial={historialInteligente} />
               </>
             )}
           </>

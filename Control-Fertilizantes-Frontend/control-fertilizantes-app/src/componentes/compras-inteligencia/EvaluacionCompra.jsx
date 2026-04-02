@@ -18,10 +18,11 @@ function EvaluacionCompra({ evaluacion }) {
   );
 
   const subtituloImpacto = obtenerSubtituloImpacto(evaluacion);
+  const claseEstadoCard = obtenerClaseEstadoCard(evaluacion.clasificacionCompra);
 
   return (
     <section className="evaluacion-compra-seccion">
-      <article className="card-base card-evaluacion-compra card-evaluacion-destacada">
+      <article className={`card-base card-evaluacion-compra card-evaluacion-destacada ${claseEstadoCard}`}>
         <div className="evaluacion-capa-brillo"></div>
 
         <div className="encabezado-evaluacion-compra">
@@ -204,6 +205,18 @@ function obtenerClaseVariacion(valor) {
   if (Number(valor) > 0) return "variacion-alza";
   if (Number(valor) < 0) return "variacion-baja";
   return "variacion-neutral";
+}
+
+function obtenerClaseEstadoCard(clasificacion) {
+  if (!clasificacion) return "evaluacion-estado-neutral";
+
+  const valor = clasificacion.toLowerCase();
+
+  if (valor.includes("conveniente")) return "evaluacion-estado-bueno";
+  if (valor.includes("aceptable")) return "evaluacion-estado-medio";
+  if (valor.includes("riesgosa")) return "evaluacion-estado-riesgo";
+
+  return "evaluacion-estado-neutral";
 }
 
 function obtenerClaseTendencia(tendencia) {

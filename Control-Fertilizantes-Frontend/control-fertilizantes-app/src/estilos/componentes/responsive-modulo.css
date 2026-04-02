@@ -106,11 +106,13 @@
   }
 
   .boton-paginacion {
-    width: 100%;
+    min-width: 38px;
+    min-height: 38px;
+    padding: 8px 12px;
+    font-size: 13px;
   }
 
   .numero-pagina {
-    width: auto;
-    min-width: 42px;
+    min-width: 38px;
   }
 }

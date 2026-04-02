@@ -2,7 +2,7 @@ function TablaHistorialPrecios({ historial }) {
   if (!historial || historial.length === 0) {
     return (
       <div className="estado-vacio-modulo tabla-historial-vacia">
-        No hay historial de compras para los filtros seleccionados.
+        No hay contexto inteligente disponible para los filtros seleccionados.
       </div>
     );
   }
@@ -12,9 +12,10 @@ function TablaHistorialPrecios({ historial }) {
       <div className="card-base card-tabla-historial">
         <div className="encabezado-tabla-historial">
           <div>
-            <h3>Historial de compras</h3>
+            <h3>Contexto inteligente del historial de precios</h3>
             <p>
-              Registro detallado de precios y variaciones entre compras realizadas.
+              Compras clave seleccionadas automáticamente para interpretar mejor
+              la evolución del precio.
             </p>
           </div>
         </div>
@@ -23,6 +24,7 @@ function TablaHistorialPrecios({ historial }) {
           <table className="tabla-modulo tabla-historial-precios">
             <thead>
               <tr>
+                <th>Insight</th>
                 <th>Fecha</th>
                 <th>Proveedor</th>
                 <th>Cantidad</th>
@@ -36,13 +38,23 @@ function TablaHistorialPrecios({ historial }) {
             </thead>
 
             <tbody>
-              {historial.map((item) => {
+              {historial.map((item, index) => {
                 const claseDiferencia = obtenerClaseVariacion(item.diferenciaPrecio);
                 const clasePorcentaje = obtenerClaseVariacion(item.porcentajeCambioPrecio);
                 const claseTendencia = obtenerClaseTendencia(item.tendenciaPrecio);
+                const claseInsight = obtenerClaseInsight(item.insight);
 
                 return (
-                  <tr key={item.idCompra}>
+                  <tr
+                    key={item.idCompra ?? `${item.fechaCompra}-${index}`}
+                    className={claseInsight}
+                  >
+                    <td>
+                      <span className={`badge-insight-tabla ${claseInsight}`}>
+                        {item.insight || "Compra relevante"}
+                      </span>
+                    </td>
+
                     <td className="celda-fecha">
                       {formatearFecha(item.fechaCompra)}
                     </td>
@@ -138,10 +150,27 @@ function obtenerClaseTendencia(tendencia) {
   const valor = tendencia.toLowerCase();
 
   if (valor.includes("al alza")) return "tendencia-alza";
+  if (valor.includes("aumento")) return "tendencia-alza";
   if (valor.includes("a la baja")) return "tendencia-baja";
+  if (valor.includes("dismin")) return "tendencia-baja";
   if (valor.includes("estable")) return "tendencia-estable";
+  if (valor.includes("sin cambio")) return "tendencia-estable";
 
   return "tendencia-neutral";
+}
+
+function obtenerClaseInsight(insight) {
+  if (!insight) return "insight-neutral";
+
+  const valor = insight.toLowerCase();
+
+  if (valor.includes("más reciente")) return "insight-reciente";
+  if (valor.includes("más alto")) return "insight-alza";
+  if (valor.includes("más bajo")) return "insight-baja";
+  if (valor.includes("mayor variación")) return "insight-variacion";
+  if (valor.includes("primer registro")) return "insight-origen";
+
+  return "insight-neutral";
 }
 
 export default TablaHistorialPrecios;

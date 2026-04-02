@@ -52,16 +52,17 @@ function ListaCompras({ recargar, onEditar, onAgregar }) {
     filtroFecha
   ]);
 
-  const {
-    paginaActual,
-    totalPaginas,
-    indiceInicial,
-    indiceFinal,
-    itemsPaginados: comprasPaginadas,
-    irAPagina,
-    irAnterior,
-    irSiguiente
-  } = usePaginacion(comprasFiltradas, comprasPorPagina, [
+const {
+  paginaActual,
+  totalPaginas,
+  indiceInicial,
+  indiceFinal,
+  itemsPaginados: comprasPaginadas,
+  irAPagina,
+  irAnterior,
+  irSiguiente,
+  paginasVisibles
+} = usePaginacion(comprasFiltradas, comprasPorPagina, [
     busquedaProducto,
     busquedaProveedor,
     filtroMoneda,
@@ -160,26 +161,35 @@ function ListaCompras({ recargar, onEditar, onAgregar }) {
                 Anterior
               </button>
 
-              <div className="numeros-paginacion">
-                {Array.from({ length: totalPaginas }, (_, index) => {
-                  const numeroPagina = index + 1;
+                      <div className="numeros-paginacion">
+                        {paginasVisibles.map((item, index) => {
+                          if (item === "...") {
+                            return (
+                              <span
+                                key={`ellipsis-${index}`}
+                                className="separador-paginacion"
+                              >
+                                ...
+                              </span>
+                            );
+                          }
 
-                  return (
-                    <button
-                      key={numeroPagina}
-                      type="button"
-                      className={
-                        paginaActual === numeroPagina
-                          ? "boton-paginacion numero-pagina activa"
-                          : "boton-paginacion numero-pagina"
-                      }
-                      onClick={() => irAPagina(numeroPagina)}
-                    >
-                      {numeroPagina}
-                    </button>
-                  );
-                })}
-              </div>
+                          return (
+                            <button
+                              key={item}
+                              type="button"
+                              className={
+                                paginaActual === item
+                                  ? "boton-paginacion numero-pagina activa"
+                                  : "boton-paginacion numero-pagina"
+                              }
+                              onClick={() => irAPagina(item)}
+                            >
+                              {item}
+                            </button>
+                          );
+                        })}
+                      </div>
 
               <button
                 type="button"
