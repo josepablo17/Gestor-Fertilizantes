@@ -1,5 +1,345 @@
 [
   {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.ComparadorProveedorController",
+    "Method": "ObtenerComparativa",
+    "RelativePath": "api/ComparadorProveedor/Comparar",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "idProducto",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "idPresentacionProducto",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "moneda",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "mesesAnalisis",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      },
+      {
+        "Name": "soloAutorizados",
+        "Type": "System.Boolean",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.ComparadorProveedorController",
+    "Method": "ObtenerDetalleProveedor",
+    "RelativePath": "api/ComparadorProveedor/DetalleProveedor",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "idProducto",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "idPresentacionProducto",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "idProveedor",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "moneda",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "mesesAnalisis",
+        "Type": "System.Nullable\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.CompraController",
+    "Method": "Actualizar",
+    "RelativePath": "api/Compra/ActualizarCompra",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "compraActualizarDTO",
+        "Type": "Control_Fertilizantes_Backend.DTOs.CompraActualizarDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.CompraController",
+    "Method": "HistorialPorProducto",
+    "RelativePath": "api/Compra/HistorialPorProducto/{idProducto}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "idProducto",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.CompraController",
+    "Method": "Insertar",
+    "RelativePath": "api/Compra/InsertarCompra",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "compraCrearDTO",
+        "Type": "Control_Fertilizantes_Backend.DTOs.CompraCrearDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.CompraController",
+    "Method": "Listar",
+    "RelativePath": "api/Compra/ListarCompra",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.CompraController",
+    "Method": "ObtenerPorId",
+    "RelativePath": "api/Compra/ObtenerCompra/{idCompra}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "idCompra",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.CompraController",
+    "Method": "ObtenerUltimoPrecio",
+    "RelativePath": "api/Compra/ObtenerUltimoPrecio",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "idProducto",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "idPresentacionProducto",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.CompraInteligenciaController",
+    "Method": "ObtenerAlertas",
+    "RelativePath": "api/CompraInteligencia/Alertas",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "idProducto",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "idPresentacionProducto",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.CompraInteligenciaController",
+    "Method": "EvaluarCompra",
+    "RelativePath": "api/CompraInteligencia/EvaluarCompra/{idCompra}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "idCompra",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.CompraInteligenciaController",
+    "Method": "ObtenerHistorialPrecios",
+    "RelativePath": "api/CompraInteligencia/HistorialPrecios",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "idProducto",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "idPresentacionProducto",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.CompraInteligenciaController",
+    "Method": "ObtenerResumenInteligentePrecios",
+    "RelativePath": "api/CompraInteligencia/ResumenInteligentePrecios",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "idProducto",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "idPresentacionProducto",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.PresentacionProductoController",
+    "Method": "Actualizar",
+    "RelativePath": "api/PresentacionProducto/ActualizarPresentacionProducto",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "presentacionProductoActualizarDTO",
+        "Type": "Control_Fertilizantes_Backend.DTOs.PresentacionProductoActualizarDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.PresentacionProductoController",
+    "Method": "Desactivar",
+    "RelativePath": "api/PresentacionProducto/Desactivar/{idPresentacionProducto}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "idPresentacionProducto",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.PresentacionProductoController",
+    "Method": "Insertar",
+    "RelativePath": "api/PresentacionProducto/InsertarPresentacionProducto",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "presentacionProductoCrearDTO",
+        "Type": "Control_Fertilizantes_Backend.DTOs.PresentacionProductoCrearDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.PresentacionProductoController",
+    "Method": "Listar",
+    "RelativePath": "api/PresentacionProducto/ListarPresentacionesProducto",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.PresentacionProductoController",
+    "Method": "ListarProductosDropdown",
+    "RelativePath": "api/PresentacionProducto/ListarProductosDropdown",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.PresentacionProductoController",
+    "Method": "ListarUnidadesMedidaDropdown",
+    "RelativePath": "api/PresentacionProducto/ListarUnidadesMedidaDropdown",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.PresentacionProductoController",
+    "Method": "ObtenerPorId",
+    "RelativePath": "api/PresentacionProducto/ObtenerPresentacionProducto/{idPresentacionProducto}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "idPresentacionProducto",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "Control_Fertilizantes_Backend.Controllers.ProductoController",
     "Method": "Actualizar",
     "RelativePath": "api/Producto/ActualizarProducto",
@@ -67,6 +407,154 @@
     "Parameters": [
       {
         "Name": "idProducto",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.ProveedorController",
+    "Method": "Actualizar",
+    "RelativePath": "api/Proveedor/ActualizarProveedor",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "proveedorActualizarDTO",
+        "Type": "Control_Fertilizantes_Backend.DTOs.ProveedorActualizarDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.ProveedorController",
+    "Method": "Desactivar",
+    "RelativePath": "api/Proveedor/Desactivar/{idProveedor}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "idProveedor",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.ProveedorController",
+    "Method": "Insertar",
+    "RelativePath": "api/Proveedor/InsertarProveedor",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "proveedorCrearDTO",
+        "Type": "Control_Fertilizantes_Backend.DTOs.ProveedorCrearDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.ProveedorController",
+    "Method": "Listar",
+    "RelativePath": "api/Proveedor/ListarProveedor",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.ProveedorController",
+    "Method": "ObtenerPorId",
+    "RelativePath": "api/Proveedor/ObtenerProveedor/{idProveedor}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "idProveedor",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.UnidadMedidaController",
+    "Method": "Actualizar",
+    "RelativePath": "api/UnidadMedida/ActualizarUnidadMedida",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "unidadMedidaActualizarDTO",
+        "Type": "Control_Fertilizantes_Backend.DTOs.UnidadMedidaActualizarDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.UnidadMedidaController",
+    "Method": "Desactivar",
+    "RelativePath": "api/UnidadMedida/Desactivar/{idUnidadMedida}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "idUnidadMedida",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.UnidadMedidaController",
+    "Method": "Insertar",
+    "RelativePath": "api/UnidadMedida/InsertarUnidadMedida",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "unidadMedidaCrearDTO",
+        "Type": "Control_Fertilizantes_Backend.DTOs.UnidadMedidaCrearDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.UnidadMedidaController",
+    "Method": "Listar",
+    "RelativePath": "api/UnidadMedida/ListarUnidadMedida",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.UnidadMedidaController",
+    "Method": "ObtenerPorId",
+    "RelativePath": "api/UnidadMedida/ObtenerUnidadMedida/{idUnidadMedida}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "idUnidadMedida",
         "Type": "System.Int32",
         "IsRequired": true
       }

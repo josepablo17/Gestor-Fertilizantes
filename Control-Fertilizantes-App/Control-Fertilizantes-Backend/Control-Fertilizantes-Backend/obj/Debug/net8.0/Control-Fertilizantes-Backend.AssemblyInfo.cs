@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Control-Fertilizantes-Backend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+05a89e16c25af974cd2637e1eb6dfad9bb28b491")]
 [assembly: System.Reflection.AssemblyProductAttribute("Control-Fertilizantes-Backend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Control-Fertilizantes-Backend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

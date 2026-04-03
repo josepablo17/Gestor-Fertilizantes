@@ -1,6 +1,5 @@
 ﻿using Control_Fertilizantes_Backend.DTOs;
 using Control_Fertilizantes_Backend.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Control_Fertilizantes_Backend.Controllers
@@ -20,7 +19,11 @@ namespace Control_Fertilizantes_Backend.Controllers
         public async Task<IActionResult> Listar()
         {
             var productos = await _productoServicio.ListarAsync();
-            return Ok(productos);
+
+            return Ok(ApiRespuesta<IEnumerable<ProductoListarDTO>>.CrearExito(
+                "Productos obtenidos correctamente.",
+                productos
+            ));
         }
 
         [HttpGet("ObtenerProducto/{idProducto}")]
@@ -30,10 +33,13 @@ namespace Control_Fertilizantes_Backend.Controllers
 
             if (producto == null)
             {
-                return NotFound(new { mensaje = "Producto no encontrado." });
+                return NotFound(ApiRespuesta<object>.CrearError("Producto no encontrado."));
             }
 
-            return Ok(producto);
+            return Ok(ApiRespuesta<ProductoListarDTO>.CrearExito(
+                "Producto obtenido correctamente.",
+                producto
+            ));
         }
 
         [HttpPost("InsertarProducto")]
@@ -41,37 +47,34 @@ namespace Control_Fertilizantes_Backend.Controllers
         {
             var idProducto = await _productoServicio.InsertarAsync(productoCrearDTO);
 
-            return Ok(new
-            {
-                mensaje = "Producto insertado correctamente.",
-                idProducto = idProducto
-            });
+            return CreatedAtAction(
+                nameof(ObtenerPorId),
+                new { idProducto },
+                ApiRespuesta<object>.CrearExito(
+                    "Producto insertado correctamente.",
+                    new { idProducto }
+                )
+            );
         }
 
         [HttpPut("ActualizarProducto")]
         public async Task<IActionResult> Actualizar([FromBody] ProductoActualizarDTO productoActualizarDTO)
         {
-            var actualizado = await _productoServicio.ActualizarAsync(productoActualizarDTO);
+            await _productoServicio.ActualizarAsync(productoActualizarDTO);
 
-            if (!actualizado)
-            {
-                return NotFound(new { mensaje = "No se pudo actualizar el producto porque no existe." });
-            }
-
-            return Ok(new { mensaje = "Producto actualizado correctamente." });
+            return Ok(ApiRespuesta<object>.CrearExito(
+                "Producto actualizado correctamente."
+            ));
         }
 
         [HttpDelete("Desactivar/{idProducto}")]
         public async Task<IActionResult> Desactivar(int idProducto)
         {
-            var desactivado = await _productoServicio.DesactivarAsync(idProducto);
+            await _productoServicio.DesactivarAsync(idProducto);
 
-            if (!desactivado)
-            {
-                return NotFound(new { mensaje = "No se pudo desactivar el producto porque no existe." });
-            }
-
-            return Ok(new { mensaje = "Producto desactivado correctamente." });
+            return Ok(ApiRespuesta<object>.CrearExito(
+                "Producto desactivado correctamente."
+            ));
         }
     }
 }

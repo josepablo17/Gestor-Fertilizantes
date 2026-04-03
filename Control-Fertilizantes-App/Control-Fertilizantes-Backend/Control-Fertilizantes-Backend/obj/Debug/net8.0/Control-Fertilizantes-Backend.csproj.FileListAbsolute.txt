@@ -74,3 +74,4 @@ C:\Users\josep\OneDrive - Universidad Fidélitas\Control-Fertilizantes\Control-F
 C:\Users\josep\OneDrive - Universidad Fidélitas\Control-Fertilizantes\Control-Fertilizantes-App\Control-Fertilizantes-Backend\Control-Fertilizantes-Backend\obj\Debug\net8.0\Control-Fertilizantes-Backend.pdb
 C:\Users\josep\OneDrive - Universidad Fidélitas\Control-Fertilizantes\Control-Fertilizantes-App\Control-Fertilizantes-Backend\Control-Fertilizantes-Backend\obj\Debug\net8.0\Control-Fertilizantes-Backend.genruntimeconfig.cache
 C:\Users\josep\OneDrive - Universidad Fidélitas\Control-Fertilizantes\Control-Fertilizantes-App\Control-Fertilizantes-Backend\Control-Fertilizantes-Backend\obj\Debug\net8.0\ref\Control-Fertilizantes-Backend.dll
+C:\Users\josep\OneDrive - Universidad Fidélitas\Control-Fertilizantes\Control-Fertilizantes-App\Control-Fertilizantes-Backend\Control-Fertilizantes-Backend\obj\Debug\net8.0\Control-Fertilizantes-Backend.sourcelink.json

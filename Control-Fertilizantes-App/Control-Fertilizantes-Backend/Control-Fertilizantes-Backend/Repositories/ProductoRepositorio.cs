@@ -1,6 +1,6 @@
 ﻿using Control_Fertilizantes_Backend.Entities;
 using Control_Fertilizantes_Backend.Interfaces;
-using Control_Fertilizantes_Backend.DataAccess;
+
 using Dapper;
 using System.Data;
 

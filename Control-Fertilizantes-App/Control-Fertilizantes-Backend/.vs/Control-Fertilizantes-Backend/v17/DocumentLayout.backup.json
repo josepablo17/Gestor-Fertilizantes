@@ -3,28 +3,16 @@
   "WorkspaceRootPath": "C:\\Users\\josep\\OneDrive - Universidad Fid\u00E9litas\\Control-Fertilizantes\\Control-Fertilizantes-App\\Control-Fertilizantes-Backend\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{EF237BF2-D1CF-414C-985E-265433B11B79}|Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend.csproj|c:\\users\\josep\\onedrive - universidad fid\u00E9litas\\control-fertilizantes\\control-fertilizantes-app\\control-fertilizantes-backend\\control-fertilizantes-backend\\controllers\\productocontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{EF237BF2-D1CF-414C-985E-265433B11B79}|Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend.csproj|solutionrelative:control-fertilizantes-backend\\controllers\\productocontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{EF237BF2-D1CF-414C-985E-265433B11B79}|Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend.csproj|c:\\users\\josep\\onedrive - universidad fid\u00E9litas\\control-fertilizantes\\control-fertilizantes-app\\control-fertilizantes-backend\\control-fertilizantes-backend\\controllers\\unidadmedidacontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EF237BF2-D1CF-414C-985E-265433B11B79}|Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend.csproj|solutionrelative:control-fertilizantes-backend\\controllers\\unidadmedidacontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{EF237BF2-D1CF-414C-985E-265433B11B79}|Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend.csproj|c:\\users\\josep\\onedrive - universidad fid\u00E9litas\\control-fertilizantes\\control-fertilizantes-app\\control-fertilizantes-backend\\control-fertilizantes-backend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{EF237BF2-D1CF-414C-985E-265433B11B79}|Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend.csproj|solutionrelative:control-fertilizantes-backend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{EF237BF2-D1CF-414C-985E-265433B11B79}|Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend.csproj|c:\\users\\josep\\onedrive - universidad fid\u00E9litas\\control-fertilizantes\\control-fertilizantes-app\\control-fertilizantes-backend\\control-fertilizantes-backend\\services\\unidadmedidaservicio.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EF237BF2-D1CF-414C-985E-265433B11B79}|Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend.csproj|solutionrelative:control-fertilizantes-backend\\services\\unidadmedidaservicio.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{EF237BF2-D1CF-414C-985E-265433B11B79}|Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend.csproj|c:\\users\\josep\\onedrive - universidad fid\u00E9litas\\control-fertilizantes\\control-fertilizantes-app\\control-fertilizantes-backend\\control-fertilizantes-backend\\services\\productoservicio.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{EF237BF2-D1CF-414C-985E-265433B11B79}|Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend.csproj|solutionrelative:control-fertilizantes-backend\\services\\productoservicio.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{EF237BF2-D1CF-414C-985E-265433B11B79}|Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend.csproj|c:\\users\\josep\\onedrive - universidad fid\u00E9litas\\control-fertilizantes\\control-fertilizantes-app\\control-fertilizantes-backend\\control-fertilizantes-backend\\interfaces\\iproductoservicio.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{EF237BF2-D1CF-414C-985E-265433B11B79}|Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend.csproj|solutionrelative:control-fertilizantes-backend\\interfaces\\iproductoservicio.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{EF237BF2-D1CF-414C-985E-265433B11B79}|Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend.csproj|c:\\users\\josep\\onedrive - universidad fid\u00E9litas\\control-fertilizantes\\control-fertilizantes-app\\control-fertilizantes-backend\\control-fertilizantes-backend\\interfaces\\iproductorepositorio.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{EF237BF2-D1CF-414C-985E-265433B11B79}|Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend.csproj|solutionrelative:control-fertilizantes-backend\\interfaces\\iproductorepositorio.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{EF237BF2-D1CF-414C-985E-265433B11B79}|Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend.csproj|c:\\users\\josep\\onedrive - universidad fid\u00E9litas\\control-fertilizantes\\control-fertilizantes-app\\control-fertilizantes-backend\\control-fertilizantes-backend\\repositories\\productorepositorio.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{EF237BF2-D1CF-414C-985E-265433B11B79}|Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend.csproj|solutionrelative:control-fertilizantes-backend\\repositories\\productorepositorio.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{EF237BF2-D1CF-414C-985E-265433B11B79}|Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend.csproj|c:\\users\\josep\\onedrive - universidad fid\u00E9litas\\control-fertilizantes\\control-fertilizantes-app\\control-fertilizantes-backend\\control-fertilizantes-backend\\dtos\\unidadmedidaactualizardto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EF237BF2-D1CF-414C-985E-265433B11B79}|Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend.csproj|solutionrelative:control-fertilizantes-backend\\dtos\\unidadmedidaactualizardto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -34,80 +22,46 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Users\\josep\\OneDrive - Universidad Fid\u00E9litas\\Control-Fertilizantes\\Control-Fertilizantes-App\\Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend\\Program.cs",
-              "RelativeDocumentMoniker": "Control-Fertilizantes-Backend\\Program.cs",
-              "ToolTip": "C:\\Users\\josep\\OneDrive - Universidad Fid\u00E9litas\\Control-Fertilizantes\\Control-Fertilizantes-App\\Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend\\Program.cs",
-              "RelativeToolTip": "Control-Fertilizantes-Backend\\Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAAAjAAAAAAAAAA==",
+              "DocumentIndex": 0,
+              "Title": "UnidadMedidaController.cs",
+              "DocumentMoniker": "C:\\Users\\josep\\OneDrive - Universidad Fid\u00E9litas\\Control-Fertilizantes\\Control-Fertilizantes-App\\Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend\\Controllers\\UnidadMedidaController.cs",
+              "RelativeDocumentMoniker": "Control-Fertilizantes-Backend\\Controllers\\UnidadMedidaController.cs",
+              "ToolTip": "C:\\Users\\josep\\OneDrive - Universidad Fid\u00E9litas\\Control-Fertilizantes\\Control-Fertilizantes-App\\Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend\\Controllers\\UnidadMedidaController.cs",
+              "RelativeToolTip": "Control-Fertilizantes-Backend\\Controllers\\UnidadMedidaController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-23T16:07:25.561Z"
+              "WhenOpened": "2026-04-03T07:25:49.113Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "ProductoController.cs",
-              "DocumentMoniker": "C:\\Users\\josep\\OneDrive - Universidad Fid\u00E9litas\\Control-Fertilizantes\\Control-Fertilizantes-App\\Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend\\Controllers\\ProductoController.cs",
-              "RelativeDocumentMoniker": "Control-Fertilizantes-Backend\\Controllers\\ProductoController.cs",
-              "ToolTip": "C:\\Users\\josep\\OneDrive - Universidad Fid\u00E9litas\\Control-Fertilizantes\\Control-Fertilizantes-App\\Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend\\Controllers\\ProductoController.cs",
-              "RelativeToolTip": "Control-Fertilizantes-Backend\\Controllers\\ProductoController.cs",
-              "ViewState": "AgIAAAkAAAAAAAAAAAAqwBwAAABRAAAAAAAAAA==",
+              "DocumentIndex": 1,
+              "Title": "UnidadMedidaServicio.cs",
+              "DocumentMoniker": "C:\\Users\\josep\\OneDrive - Universidad Fid\u00E9litas\\Control-Fertilizantes\\Control-Fertilizantes-App\\Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend\\Services\\UnidadMedidaServicio.cs",
+              "RelativeDocumentMoniker": "Control-Fertilizantes-Backend\\Services\\UnidadMedidaServicio.cs",
+              "ToolTip": "C:\\Users\\josep\\OneDrive - Universidad Fid\u00E9litas\\Control-Fertilizantes\\Control-Fertilizantes-App\\Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend\\Services\\UnidadMedidaServicio.cs",
+              "RelativeToolTip": "Control-Fertilizantes-Backend\\Services\\UnidadMedidaServicio.cs",
+              "ViewState": "AgIAAGUAAAAAAAAAAAAuwBcAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-23T15:24:33.149Z",
+              "WhenOpened": "2026-04-03T07:23:07.985Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "ProductoServicio.cs",
-              "DocumentMoniker": "C:\\Users\\josep\\OneDrive - Universidad Fid\u00E9litas\\Control-Fertilizantes\\Control-Fertilizantes-App\\Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend\\Services\\ProductoServicio.cs",
-              "RelativeDocumentMoniker": "Control-Fertilizantes-Backend\\Services\\ProductoServicio.cs",
-              "ToolTip": "C:\\Users\\josep\\OneDrive - Universidad Fid\u00E9litas\\Control-Fertilizantes\\Control-Fertilizantes-App\\Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend\\Services\\ProductoServicio.cs",
-              "RelativeToolTip": "Control-Fertilizantes-Backend\\Services\\ProductoServicio.cs",
-              "ViewState": "AgIAAE8AAAAAAAAAAAAcwGAAAAAAAAAAAAAAAA==",
+              "Title": "UnidadMedidaActualizarDTO.cs",
+              "DocumentMoniker": "C:\\Users\\josep\\OneDrive - Universidad Fid\u00E9litas\\Control-Fertilizantes\\Control-Fertilizantes-App\\Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend\\DTOs\\UnidadMedidaActualizarDTO.cs",
+              "RelativeDocumentMoniker": "Control-Fertilizantes-Backend\\DTOs\\UnidadMedidaActualizarDTO.cs",
+              "ToolTip": "C:\\Users\\josep\\OneDrive - Universidad Fid\u00E9litas\\Control-Fertilizantes\\Control-Fertilizantes-App\\Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend\\DTOs\\UnidadMedidaActualizarDTO.cs*",
+              "RelativeToolTip": "Control-Fertilizantes-Backend\\DTOs\\UnidadMedidaActualizarDTO.cs*",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAABOAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-23T15:23:35.061Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "IProductoServicio.cs",
-              "DocumentMoniker": "C:\\Users\\josep\\OneDrive - Universidad Fid\u00E9litas\\Control-Fertilizantes\\Control-Fertilizantes-App\\Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend\\Interfaces\\IProductoServicio.cs",
-              "RelativeDocumentMoniker": "Control-Fertilizantes-Backend\\Interfaces\\IProductoServicio.cs",
-              "ToolTip": "C:\\Users\\josep\\OneDrive - Universidad Fid\u00E9litas\\Control-Fertilizantes\\Control-Fertilizantes-App\\Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend\\Interfaces\\IProductoServicio.cs",
-              "RelativeToolTip": "Control-Fertilizantes-Backend\\Interfaces\\IProductoServicio.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-23T15:22:33.855Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "IProductoRepositorio.cs",
-              "DocumentMoniker": "C:\\Users\\josep\\OneDrive - Universidad Fid\u00E9litas\\Control-Fertilizantes\\Control-Fertilizantes-App\\Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend\\Interfaces\\IProductoRepositorio.cs",
-              "RelativeDocumentMoniker": "Control-Fertilizantes-Backend\\Interfaces\\IProductoRepositorio.cs",
-              "ToolTip": "C:\\Users\\josep\\OneDrive - Universidad Fid\u00E9litas\\Control-Fertilizantes\\Control-Fertilizantes-App\\Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend\\Interfaces\\IProductoRepositorio.cs",
-              "RelativeToolTip": "Control-Fertilizantes-Backend\\Interfaces\\IProductoRepositorio.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-23T15:18:27.34Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "ProductoRepositorio.cs",
-              "DocumentMoniker": "C:\\Users\\josep\\OneDrive - Universidad Fid\u00E9litas\\Control-Fertilizantes\\Control-Fertilizantes-App\\Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend\\Repositories\\ProductoRepositorio.cs",
-              "RelativeDocumentMoniker": "Control-Fertilizantes-Backend\\Repositories\\ProductoRepositorio.cs",
-              "ToolTip": "C:\\Users\\josep\\OneDrive - Universidad Fid\u00E9litas\\Control-Fertilizantes\\Control-Fertilizantes-App\\Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend\\Repositories\\ProductoRepositorio.cs",
-              "RelativeToolTip": "Control-Fertilizantes-Backend\\Repositories\\ProductoRepositorio.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-23T15:18:18.474Z"
+              "WhenOpened": "2026-04-03T07:21:09.963Z",
+              "EditorCaption": ""
             }
           ]
         }
