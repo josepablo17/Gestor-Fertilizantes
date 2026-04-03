@@ -24,7 +24,8 @@ function AlertasCompra({ alertas }) {
         </div>
 
         <div className="alertas-resumen-badge">
-          {alertasOrdenadas.length} alerta{alertasOrdenadas.length !== 1 ? "s" : ""} detectada{alertasOrdenadas.length !== 1 ? "s" : ""}
+          {alertasOrdenadas.length} alerta{alertasOrdenadas.length !== 1 ? "s" : ""} detectada
+          {alertasOrdenadas.length !== 1 ? "s" : ""}
         </div>
       </div>
 
@@ -37,6 +38,7 @@ function AlertasCompra({ alertas }) {
 
           const claseNivel = obtenerClaseNivel(nivelAlerta);
           const textoInsight = obtenerInsightCorto(tipoAlerta, nivelAlerta);
+          const recomendacion = obtenerRecomendacion(tipoAlerta, nivelAlerta);
 
           return (
             <article
@@ -54,7 +56,7 @@ function AlertasCompra({ alertas }) {
                 </div>
 
                 <span className={`alerta-badge ${claseNivel}`}>
-                  {nivelAlerta || "Sin nivel"}
+                  Riesgo {nivelAlerta || "sin nivel"}
                 </span>
               </div>
 
@@ -66,6 +68,15 @@ function AlertasCompra({ alertas }) {
                 <p className="alerta-mensaje">
                   {mensajeAlerta || "No hay descripción disponible para esta alerta."}
                 </p>
+
+                <div className="alerta-recomendacion">
+                  <span className="alerta-recomendacion-etiqueta">
+                    Recomendación
+                  </span>
+                  <p className="alerta-recomendacion-texto">
+                    {recomendacion}
+                  </p>
+                </div>
               </div>
 
               <div className="alerta-footer">
@@ -133,6 +144,33 @@ function obtenerInsightCorto(tipo, nivel) {
   }
 
   return "Se detectó una condición que puede impactar la decisión de compra.";
+}
+
+function obtenerRecomendacion(tipo, nivel) {
+  const tipoNormalizado = (tipo || "").toLowerCase();
+  const nivelNormalizado = (nivel || "").toLowerCase();
+
+  if (tipoNormalizado === "sobreprecio") {
+    if (nivelNormalizado.includes("alto")) {
+      return "Se recomienda evaluar proveedores alternativos antes de realizar nuevas compras.";
+    }
+
+    return "Se recomienda monitorear el comportamiento del precio en próximas compras.";
+  }
+
+  if (tipoNormalizado === "subidareciente") {
+    return "Se recomienda revisar si el aumento responde a una tendencia sostenida o a un evento puntual.";
+  }
+
+  if (tipoNormalizado === "dependenciaproveedor") {
+    return "Se recomienda diversificar proveedores para reducir el riesgo operativo.";
+  }
+
+  if (tipoNormalizado === "inactividadcompra") {
+    return "Se recomienda validar la necesidad actual del producto y revisar el stock disponible.";
+  }
+
+  return "Se recomienda analizar el contexto antes de tomar una decisión.";
 }
 
 function formatearTipoAlerta(tipo) {

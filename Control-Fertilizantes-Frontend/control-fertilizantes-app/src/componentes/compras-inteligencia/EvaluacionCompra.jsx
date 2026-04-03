@@ -11,18 +11,21 @@ function EvaluacionCompra({ evaluacion }) {
   const claseVariacionPromedio = obtenerClaseVariacion(evaluacion.porcentajeVsPromedio);
   const claseVariacionUltimo = obtenerClaseVariacion(evaluacion.porcentajeVsUltimo);
   const claseTendencia = obtenerClaseTendencia(evaluacion.tendenciaPrecio);
+  const claseEstadoCard = obtenerClaseEstadoCard(evaluacion.clasificacionCompra);
 
   const tituloImpacto = obtenerTituloImpacto(
     evaluacion.clasificacionCompra,
     evaluacion.porcentajeVsPromedio
   );
 
-  const subtituloImpacto = obtenerSubtituloImpacto(evaluacion);
-  const claseEstadoCard = obtenerClaseEstadoCard(evaluacion.clasificacionCompra);
+  const recomendacionSistema = obtenerRecomendacionSistema(evaluacion);
+  const observacionContextual = obtenerObservacionContextual(evaluacion);
 
   return (
     <section className="evaluacion-compra-seccion">
-      <article className={`card-base card-evaluacion-compra card-evaluacion-destacada ${claseEstadoCard}`}>
+      <article
+        className={`card-base card-evaluacion-compra card-evaluacion-destacada ${claseEstadoCard}`}
+      >
         <div className="evaluacion-capa-brillo"></div>
 
         <div className="encabezado-evaluacion-compra">
@@ -39,16 +42,24 @@ function EvaluacionCompra({ evaluacion }) {
 
             <div className="evaluacion-identidad">
               <span className="evaluacion-contexto">
-                {evaluacion.nombreProducto || "Producto"} · {evaluacion.nombrePresentacion || "Presentación"}
+                {evaluacion.nombreProducto || "Producto"} ·{" "}
+                {evaluacion.nombrePresentacion || "Presentación"}
               </span>
 
-              <h2 className="evaluacion-titulo-impacto">
-                {tituloImpacto}
-              </h2>
+              <h2 className="evaluacion-titulo-impacto">{tituloImpacto}</h2>
 
               <p className="evaluacion-subtitulo-impacto">
-                {subtituloImpacto}
+                {observacionContextual}
               </p>
+
+              <div className="evaluacion-recomendacion">
+                <span className="evaluacion-recomendacion-etiqueta">
+                  Recomendación del sistema
+                </span>
+                <p className="evaluacion-recomendacion-texto">
+                  {recomendacionSistema}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -70,51 +81,56 @@ function EvaluacionCompra({ evaluacion }) {
 
           <div className="evaluacion-highlight-card">
             <span className="evaluacion-highlight-etiqueta">Variación vs promedio</span>
-            <strong className={`evaluacion-highlight-valor ${claseVariacionPromedio}`}>
+            <strong
+              className={`evaluacion-highlight-valor ${claseVariacionPromedio}`}
+            >
               {formatearPorcentaje(evaluacion.porcentajeVsPromedio)}
             </strong>
           </div>
 
           <div className="evaluacion-highlight-card">
-            <span className="evaluacion-highlight-etiqueta">Tendencia reciente</span>
-            <strong className={`evaluacion-highlight-valor ${claseTendencia}`}>
-              {evaluacion.tendenciaPrecio || "Sin dato"}
+            <span className="evaluacion-highlight-etiqueta">Variación vs último precio</span>
+            <strong
+              className={`evaluacion-highlight-valor ${claseVariacionUltimo}`}
+            >
+              {formatearPorcentaje(evaluacion.porcentajeVsUltimo)}
             </strong>
           </div>
         </div>
 
         <div className="evaluacion-detalles-bloque">
           <div className="evaluacion-detalles-encabezado">
-            <h3>Contexto de la compra evaluada</h3>
+            <h3>Contexto de respaldo</h3>
             <p>
-              Datos de respaldo utilizados para interpretar la compra más reciente.
+              Información complementaria utilizada para interpretar el resultado de
+              la compra.
             </p>
           </div>
 
           <div className="evaluacion-detalles-grid">
             <div className="evaluacion-item">
-              <span className="evaluacion-item-etiqueta">Proveedor</span>
+              <span className="evaluacion-item-etiqueta">Proveedor evaluado</span>
               <strong className="evaluacion-item-valor">
                 {evaluacion.nombreProveedor || "N/A"}
               </strong>
             </div>
 
             <div className="evaluacion-item">
-              <span className="evaluacion-item-etiqueta">Fecha de compra</span>
+              <span className="evaluacion-item-etiqueta">Fecha analizada</span>
               <strong className="evaluacion-item-valor">
                 {formatearFecha(evaluacion.fechaCompra)}
               </strong>
             </div>
 
             <div className="evaluacion-item">
-              <span className="evaluacion-item-etiqueta">Variación vs último precio</span>
-              <strong className={`evaluacion-item-valor ${claseVariacionUltimo}`}>
-                {formatearPorcentaje(evaluacion.porcentajeVsUltimo)}
+              <span className="evaluacion-item-etiqueta">Tendencia reciente</span>
+              <strong className={`evaluacion-item-valor ${claseTendencia}`}>
+                {evaluacion.tendenciaPrecio || "Sin dato"}
               </strong>
             </div>
 
             <div className="evaluacion-item">
-              <span className="evaluacion-item-etiqueta">Resultado del análisis</span>
+              <span className="evaluacion-item-etiqueta">Observación del análisis</span>
               <strong className="evaluacion-item-valor">
                 {evaluacion.mensajeEvaluacion || "Sin observación disponible"}
               </strong>
@@ -154,12 +170,48 @@ function obtenerTituloImpacto(clasificacionCompra, porcentajeVsPromedio) {
   return clasificacionCompra || "Evaluación de compra disponible";
 }
 
-function obtenerSubtituloImpacto(evaluacion) {
+function obtenerRecomendacionSistema(evaluacion) {
+  const clasificacion = (evaluacion.clasificacionCompra || "").toLowerCase();
+  const porcentajeVsPromedio = Number(evaluacion.porcentajeVsPromedio);
+  const porcentajeVsUltimo = Number(evaluacion.porcentajeVsUltimo);
+  const tendencia = (evaluacion.tendenciaPrecio || "").toLowerCase();
+
+  if (clasificacion.includes("conveniente")) {
+    if (!isNaN(porcentajeVsPromedio) && porcentajeVsPromedio < 0) {
+      return "El precio actual se encuentra en una posición favorable frente al histórico. Puede mantenerse este criterio de compra mientras la tendencia no cambie de forma importante.";
+    }
+
+    return "La compra presenta condiciones favorables. Se recomienda mantener seguimiento del comportamiento del precio en próximas compras.";
+  }
+
+  if (clasificacion.includes("aceptable")) {
+    if (!isNaN(porcentajeVsUltimo) && porcentajeVsUltimo > 0) {
+      return "La compra se mantiene dentro de parámetros aceptables, pero conviene vigilar si el precio continúa aumentando en los próximos registros.";
+    }
+
+    return "La compra no presenta una señal crítica inmediata. Se recomienda continuar monitoreando el histórico antes de tomar una decisión correctiva.";
+  }
+
+  if (clasificacion.includes("riesgosa") || clasificacion.includes("cara")) {
+    if (tendencia.includes("al alza") || tendencia.includes("aumento")) {
+      return "Se recomienda revisar proveedores alternativos o replantear la próxima compra, ya que el precio actual está alto y además muestra una tendencia reciente al alza.";
+    }
+
+    if (!isNaN(porcentajeVsPromedio) && porcentajeVsPromedio > 0) {
+      return "Se recomienda analizar esta compra con mayor cautela, porque el precio actual supera la referencia histórica y podría representar un sobrecosto.";
+    }
+
+    return "La compra presenta señales de riesgo. Conviene validar nuevamente condiciones, proveedor y referencia histórica antes de repetir este patrón de compra.";
+  }
+
+  return "No hay suficiente contexto para emitir una recomendación automática más específica.";
+}
+
+function obtenerObservacionContextual(evaluacion) {
   const proveedor = evaluacion.nombreProveedor || "Proveedor no especificado";
   const fecha = formatearFecha(evaluacion.fechaCompra);
-  const tendencia = evaluacion.tendenciaPrecio || "Sin tendencia definida";
 
-  return `Proveedor evaluado: ${proveedor}. Fecha analizada: ${fecha}. Tendencia detectada: ${tendencia}.`;
+  return `La evaluación corresponde a la compra registrada con ${proveedor} el ${fecha}.`;
 }
 
 function formatearFecha(fecha) {
@@ -215,6 +267,7 @@ function obtenerClaseEstadoCard(clasificacion) {
   if (valor.includes("conveniente")) return "evaluacion-estado-bueno";
   if (valor.includes("aceptable")) return "evaluacion-estado-medio";
   if (valor.includes("riesgosa")) return "evaluacion-estado-riesgo";
+  if (valor.includes("cara")) return "evaluacion-estado-riesgo";
 
   return "evaluacion-estado-neutral";
 }

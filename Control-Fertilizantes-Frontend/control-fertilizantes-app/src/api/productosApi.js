@@ -3,12 +3,13 @@ import CONFIG from "../config";
 export const obtenerProductos = async () => {
   try {
     const respuesta = await fetch(`${CONFIG.API_URL}/Producto/ListarProducto`);
+    const resultado = await respuesta.json();
 
     if (!respuesta.ok) {
-      throw new Error("Error al obtener productos");
+      throw new Error(resultado.mensaje || "Error al obtener productos");
     }
 
-    return await respuesta.json();
+    return resultado.data ?? [];
   } catch (error) {
     console.error("Error en API:", error);
     throw error;
@@ -18,12 +19,13 @@ export const obtenerProductos = async () => {
 export const obtenerProductoPorId = async (idProducto) => {
   try {
     const respuesta = await fetch(`${CONFIG.API_URL}/Producto/ObtenerProducto/${idProducto}`);
+    const resultado = await respuesta.json();
 
     if (!respuesta.ok) {
-      throw new Error("Error al obtener el producto");
+      throw new Error(resultado.mensaje || "Error al obtener el producto");
     }
 
-    return await respuesta.json();
+    return resultado.data ?? null;
   } catch (error) {
     console.error("Error en API:", error);
     throw error;
@@ -40,11 +42,13 @@ export const insertarProducto = async (producto) => {
       body: JSON.stringify(producto)
     });
 
+    const resultado = await respuesta.json();
+
     if (!respuesta.ok) {
-      throw new Error("Error al insertar producto");
+      throw new Error(resultado.mensaje || "Error al insertar producto");
     }
 
-    return await respuesta.json();
+    return resultado;
   } catch (error) {
     console.error("Error en API:", error);
     throw error;
@@ -61,11 +65,13 @@ export const actualizarProducto = async (producto) => {
       body: JSON.stringify(producto)
     });
 
+    const resultado = await respuesta.json();
+
     if (!respuesta.ok) {
-      throw new Error("Error al actualizar producto");
+      throw new Error(resultado.mensaje || "Error al actualizar producto");
     }
 
-    return await respuesta.json();
+    return resultado;
   } catch (error) {
     console.error("Error en API:", error);
     throw error;
@@ -78,11 +84,13 @@ export const desactivarProducto = async (idProducto) => {
       method: "DELETE"
     });
 
+    const resultado = await respuesta.json();
+
     if (!respuesta.ok) {
-      throw new Error("Error al desactivar producto");
+      throw new Error(resultado.mensaje || "Error al desactivar producto");
     }
 
-    return await respuesta.json();
+    return resultado;
   } catch (error) {
     console.error("Error en API:", error);
     throw error;

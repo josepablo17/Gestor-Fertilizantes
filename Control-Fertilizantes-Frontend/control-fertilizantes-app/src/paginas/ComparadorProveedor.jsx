@@ -104,7 +104,7 @@ function ComparadorProveedor() {
   return (
     <div className="pagina-comparador-proveedor">
       <div className="contenedor-comparador-proveedor">
-        {cargando && <Loader />}
+        {cargando && <Loader/>}
 
         <div className="encabezado-comparador">
           <div className="encabezado-comparador__texto">
