@@ -32,7 +32,7 @@
               "RelativeDocumentMoniker": "Control-Fertilizantes-Backend\\Services\\ProformaPdfServicio.cs",
               "ToolTip": "C:\\Users\\josep\\OneDrive - Universidad Fid\u00E9litas\\Control-Fertilizantes\\Control-Fertilizantes-App\\Control-Fertilizantes-Backend\\Control-Fertilizantes-Backend\\Services\\ProformaPdfServicio.cs",
               "RelativeToolTip": "Control-Fertilizantes-Backend\\Services\\ProformaPdfServicio.cs",
-              "ViewState": "AgIAAFEBAAAAAAAAAAAgwFkBAAAgAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAFkBAAAgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-05-02T01:18:31.198Z",
               "EditorCaption": ""
@@ -47,8 +47,7 @@
               "RelativeToolTip": "Control-Fertilizantes-Backend\\Controllers\\ProformaProveedorController.cs",
               "ViewState": "AgIAAAsAAAAAAAAAAAAQwB0AAABOAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-01T23:27:25.505Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-01T23:27:25.505Z"
             },
             {
               "$type": "Document",
@@ -60,8 +59,7 @@
               "RelativeToolTip": "Control-Fertilizantes-Backend\\Controllers\\CompraAutomaticaController.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-01T23:26:11.652Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-01T23:26:11.652Z"
             }
           ]
         }
