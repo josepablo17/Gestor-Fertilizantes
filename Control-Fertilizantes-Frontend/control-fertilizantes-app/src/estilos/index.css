@@ -1,15 +1,19 @@
-@import "./base/variable.css";
-@import "componentes/layout-modulo.css";
-@import "componentes/cards.css";
-@import "componentes/formularios.css";
-@import "componentes/botones.css";
-@import "componentes/filtros.css";
-@import "componentes/tablas.css";
-@import "componentes/contenido-tabla.css";
-@import "componentes/estados.css";
-@import "componentes/paginacion.css";
-@import "componentes/alertas.css";
-@import "componentes/responsive-modulo.css";
-@import "modulos/proveedores.css";
-@import "modulos/compra-inteligencia.css";
-@import "modulos/comparador-proveedor.css"
+@import "./base/global.css";
+@import "./base/reset.css";
+@import "./base/tokens.css";
+
+@import "./layout/app-layout.css";
+@import "./layout/sidebar.css";
+@import "./layout/page.css";
+
+@import "./componentes/button.css";
+@import "./componentes/form.css";
+@import "./componentes/cards.css";
+@import "./componentes/table.css";
+@import "./componentes/badges.css";
+
+@import "./patterns/module-header.css";
+@import "./patterns/toolbar.css";
+@import "./patterns/stats-grid.css";
+
+@import "./modulos/compra-inteligencia.css";

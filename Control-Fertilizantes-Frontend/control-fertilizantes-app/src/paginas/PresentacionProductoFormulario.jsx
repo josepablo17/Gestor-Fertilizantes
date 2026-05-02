@@ -4,7 +4,6 @@ import FormularioPresentacionProducto from "../componentes/presentacionProductos
 import { obtenerPresentacionProductoPorId } from "../api/presentacionProductoApi";
 import { mostrarError } from "../utils/alertas";
 import Loader from "../componentes/Loader";
-import "../estilos/loader.css";
 
 function PresentacionProductoFormulario() {
   const navigate = useNavigate();
@@ -48,40 +47,42 @@ function PresentacionProductoFormulario() {
   };
 
   return (
-    <div className="pagina-modulo">
-      <div className="contenedor-modulo">
-        <div className="encabezado-modulo encabezado-con-acciones">
-          <div>
-            <h1>{estaEditando ? "Editar Presentación" : "Nueva Presentación"}</h1>
-            <p>
-              {estaEditando
-                ? "Actualiza la información de la presentación seleccionada."
-                : "Completa el formulario para registrar una nueva presentación de producto."}
-            </p>
-          </div>
+    <section className="page">
+      <header className="page__header">
+        <div className="page__header-content">
+          <h1 className="page__title">
+            {estaEditando ? "Editar presentación" : "Nueva presentación"}
+          </h1>
+          <p className="page__subtitle">
+            {estaEditando
+              ? "Actualiza la información de la presentación seleccionada."
+              : "Completa el formulario para registrar una nueva presentación de producto."}
+          </p>
+        </div>
 
+        <div className="page__actions">
           <button
             type="button"
-            className="boton-base boton-secundario"
+            className="btn btn--secondary btn--md"
             onClick={manejarCancelar}
           >
             Volver al listado
           </button>
         </div>
+      </header>
 
-        <div className="card-modulo">
-          {cargando ? (
-            <Loader texto="Cargando información de la presentación..." alto="260px" />
-          ) : (
-            <FormularioPresentacionProducto
-              onPresentacionGuardada={manejarPresentacionGuardada}
-              presentacionEditar={presentacionEditar}
-              onCancelarEdicion={manejarCancelar}
-            />
-          )}
-        </div>
+      <div className="page__body">
+        {cargando ? (
+          <Loader texto="Cargando información de la presentación..." alto="260px" />
+        ) : (
+          <FormularioPresentacionProducto
+            onPresentacionGuardada={manejarPresentacionGuardada}
+            presentacionEditar={presentacionEditar}
+            onCancelarEdicion={manejarCancelar}
+          />
+        )}
       </div>
-    </div>
+    </section>
   );
 }
 

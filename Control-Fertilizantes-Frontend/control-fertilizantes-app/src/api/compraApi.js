@@ -3,12 +3,13 @@ import CONFIG from "../config";
 export const obtenerCompras = async () => {
   try {
     const respuesta = await fetch(`${CONFIG.API_URL}/Compra/ListarCompra`);
+    const resultado = await respuesta.json();
 
     if (!respuesta.ok) {
-      throw new Error("Error al obtener compras");
+      throw new Error(resultado.mensaje || "Error al obtener compras");
     }
 
-    return await respuesta.json();
+    return resultado.data ?? [];
   } catch (error) {
     console.error("Error en API:", error);
     throw error;
@@ -18,12 +19,13 @@ export const obtenerCompras = async () => {
 export const obtenerCompraPorId = async (idCompra) => {
   try {
     const respuesta = await fetch(`${CONFIG.API_URL}/Compra/ObtenerCompra/${idCompra}`);
+    const resultado = await respuesta.json();
 
     if (!respuesta.ok) {
-      throw new Error("Error al obtener la compra");
+      throw new Error(resultado.mensaje || "Error al obtener la compra");
     }
 
-    return await respuesta.json();
+    return resultado.data ?? null;
   } catch (error) {
     console.error("Error en API:", error);
     throw error;
@@ -40,11 +42,13 @@ export const insertarCompra = async (compra) => {
       body: JSON.stringify(compra)
     });
 
+    const resultado = await respuesta.json();
+
     if (!respuesta.ok) {
-      throw new Error("Error al insertar compra");
+      throw new Error(resultado.mensaje || "Error al insertar compra");
     }
 
-    return await respuesta.json();
+    return resultado;
   } catch (error) {
     console.error("Error en API:", error);
     throw error;
@@ -61,11 +65,13 @@ export const actualizarCompra = async (compra) => {
       body: JSON.stringify(compra)
     });
 
+    const resultado = await respuesta.json();
+
     if (!respuesta.ok) {
-      throw new Error("Error al actualizar compra");
+      throw new Error(resultado.mensaje || "Error al actualizar compra");
     }
 
-    return await respuesta.json();
+    return resultado;
   } catch (error) {
     console.error("Error en API:", error);
     throw error;
@@ -75,12 +81,13 @@ export const actualizarCompra = async (compra) => {
 export const obtenerHistorialComprasPorProducto = async (idProducto) => {
   try {
     const respuesta = await fetch(`${CONFIG.API_URL}/Compra/HistorialPorProducto/${idProducto}`);
+    const resultado = await respuesta.json();
 
     if (!respuesta.ok) {
-      throw new Error("Error al obtener el historial de compras del producto");
+      throw new Error(resultado.mensaje || "Error al obtener el historial de compras del producto");
     }
 
-    return await respuesta.json();
+    return resultado.data ?? [];
   } catch (error) {
     console.error("Error en API:", error);
     throw error;
@@ -93,11 +100,13 @@ export const obtenerUltimoPrecioCompra = async (idProducto, idPresentacionProduc
       `${CONFIG.API_URL}/Compra/ObtenerUltimoPrecio?idProducto=${idProducto}&idPresentacionProducto=${idPresentacionProducto}`
     );
 
+    const resultado = await respuesta.json();
+
     if (!respuesta.ok) {
-      throw new Error("Error al obtener el último precio de compra");
+      throw new Error(resultado.mensaje || "Error al obtener el último precio de compra");
     }
 
-    return await respuesta.json();
+    return resultado.data ?? null;
   } catch (error) {
     console.error("Error en API:", error);
     throw error;

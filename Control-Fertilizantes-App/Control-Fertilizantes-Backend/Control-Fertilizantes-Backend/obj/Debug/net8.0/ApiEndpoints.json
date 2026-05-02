@@ -167,6 +167,38 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.CompraAutomaticaController",
+    "Method": "ConfirmarCompras",
+    "RelativePath": "api/CompraAutomatica/ConfirmarCompras",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "Control_Fertilizantes_Backend.DTOs.ConfirmarComprasAutomaticasDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.CompraAutomaticaController",
+    "Method": "VistaPreviaValidada",
+    "RelativePath": "api/CompraAutomatica/VistaPreviaValidada",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "ArchivoPdf",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "Control_Fertilizantes_Backend.Controllers.CompraInteligenciaController",
     "Method": "ObtenerAlertas",
     "RelativePath": "api/CompraInteligencia/Alertas",
@@ -407,6 +439,48 @@
     "Parameters": [
       {
         "Name": "idProducto",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.ProformaProveedorController",
+    "Method": "Guardar",
+    "RelativePath": "api/ProformaProveedor/GuardarProformaProveedor",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "guardarProformaProveedorDTO",
+        "Type": "Control_Fertilizantes_Backend.DTOs.GuardarProformaProveedorDTO",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.ProformaProveedorController",
+    "Method": "Listar",
+    "RelativePath": "api/ProformaProveedor/ListarProformasProveedor",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Control_Fertilizantes_Backend.Controllers.ProformaProveedorController",
+    "Method": "ObtenerPorId",
+    "RelativePath": "api/ProformaProveedor/ObtenerProformaProveedor/{idProformaProveedor}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "idProformaProveedor",
         "Type": "System.Int32",
         "IsRequired": true
       }

@@ -6,11 +6,11 @@ function FiltroProveedores({
     onLimpiarFiltros
 }) {
     return (
-        <div className="barra-herramientas filtros-proveedores">
-            <div className="grupo-busqueda">
+        <div className="toolbar">
+            <div className="toolbar__search">
                 <input
                     id="busquedaProveedor"
-                    className="input-busqueda"
+                    className="input"
                     type="text"
                     placeholder="Nombre, contacto o teléfono..."
                     value={busqueda}
@@ -18,12 +18,14 @@ function FiltroProveedores({
                 />
             </div>
 
-            <div className="grupo-filtros">
-                <div className="campo-filtro">
-                    <label htmlFor="estadoProveedor">Estado</label>
+            <div className="toolbar__group">
+                <div className="form-group">
+                    <label htmlFor="estadoProveedor" className="form-label">
+                        Estado
+                    </label>
                     <select
                         id="estadoProveedor"
-                        className="select-filtro"
+                        className="select"
                         value={filtroEstado}
                         onChange={(e) => setFiltroEstado(e.target.value)}
                     >
@@ -34,9 +36,9 @@ function FiltroProveedores({
                 </div>
 
                 <button
-                    className="boton-base boton-limpiar"
-                    onClick={onLimpiarFiltros}
                     type="button"
+                    className="btn btn--ghost btn--md"
+                    onClick={onLimpiarFiltros}
                 >
                     Limpiar
                 </button>

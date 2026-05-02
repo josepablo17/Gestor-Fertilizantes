@@ -14,7 +14,6 @@ namespace Control_Fertilizantes_Backend.Repositories
             _conexionBD = conexionBD;
         }
 
-
         public async Task<IEnumerable<Compra>> ListarAsync()
         {
             using var conexion = _conexionBD.ObtenerConexion();

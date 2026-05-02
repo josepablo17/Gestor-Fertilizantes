@@ -1,0 +1,57 @@
+/* =========================================================
+   SHELL GENERAL DE LA APLICACIÓN
+========================================================= */
+
+.app-layout {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  min-height: 100vh;
+  background-color: var(--color-bg-app);
+}
+
+/* =========================================================
+   CONTENIDO PRINCIPAL
+========================================================= */
+
+.app-layout__main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-bg-app);
+}
+
+.app-layout__content {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-6);
+}
+
+/* =========================================================
+   CONTENEDOR INTERNO
+========================================================= */
+
+.app-layout__container {
+  width: 100%;
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1024px) {
+  .app-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .app-layout__content {
+    padding: var(--space-5);
+  }
+}
+
+@media (max-width: 768px) {
+  .app-layout__content {
+    padding: var(--space-4);
+  }
+}

@@ -131,138 +131,151 @@ function FormularioPresentacionProducto({
   };
 
   return (
-    <div className="card-modulo">
-      <div className="titulo-seccion">
-        <h2>{estaEditando ? "Editar Presentación" : "Agregar Presentación"}</h2>
-        <p>
+    <div className="card">
+      <div className="card__header">
+        <h2 className="card__title">
+          {estaEditando ? "Editar presentación" : "Agregar presentación"}
+        </h2>
+        <p className="card__subtitle">
           {estaEditando
             ? "Modifica la información de la presentación seleccionada."
             : "Completa los campos para registrar una nueva presentación de producto."}
         </p>
       </div>
 
-      <form className="formulario-modulo" onSubmit={manejarSubmit}>
-        <div className="campo-formulario">
-          <label htmlFor="idProducto">Producto</label>
-          <select
-            id="idProducto"
-            name="idProducto"
-            value={presentacion.idProducto}
-            onChange={manejarCambio}
-            required
-            disabled={cargandoCombos}
-          >
-            <option value="">Seleccione un producto</option>
-            {productosDropdown.map((producto) => (
-              <option key={producto.idProducto} value={producto.idProducto}>
-                {producto.nombre}
-              </option>
-            ))}
-          </select>
-        </div>
+      <div className="card__body">
+        <form className="form" onSubmit={manejarSubmit}>
+          <div className="form__grid">
+            
+            <div className="form__group">
+              <label className="label" htmlFor="idProducto">Producto</label>
+              <select
+                id="idProducto"
+                name="idProducto"
+                value={presentacion.idProducto}
+                onChange={manejarCambio}
+                className="select"
+                required
+                disabled={cargandoCombos}
+              >
+                <option value="">Seleccione un producto</option>
+                {productosDropdown.map((producto) => (
+                  <option key={producto.idProducto} value={producto.idProducto}>
+                    {producto.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        <div className="campo-formulario">
-          <label htmlFor="descripcion">Descripción</label>
-          <input
-            id="descripcion"
-            type="text"
-            name="descripcion"
-            placeholder="Ejemplo: Saco de 50 kg"
-            value={presentacion.descripcion}
-            onChange={manejarCambio}
-            required
-          />
-        </div>
+            <div className="form__group">
+              <label className="label" htmlFor="descripcion">Descripción</label>
+              <input
+                id="descripcion"
+                type="text"
+                name="descripcion"
+                placeholder="Ejemplo: Saco de 50 kg"
+                value={presentacion.descripcion}
+                onChange={manejarCambio}
+                className="input"
+                required
+              />
+            </div>
 
-        <div className="campo-formulario">
-          <label htmlFor="cantidad">Cantidad</label>
-          <input
-            id="cantidad"
-            type="number"
-            name="cantidad"
-            placeholder="Ejemplo: 50"
-            value={presentacion.cantidad}
-            onChange={manejarCambio}
-            min="0"
-            step="0.01"
-            required
-          />
-        </div>
+            <div className="form__group">
+              <label className="label" htmlFor="cantidad">Cantidad</label>
+              <input
+                id="cantidad"
+                type="number"
+                name="cantidad"
+                placeholder="Ejemplo: 50"
+                value={presentacion.cantidad}
+                onChange={manejarCambio}
+                className="input"
+                min="0"
+                step="0.01"
+                required
+              />
+            </div>
 
-        <div className="campo-formulario">
-          <label htmlFor="idUnidadMedida">Unidad de medida</label>
-          <select
-            id="idUnidadMedida"
-            name="idUnidadMedida"
-            value={presentacion.idUnidadMedida}
-            onChange={manejarCambio}
-            required
-            disabled={cargandoCombos}
-          >
-            <option value="">Seleccione una unidad</option>
-            {unidadesDropdown.map((unidad) => (
-              <option key={unidad.idUnidadMedida} value={unidad.idUnidadMedida}>
-                {unidad.nombre}
-              </option>
-            ))}
-          </select>
-        </div>
+            <div className="form__group">
+              <label className="label" htmlFor="idUnidadMedida">Unidad de medida</label>
+              <select
+                id="idUnidadMedida"
+                name="idUnidadMedida"
+                value={presentacion.idUnidadMedida}
+                onChange={manejarCambio}
+                className="select"
+                required
+                disabled={cargandoCombos}
+              >
+                <option value="">Seleccione una unidad</option>
+                {unidadesDropdown.map((unidad) => (
+                  <option key={unidad.idUnidadMedida} value={unidad.idUnidadMedida}>
+                    {unidad.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        <div className="campo-formulario">
-          <label htmlFor="cantidadNormalizada">Cantidad normalizada</label>
-          <input
-            id="cantidadNormalizada"
-            type="number"
-            name="cantidadNormalizada"
-            placeholder="Ejemplo: 50"
-            value={presentacion.cantidadNormalizada}
-            onChange={manejarCambio}
-            min="0"
-            step="0.01"
-            required
-          />
-        </div>
+            <div className="form__group">
+              <label className="label" htmlFor="cantidadNormalizada">Cantidad normalizada</label>
+              <input
+                id="cantidadNormalizada"
+                type="number"
+                name="cantidadNormalizada"
+                placeholder="Ejemplo: 50"
+                value={presentacion.cantidadNormalizada}
+                onChange={manejarCambio}
+                className="input"
+                min="0"
+                step="0.01"
+                required
+              />
+            </div>
 
-        {estaEditando && (
-          <div className="campo-formulario">
-            <label htmlFor="activo">Estado</label>
-            <select
-              id="activo"
-              name="activo"
-              value={presentacion.activo ? "true" : "false"}
-              onChange={(e) =>
-                setPresentacion((prev) => ({
-                  ...prev,
-                  activo: e.target.value === "true"
-                }))
-              }
-            >
-              <option value="true">Activo</option>
-              <option value="false">Inactivo</option>
-            </select>
+            {estaEditando && (
+              <div className="form__group">
+                <label className="label" htmlFor="activo">Estado</label>
+                <select
+                  id="activo"
+                  name="activo"
+                  value={presentacion.activo ? "true" : "false"}
+                  onChange={(e) =>
+                    setPresentacion((prev) => ({
+                      ...prev,
+                      activo: e.target.value === "true"
+                    }))
+                  }
+                  className="select"
+                >
+                  <option value="true">Activo</option>
+                  <option value="false">Inactivo</option>
+                </select>
+              </div>
+            )}
           </div>
-        )}
 
-        <div className="acciones-formulario">
-          {estaEditando && (
+          <div className="form__actions">
+            {estaEditando && (
+              <button
+                type="button"
+                className="btn btn--secondary btn--md"
+                onClick={manejarCancelar}
+              >
+                Cancelar
+              </button>
+            )}
+
             <button
-              type="button"
-              className="boton-base boton-secundario"
-              onClick={manejarCancelar}
+              type="submit"
+              className="btn btn--primary btn--md"
+              disabled={cargandoCombos}
             >
-              Cancelar
+              {estaEditando ? "Actualizar presentación" : "Guardar presentación"}
             </button>
-          )}
-
-          <button
-            type="submit"
-            className="boton-base boton-primario"
-            disabled={cargandoCombos}
-          >
-            {estaEditando ? "Actualizar presentación" : "Guardar presentación"}
-          </button>
-        </div>
-      </form>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

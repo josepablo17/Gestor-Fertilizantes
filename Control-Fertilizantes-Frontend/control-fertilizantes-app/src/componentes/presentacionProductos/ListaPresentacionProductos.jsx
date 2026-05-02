@@ -79,25 +79,37 @@ function ListaPresentacionProductos({
   };
 
   return (
-    <div className="seccion-modulo">
-      <div className="cabecera-lista">
-        <div className="titulo-seccion">
-          <h2>Lista de Presentaciones de Producto</h2>
-          <p>Consulta, filtra, edita y administra las presentaciones registradas.</p>
+    <section className="page-section">
+      <div className="page-section__header">
+        <div>
+          <h2 className="page-section__title">Lista de presentaciones de producto</h2>
+          <p className="page-section__subtitle">
+            Consulta, filtra, edita y administra las presentaciones registradas.
+          </p>
         </div>
 
         {onAgregar && (
           <button
-            className="boton-base boton-agregar"
-            onClick={onAgregar}
             type="button"
+            className="btn btn--primary btn--md"
+            onClick={onAgregar}
           >
             Agregar presentación
           </button>
         )}
       </div>
 
-      {!cargando && !error && presentacionesProducto.length > 0 && (
+      {cargando ? (
+        <EstadoLista tipo="cargando" mensaje="Cargando presentaciones de producto..." />
+      ) : error ? (
+        <EstadoLista tipo="error" mensaje={error} />
+      ) : presentacionesProducto.length === 0 ? (
+        <EstadoLista
+          tipo="vacio"
+          mensaje="No hay presentaciones de producto registradas"
+          subtitulo="Cuando agregues presentaciones, aparecerán aquí para administrarlas."
+        />
+      ) : presentacionesFiltradas.length === 0 ? (
         <>
           <FiltrosPresentacionesProducto
             busqueda={busqueda}
@@ -113,42 +125,42 @@ function ListaPresentacionProductos({
             onLimpiarFiltros={limpiarFiltros}
           />
 
-          <div className="resumen-lista">
-            <span>
-              {presentacionesFiltradas.length > 0
-                ? `Mostrando ${indiceInicial + 1}-${Math.min(
-                    indiceFinal,
-                    presentacionesFiltradas.length
-                  )} de ${presentacionesFiltradas.length} presentacion${
-                    presentacionesFiltradas.length !== 1 ? "es" : ""
-                  }`
-                : obtenerTextoResumen(
-                    presentacionesProducto.length,
-                    presentacionesFiltradas.length
-                  )}
-            </span>
-          </div>
+          <EstadoLista
+            tipo="vacio"
+            mensaje="No se encontraron resultados"
+            subtitulo="Prueba con otra búsqueda o cambia los filtros seleccionados."
+          />
         </>
-      )}
-
-      {cargando ? (
-        <EstadoLista tipo="cargando" mensaje="Cargando presentaciones de producto..." />
-      ) : error ? (
-        <EstadoLista tipo="error" mensaje={error} />
-      ) : presentacionesProducto.length === 0 ? (
-        <EstadoLista
-          tipo="vacio"
-          mensaje="No hay presentaciones de producto registradas"
-          subtitulo="Cuando agregues presentaciones, aparecerán aquí para administrarlas."
-        />
-      ) : presentacionesFiltradas.length === 0 ? (
-        <EstadoLista
-          tipo="vacio"
-          mensaje="No se encontraron resultados"
-          subtitulo="Prueba con otra búsqueda o cambia los filtros seleccionados."
-        />
       ) : (
         <>
+          <FiltrosPresentacionesProducto
+            busqueda={busqueda}
+            setBusqueda={setBusqueda}
+            filtroEstado={filtroEstado}
+            setFiltroEstado={setFiltroEstado}
+            filtroProducto={filtroProducto}
+            setFiltroProducto={setFiltroProducto}
+            filtroUnidadMedida={filtroUnidadMedida}
+            setFiltroUnidadMedida={setFiltroUnidadMedida}
+            productosDisponibles={productosDisponibles}
+            unidadesMedidaDisponibles={unidadesMedidaDisponibles}
+            onLimpiarFiltros={limpiarFiltros}
+          />
+
+          <div className="table__cell-muted" style={{ padding: "0 0 var(--space-3) 0" }}>
+            {presentacionesFiltradas.length > 0
+              ? `Mostrando ${indiceInicial + 1}-${Math.min(
+                  indiceFinal,
+                  presentacionesFiltradas.length
+                )} de ${presentacionesFiltradas.length} presentacion${
+                  presentacionesFiltradas.length !== 1 ? "es" : ""
+                }`
+              : obtenerTextoResumen(
+                  presentacionesProducto.length,
+                  presentacionesFiltradas.length
+                )}
+          </div>
+
           <TablaPresentacionesProducto
             presentacionesProducto={presentacionesPaginadas}
             onEditar={onEditar}
@@ -156,17 +168,17 @@ function ListaPresentacionProductos({
           />
 
           {totalPaginas > 1 && (
-            <div className="paginacion">
+            <div className="toolbar">
               <button
                 type="button"
-                className="boton-paginacion"
+                className="btn btn--ghost"
                 onClick={irAnterior}
                 disabled={paginaActual === 1}
               >
                 Anterior
               </button>
 
-              <div className="numeros-paginacion">
+              <div className="toolbar__group">
                 {Array.from({ length: totalPaginas }, (_, index) => {
                   const numeroPagina = index + 1;
 
@@ -176,8 +188,8 @@ function ListaPresentacionProductos({
                       type="button"
                       className={
                         paginaActual === numeroPagina
-                          ? "boton-paginacion numero-pagina activa"
-                          : "boton-paginacion numero-pagina"
+                          ? "btn btn--primary"
+                          : "btn btn--ghost"
                       }
                       onClick={() => irAPagina(numeroPagina)}
                     >
@@ -189,7 +201,7 @@ function ListaPresentacionProductos({
 
               <button
                 type="button"
-                className="boton-paginacion"
+                className="btn btn--ghost"
                 onClick={irSiguiente}
                 disabled={paginaActual === totalPaginas}
               >
@@ -199,7 +211,7 @@ function ListaPresentacionProductos({
           )}
         </>
       )}
-    </div>
+    </section>
   );
 }
 

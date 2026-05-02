@@ -3,12 +3,13 @@ import CONFIG from "../config";
 export const obtenerPresentacionesProducto = async () => {
   try {
     const respuesta = await fetch(`${CONFIG.API_URL}/PresentacionProducto/ListarPresentacionesProducto`);
+    const resultado = await respuesta.json();
 
     if (!respuesta.ok) {
-      throw new Error("Error al obtener presentaciones de producto");
+      throw new Error(resultado.mensaje || "Error al obtener presentaciones de producto");
     }
 
-    return await respuesta.json();
+    return resultado.data ?? [];
   } catch (error) {
     console.error("Error en API:", error);
     throw error;
@@ -18,12 +19,13 @@ export const obtenerPresentacionesProducto = async () => {
 export const obtenerPresentacionProductoPorId = async (idPresentacionProducto) => {
   try {
     const respuesta = await fetch(`${CONFIG.API_URL}/PresentacionProducto/ObtenerPresentacionProducto/${idPresentacionProducto}`);
+    const resultado = await respuesta.json();
 
     if (!respuesta.ok) {
-      throw new Error("Error al obtener la presentación del producto");
+      throw new Error(resultado.mensaje || "Error al obtener la presentación del producto");
     }
 
-    return await respuesta.json();
+    return resultado.data ?? null;
   } catch (error) {
     console.error("Error en API:", error);
     throw error;
@@ -40,11 +42,13 @@ export const insertarPresentacionProducto = async (presentacion) => {
       body: JSON.stringify(presentacion)
     });
 
+    const resultado = await respuesta.json();
+
     if (!respuesta.ok) {
-      throw new Error("Error al insertar presentación del producto");
+      throw new Error(resultado.mensaje || "Error al insertar presentación del producto");
     }
 
-    return await respuesta.json();
+    return resultado;
   } catch (error) {
     console.error("Error en API:", error);
     throw error;
@@ -61,11 +65,13 @@ export const actualizarPresentacionProducto = async (presentacion) => {
       body: JSON.stringify(presentacion)
     });
 
+    const resultado = await respuesta.json();
+
     if (!respuesta.ok) {
-      throw new Error("Error al actualizar presentación del producto");
+      throw new Error(resultado.mensaje || "Error al actualizar presentación del producto");
     }
 
-    return await respuesta.json();
+    return resultado;
   } catch (error) {
     console.error("Error en API:", error);
     throw error;
@@ -78,11 +84,13 @@ export const desactivarPresentacionProducto = async (idPresentacionProducto) => 
       method: "DELETE"
     });
 
+    const resultado = await respuesta.json();
+
     if (!respuesta.ok) {
-      throw new Error("Error al desactivar presentación del producto");
+      throw new Error(resultado.mensaje || "Error al desactivar presentación del producto");
     }
 
-    return await respuesta.json();
+    return resultado;
   } catch (error) {
     console.error("Error en API:", error);
     throw error;
@@ -90,18 +98,19 @@ export const desactivarPresentacionProducto = async (idPresentacionProducto) => 
 };
 
 // =========================
-//  DROPDOWNS
+// DROPDOWNS
 // =========================
 
 export const obtenerProductosDropdown = async () => {
   try {
     const respuesta = await fetch(`${CONFIG.API_URL}/PresentacionProducto/ListarProductosDropdown`);
+    const resultado = await respuesta.json();
 
     if (!respuesta.ok) {
-      throw new Error("Error al obtener productos para dropdown");
+      throw new Error(resultado.mensaje || "Error al obtener productos para dropdown");
     }
 
-    return await respuesta.json();
+    return resultado.data ?? [];
   } catch (error) {
     console.error("Error en API:", error);
     throw error;
@@ -111,12 +120,13 @@ export const obtenerProductosDropdown = async () => {
 export const obtenerUnidadesMedidaDropdown = async () => {
   try {
     const respuesta = await fetch(`${CONFIG.API_URL}/PresentacionProducto/ListarUnidadesMedidaDropdown`);
+    const resultado = await respuesta.json();
 
     if (!respuesta.ok) {
-      throw new Error("Error al obtener unidades de medida para dropdown");
+      throw new Error(resultado.mensaje || "Error al obtener unidades de medida para dropdown");
     }
 
-    return await respuesta.json();
+    return resultado.data ?? [];
   } catch (error) {
     console.error("Error en API:", error);
     throw error;

@@ -12,22 +12,22 @@ function FiltrosPresentacionesProducto({
   onLimpiarFiltros
 }) {
   return (
-    <div className="barra-herramientas">
-      <div className="grupo-busqueda">
+    <div className="toolbar">
+      <div className="toolbar__search">
         <input
           type="text"
           placeholder="Buscar por producto, descripción o unidad de medida..."
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
-          className="input-busqueda"
+          className="input"
         />
       </div>
 
-      <div className="grupo-filtros">
+      <div className="toolbar__group">
         <select
           value={filtroEstado}
           onChange={(e) => setFiltroEstado(e.target.value)}
-          className="select-filtro"
+          className="select"
         >
           <option value="todos">Todos los estados</option>
           <option value="activos">Activos</option>
@@ -37,7 +37,7 @@ function FiltrosPresentacionesProducto({
         <select
           value={filtroProducto}
           onChange={(e) => setFiltroProducto(e.target.value)}
-          className="select-filtro"
+          className="select"
         >
           <option value="todos">Todos los productos</option>
           {productosDisponibles.map((producto) => (
@@ -50,7 +50,7 @@ function FiltrosPresentacionesProducto({
         <select
           value={filtroUnidadMedida}
           onChange={(e) => setFiltroUnidadMedida(e.target.value)}
-          className="select-filtro"
+          className="select"
         >
           <option value="todas">Todas las unidades</option>
           {unidadesMedidaDisponibles.map((unidad) => (
@@ -61,9 +61,9 @@ function FiltrosPresentacionesProducto({
         </select>
 
         <button
-          className="boton-base boton-limpiar"
-          onClick={onLimpiarFiltros}
           type="button"
+          className="btn btn--ghost btn--md"
+          onClick={onLimpiarFiltros}
         >
           Limpiar filtros
         </button>

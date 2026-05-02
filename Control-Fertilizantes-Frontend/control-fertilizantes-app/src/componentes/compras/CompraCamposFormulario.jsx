@@ -7,9 +7,11 @@ function CompraCamposFormulario({
   onChange
 }) {
   return (
-    <>
-      <div className="campo-formulario">
-        <label htmlFor="idProducto">Producto</label>
+    <div className="form__grid">
+      
+      {/* Producto */}
+      <div className="form__group">
+        <label htmlFor="idProducto" className="label">Producto</label>
         <select
           id="idProducto"
           name="idProducto"
@@ -17,6 +19,7 @@ function CompraCamposFormulario({
           onChange={onChange}
           required
           disabled={cargandoCatalogos}
+          className="select select--md"
         >
           <option value="">Seleccione un producto</option>
           {productos.map((producto) => (
@@ -27,8 +30,9 @@ function CompraCamposFormulario({
         </select>
       </div>
 
-      <div className="campo-formulario">
-        <label htmlFor="idProveedor">Proveedor</label>
+      {/* Proveedor */}
+      <div className="form__group">
+        <label htmlFor="idProveedor" className="label">Proveedor</label>
         <select
           id="idProveedor"
           name="idProveedor"
@@ -36,6 +40,7 @@ function CompraCamposFormulario({
           onChange={onChange}
           required
           disabled={cargandoCatalogos}
+          className="select select--md"
         >
           <option value="">Seleccione un proveedor</option>
           {proveedores.map((proveedor) => (
@@ -46,8 +51,9 @@ function CompraCamposFormulario({
         </select>
       </div>
 
-      <div className="campo-formulario">
-        <label htmlFor="idPresentacionProducto">Presentación</label>
+      {/* Presentación */}
+      <div className="form__group">
+        <label htmlFor="idPresentacionProducto" className="label">Presentación</label>
         <select
           id="idPresentacionProducto"
           name="idPresentacionProducto"
@@ -55,6 +61,7 @@ function CompraCamposFormulario({
           onChange={onChange}
           required
           disabled={cargandoCatalogos}
+          className="select select--md"
         >
           <option value="">Seleccione una presentación</option>
           {presentacionesFiltradas.map((presentacion) => (
@@ -62,9 +69,9 @@ function CompraCamposFormulario({
               key={presentacion.idPresentacionProducto}
               value={presentacion.idPresentacionProducto}
             >
-              {presentacion.descripcion ||
+              {(presentacion.descripcion ||
                 presentacion.presentacion ||
-                "Presentación"}{" "}
+                "Presentación")}{" "}
               - {presentacion.cantidad || 0}{" "}
               {presentacion.unidadMedida || ""}
             </option>
@@ -72,8 +79,9 @@ function CompraCamposFormulario({
         </select>
       </div>
 
-      <div className="campo-formulario">
-        <label htmlFor="fechaCompra">Fecha de compra</label>
+      {/* Fecha */}
+      <div className="form__group">
+        <label htmlFor="fechaCompra" className="label">Fecha de compra</label>
         <input
           id="fechaCompra"
           type="date"
@@ -81,47 +89,54 @@ function CompraCamposFormulario({
           value={compra.fechaCompra}
           onChange={onChange}
           required
+          className="input input--md"
         />
       </div>
 
-      <div className="campo-formulario">
-        <label htmlFor="cantidadComprada">Cantidad comprada</label>
+      {/* Cantidad */}
+      <div className="form__group">
+        <label htmlFor="cantidadComprada" className="label">Cantidad comprada</label>
         <input
           id="cantidadComprada"
           type="number"
           name="cantidadComprada"
-          placeholder="Ejemplo: 10"
+          placeholder="Ej: 10"
           value={compra.cantidadComprada}
           onChange={onChange}
           min="0"
           step="0.01"
           required
+          className="input input--md"
         />
       </div>
 
-      <div className="campo-formulario">
-        <label htmlFor="precioTotal">Precio total</label>
+      {/* Precio */}
+      <div className="form__group">
+        <label htmlFor="precioTotal" className="label">Precio total</label>
         <input
           id="precioTotal"
           type="number"
           name="precioTotal"
-          placeholder="Ejemplo: 25000"
+          placeholder="Ej: 25000"
           value={compra.precioTotal}
           onChange={onChange}
           min="0"
           step="0.01"
           required
+          className="input input--md"
         />
       </div>
 
-      <div className="campo-formulario">
-        <label htmlFor="moneda">Moneda</label>
+      {/* Moneda */}
+      <div className="form__group">
+        <label htmlFor="moneda" className="label">Moneda</label>
         <select
           id="moneda"
           name="moneda"
           value={compra.moneda}
           onChange={onChange}
           required
+          className="select select--md"
         >
           <option value="">Seleccione una moneda</option>
           <option value="CRC">CRC</option>
@@ -129,8 +144,9 @@ function CompraCamposFormulario({
         </select>
       </div>
 
-      <div className="campo-formulario campo-formulario-completo">
-        <label htmlFor="observaciones">Observaciones</label>
+      {/* Observaciones */}
+      <div className="form__group form__group--full">
+        <label htmlFor="observaciones" className="label">Observaciones</label>
         <textarea
           id="observaciones"
           name="observaciones"
@@ -139,9 +155,11 @@ function CompraCamposFormulario({
           onChange={onChange}
           rows="4"
           maxLength="500"
+          className="textarea"
         />
       </div>
-    </>
+
+    </div>
   );
 }
 

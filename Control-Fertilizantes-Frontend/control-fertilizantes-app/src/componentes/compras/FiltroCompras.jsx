@@ -14,32 +14,33 @@ function FiltrosCompras({
   onLimpiarFiltros
 }) {
   return (
-    <div className="barra-herramientas">
-      <div className="grupo-busqueda">
+    <div className="toolbar toolbar--wrap">
+      
+      {/* 🔍 Buscadores */}
+      <div className="toolbar__group">
         <input
           type="text"
-          placeholder="Buscar por producto, categoría, marca o presentación..."
+          placeholder="Buscar producto..."
           value={busquedaProducto}
           onChange={(e) => setBusquedaProducto(e.target.value)}
-          className="input-busqueda"
+          className="input input--md"
         />
-      </div>
 
-      <div className="grupo-busqueda">
         <input
           type="text"
-          placeholder="Buscar por proveedor..."
+          placeholder="Buscar proveedor..."
           value={busquedaProveedor}
           onChange={(e) => setBusquedaProveedor(e.target.value)}
-          className="input-busqueda"
+          className="input input--md"
         />
       </div>
 
-      <div className="grupo-filtros">
+      {/* 🎛️ Filtros */}
+      <div className="toolbar__group">
         <select
           value={filtroMoneda}
           onChange={(e) => setFiltroMoneda(e.target.value)}
-          className="select-filtro"
+          className="select select--md"
         >
           <option value="todas">Todas las monedas</option>
           {monedasDisponibles.map((moneda) => (
@@ -52,7 +53,7 @@ function FiltrosCompras({
         <select
           value={filtroTendencia}
           onChange={(e) => setFiltroTendencia(e.target.value)}
-          className="select-filtro"
+          className="select select--md"
         >
           <option value="todas">Todas las tendencias</option>
           {tendenciasDisponibles.map((tendencia) => (
@@ -66,15 +67,15 @@ function FiltrosCompras({
           type="date"
           value={filtroFecha}
           onChange={(e) => setFiltroFecha(e.target.value)}
-          className="input-fecha"
+          className="input input--md"
         />
 
         <button
-          className="boton-base boton-limpiar"
+          className="btn btn--ghost btn--md"
           onClick={onLimpiarFiltros}
           type="button"
         >
-          Limpiar filtros
+          Limpiar
         </button>
       </div>
     </div>

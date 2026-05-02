@@ -88,19 +88,10 @@ function FormularioUnidadMedida({ onUnidadMedidaGuardada, unidadMedidaEditar, on
     };
 
     return (
-        <div className="card-modulo">
-            <div className="titulo-seccion">
-                <h2>{estaEditando ? "Editar Unidad de Medida" : "Agregar Unidad de Medida"}</h2>
-                <p>
-                    {estaEditando
-                        ? "Modifica la información de la unidad de medida seleccionada."
-                        : "Completa los campos para registrar una nueva unidad de medida."}
-                </p>
-            </div>
-
-            <form className="formulario-modulo" onSubmit={manejarSubmit}>
-                <div className="campo-formulario">
-                    <label htmlFor="codigo">Código</label>
+        <form className="form" onSubmit={manejarSubmit}>
+            <div className="form__grid">
+                <div className="form__group">
+                    <label className="label" htmlFor="codigo">Código</label>
                     <input
                         id="codigo"
                         type="text"
@@ -108,12 +99,13 @@ function FormularioUnidadMedida({ onUnidadMedidaGuardada, unidadMedidaEditar, on
                         placeholder="Ejemplo: KG"
                         value={unidadMedida.codigo}
                         onChange={manejarCambio}
+                        className="input"
                         required
                     />
                 </div>
 
-                <div className="campo-formulario">
-                    <label htmlFor="nombre">Nombre</label>
+                <div className="form__group">
+                    <label className="label" htmlFor="nombre">Nombre</label>
                     <input
                         id="nombre"
                         type="text"
@@ -121,12 +113,13 @@ function FormularioUnidadMedida({ onUnidadMedidaGuardada, unidadMedidaEditar, on
                         placeholder="Ejemplo: Kilogramo"
                         value={unidadMedida.nombre}
                         onChange={manejarCambio}
+                        className="input"
                         required
                     />
                 </div>
 
-                <div className="campo-formulario">
-                    <label htmlFor="tipoBase">Tipo base</label>
+                <div className="form__group">
+                    <label className="label" htmlFor="tipoBase">Tipo base</label>
                     <input
                         id="tipoBase"
                         type="text"
@@ -134,12 +127,13 @@ function FormularioUnidadMedida({ onUnidadMedidaGuardada, unidadMedidaEditar, on
                         placeholder="Ejemplo: Peso"
                         value={unidadMedida.tipoBase}
                         onChange={manejarCambio}
+                        className="input"
                         required
                     />
                 </div>
 
-                <div className="campo-formulario">
-                    <label htmlFor="factorConversion">Factor de conversión</label>
+                <div className="form__group">
+                    <label className="label" htmlFor="factorConversion">Factor de conversión</label>
                     <input
                         id="factorConversion"
                         type="number"
@@ -147,44 +141,44 @@ function FormularioUnidadMedida({ onUnidadMedidaGuardada, unidadMedidaEditar, on
                         placeholder="Ejemplo: 1"
                         value={unidadMedida.factorConversion}
                         onChange={manejarCambio}
+                        className="input"
                         step="0.0001"
                         min="0"
                         required
                     />
                 </div>
 
-                <div className="campo-formulario campo-formulario-completo">
-                    <div className="campo-checkbox">
-                        <label htmlFor="esUnidadBase" className="label-checkbox">
-                            <input
-                                id="esUnidadBase"
-                                type="checkbox"
-                                name="esUnidadBase"
-                                checked={unidadMedida.esUnidadBase}
-                                onChange={manejarCambio}
-                            />
-                            Es unidad base
-                        </label>
-                    </div>
+                <div className="form__group">
+                    <label className="label">
+                        <input
+                            type="checkbox"
+                            name="esUnidadBase"
+                            checked={unidadMedida.esUnidadBase}
+                            onChange={manejarCambio}
+                        />
+                        {" "}Es unidad base
+                    </label>
                 </div>
+            </div>
 
-                <div className="acciones-formulario">
-                    {estaEditando && (
-                        <button
-                            type="button"
-                            className="boton-base boton-secundario"
-                            onClick={manejarCancelar}
-                        >
-                            Cancelar
-                        </button>
-                    )}
-
-                    <button type="submit" className="boton-base boton-primario">
-                        {estaEditando ? "Actualizar unidad de medida" : "Guardar unidad de medida"}
+            <div className="form__actions">
+                {estaEditando && (
+                    <button
+                        type="button"
+                        className="btn btn--secondary btn--md"
+                        onClick={manejarCancelar}
+                    >
+                        Cancelar
                     </button>
-                </div>
-            </form>
-        </div>
+                )}
+
+                <button type="submit" className="btn btn--primary btn--md">
+                    {estaEditando
+                        ? "Actualizar unidad de medida"
+                        : "Guardar unidad de medida"}
+                </button>
+            </div>
+        </form>
     );
 }
 

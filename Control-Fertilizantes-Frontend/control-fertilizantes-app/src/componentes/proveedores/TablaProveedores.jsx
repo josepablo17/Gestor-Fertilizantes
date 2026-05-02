@@ -1,12 +1,12 @@
 function TablaProveedores({ proveedores, onEditar, onDesactivar }) {
     return (
-        <div className="tabla-responsive">
-            <table className="tabla-modulo">
+        <div className="table-wrapper">
+            <table className="table">
                 <thead>
                     <tr>
                         <th>Proveedor</th>
                         <th>Contacto</th>
-                        <th>Telefono</th>
+                        <th>Teléfono</th>
                         <th>Correo</th>
                         <th>Estado</th>
                         <th>Autorizado</th>
@@ -18,27 +18,25 @@ function TablaProveedores({ proveedores, onEditar, onDesactivar }) {
                     {proveedores.map((proveedor) => (
                         <tr key={proveedor.idProveedor}>
                             <td>
-                                <div className="celda-principal">
-                                    <span className="texto-principal">
-                                        {proveedor.nombre || "Sin nombre"}
-                                    </span>
-                                </div>
+                                <span className="table__cell-strong">
+                                    {proveedor.nombre || "Sin nombre"}
+                                </span>
                             </td>
 
                             <td>
-                                <span className="texto-secundario">
+                                <span className="table__cell-muted">
                                     {proveedor.contacto || "Sin contacto"}
                                 </span>
                             </td>
 
                             <td>
-                                <span className="texto-secundario">
+                                <span className="table__cell-muted">
                                     {proveedor.telefono || "Sin teléfono"}
                                 </span>
                             </td>
 
                             <td>
-                                <span className="texto-secundario">
+                                <span className="table__cell-muted">
                                     {proveedor.correo || "Sin correo"}
                                 </span>
                             </td>
@@ -47,11 +45,10 @@ function TablaProveedores({ proveedores, onEditar, onDesactivar }) {
                                 <span
                                     className={
                                         proveedor.activo
-                                            ? "estado-badge estado-activo"
-                                            : "estado-badge estado-inactivo"
+                                            ? "badge badge--success"
+                                            : "badge badge--neutral"
                                     }
                                 >
-                                    <span className="punto-estado"></span>
                                     {proveedor.activo ? "Activo" : "Inactivo"}
                                 </span>
                             </td>
@@ -60,30 +57,29 @@ function TablaProveedores({ proveedores, onEditar, onDesactivar }) {
                                 <span
                                     className={
                                         proveedor.esProveedorAutorizado
-                                            ? "estado-badge estado-activo"
-                                            : "estado-badge estado-inactivo"
+                                            ? "badge badge--success"
+                                            : "badge badge--neutral"
                                     }
                                 >
-                                    <span className="punto-estado"></span>
                                     {proveedor.esProveedorAutorizado ? "Sí" : "No"}
                                 </span>
                             </td>
 
                             <td>
-                                <div className="acciones-tabla">
+                                <div className="table__actions">
                                     <button
-                                        className="boton-base boton-tabla boton-editar"
-                                        onClick={() => onEditar(proveedor)}
                                         type="button"
+                                        className="btn btn--secondary btn--sm"
+                                        onClick={() => onEditar(proveedor)}
                                     >
                                         Editar
                                     </button>
 
                                     {proveedor.activo && (
                                         <button
-                                            className="boton-base boton-tabla boton-eliminar"
-                                            onClick={() => onDesactivar(proveedor)}
                                             type="button"
+                                            className="btn btn--danger btn--sm"
+                                            onClick={() => onDesactivar(proveedor)}
                                         >
                                             Desactivar
                                         </button>

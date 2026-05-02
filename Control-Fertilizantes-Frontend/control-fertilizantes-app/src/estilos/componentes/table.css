@@ -1,0 +1,216 @@
+/* =========================================================
+   CONTENEDOR DE TABLA
+========================================================= */
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-2xl);
+  background-color: var(--color-bg-surface);
+  box-shadow: var(--shadow-xs);
+}
+
+.table-wrapper--flat {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* =========================================================
+   TABLA BASE
+========================================================= */
+
+.table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: separate;
+  border-spacing: 0;
+  background-color: var(--color-bg-surface);
+}
+
+.table th,
+.table td {
+  padding: 14px 16px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.table thead {
+  background-color: var(--color-gray-50);
+}
+
+.table thead th {
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+/* =========================================================
+   BODY
+========================================================= */
+
+.table tbody td {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+/* quitar borde final */
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* =========================================================
+   FILAS
+========================================================= */
+
+.table tbody tr {
+  transition:
+    background-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.table tbody tr:hover {
+  background-color: var(--color-gray-50);
+}
+
+/* =========================================================
+   CELDAS ESPECIALES
+========================================================= */
+
+.table__cell-muted {
+  color: var(--color-text-muted);
+}
+
+.table__truncate {
+  display: inline-block;
+  max-width: 20rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+.table__cell-strong {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.table__cell-nowrap {
+  white-space: nowrap;
+}
+
+.table__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* =========================================================
+   VARIANTES
+========================================================= */
+
+/* compacta */
+.table--compact th,
+.table--compact td {
+  padding: 10px 12px;
+}
+
+.table--striped tbody tr:nth-child(even) {
+  background-color: var(--color-gray-50);
+}
+
+.table--striped tbody tr:hover {
+  background-color: var(--color-primary-50);
+}
+
+/* =========================================================
+   ESTADO VACÍO
+========================================================= */
+
+.table-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  background-color: var(--color-bg-surface);
+  border: 1px dashed var(--color-border-subtle);
+  border-radius: var(--radius-2xl);
+}
+
+/* =========================================================
+   CABECERA EXTERNA
+========================================================= */
+
+.table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+
+.table-header__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.table-header__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.table-header__subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* =========================================================
+   TABLA DENTRO DE CARD
+========================================================= */
+
+.card .table-wrapper {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.card .table thead {
+  background-color: transparent;
+}
+
+.card .table thead th {
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 768px) {
+  .table-header {
+    align-items: stretch;
+  }
+
+  .table-header__content {
+    width: 100%;
+  }
+}

@@ -12,6 +12,10 @@ import Compras from "./paginas/Compras";
 import ComprasFormulario from "./paginas/ComprasFormulario"
 import CompraInteligencia from "./paginas/CompraInteligencia";
 import ComparadorProveedor from "./paginas/ComparadorProveedor";
+import CompraAutomatica from "./paginas/CompraAutomatica";
+import ProformasProveedor from "./paginas/ProformasProveedor";
+import DetalleProformaProveedor from "./paginas/DetalleProformaProveedor";
+import CompararProformas from "./paginas/CompararProformas";
 
 function App() {
   return (
@@ -36,6 +40,10 @@ function App() {
           <Route path="compras/editar/:id" element={<ComprasFormulario/>}/>
           <Route path="/compras-inteligencia" element={<CompraInteligencia/>} />
           <Route path="/comparador-proveedores" element={<ComparadorProveedor/>}/>
+          <Route path="/compra-automatica" element={<CompraAutomatica />} />
+          <Route path="/proformas-proveedor" element={<ProformasProveedor />} />
+          <Route path="/proformas-proveedor/:idProformaProveedor" element={<DetalleProformaProveedor />} />
+          <Route path="/comparar-proformas" element={<CompararProformas />} />
         </Route>
       </Routes>
     </BrowserRouter>

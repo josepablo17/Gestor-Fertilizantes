@@ -6,121 +6,102 @@ import {
   HiSquares2X2,
   HiShoppingCart,
   HiChartBar,
-  HiScale
+  HiScale,
+  HiDocumentArrowUp,
+  HiClipboardDocumentList
 } from "react-icons/hi2";
-import "../../estilos/sidebar.css";
+import "../../estilos/layout/sidebar.css";
+
+const modulosNavegacion = [
+  {
+    to: "/productos",
+    label: "Productos",
+    icon: HiCube
+  },
+  {
+    to: "/proveedores",
+    label: "Proveedores",
+    icon: HiBuildingStorefront
+  },
+  {
+    to: "/unidadesMedida",
+    label: "Unidades de medida",
+    icon: HiArchiveBox
+  },
+  {
+    to: "/presentacionProductos",
+    label: "Presentaciones producto",
+    icon: HiSquares2X2
+  },
+  {
+    to: "/compras",
+    label: "Compras",
+    icon: HiShoppingCart
+  },
+  {
+    to: "/compras-inteligencia",
+    label: "Compras inteligentes",
+    icon: HiChartBar
+  },
+  {
+    to: "/comparador-proveedores",
+    label: "Comparador proveedores",
+    icon: HiScale
+  },
+  {
+  to: "/compra-automatica",
+  label: "Compra automática",
+  icon: HiDocumentArrowUp
+  },
+  {
+  to: "/proformas-proveedor",
+  label: "Proformas proveedor",
+  icon: HiClipboardDocumentList
+}
+];
 
 function Sidebar() {
   return (
     <aside className="sidebar">
-      <div className="sidebar__superior">
-        <div className="sidebar__marca">
-          <div className="sidebar__logo">
-            <span>FC</span>
-          </div>
-
-          <div className="sidebar__marca-texto">
-            <h2>FertiControl</h2>
-            <span>Sistema de gestión</span>
-          </div>
+      <div className="sidebar__brand">
+        <div className="sidebar__brand-mark">
+          <span>FC</span>
         </div>
 
-        <div className="sidebar__seccion">
-          <span className="sidebar__seccion-titulo">Módulos</span>
-
-          <nav className="sidebar__nav">
-            <NavLink
-              to="/productos"
-              className={({ isActive }) =>
-                isActive ? "sidebar__link activo" : "sidebar__link"
-              }
-            >
-              <span className="sidebar__icono">
-                <HiCube />
-              </span>
-              <span className="sidebar__texto-link">Productos</span>
-            </NavLink>
-
-            <NavLink
-              to="/proveedores"
-              className={({ isActive }) =>
-                isActive ? "sidebar__link activo" : "sidebar__link"
-              }
-            >
-              <span className="sidebar__icono">
-                <HiBuildingStorefront />
-              </span>
-              <span className="sidebar__texto-link">Proveedores</span>
-            </NavLink>
-
-            <NavLink
-              to="/unidadesMedida"
-              className={({ isActive }) =>
-                isActive ? "sidebar__link activo" : "sidebar__link"
-              }
-            >
-              <span className="sidebar__icono">
-                <HiArchiveBox />
-              </span>
-              <span className="sidebar__texto-link">Unidades de medida</span>
-            </NavLink>
-
-            <NavLink
-              to="/presentacionProductos"
-              className={({ isActive }) =>
-                isActive ? "sidebar__link activo" : "sidebar__link"
-              }
-            >
-              <span className="sidebar__icono">
-                <HiSquares2X2 />
-              </span>
-              <span className="sidebar__texto-link">Presentaciones producto</span>
-            </NavLink>
-
-            <NavLink
-              to="/compras"
-              className={({ isActive }) =>
-                isActive ? "sidebar__link activo" : "sidebar__link"
-              }
-            >
-              <span className="sidebar__icono">
-                <HiShoppingCart />
-              </span>
-              <span className="sidebar__texto-link">Compras</span>
-            </NavLink>
-
-            <NavLink
-              to="/compras-inteligencia"
-              className={({ isActive }) =>
-                isActive ? "sidebar__link activo" : "sidebar__link"
-              }
-            >
-              <span className="sidebar__icono">
-                <HiChartBar />
-              </span>
-              <span className="sidebar__texto-link">Compras inteligentes</span>
-            </NavLink>
-
-            <NavLink
-              to="/comparador-proveedores"
-              className={({ isActive }) =>
-                isActive ? "sidebar__link activo" : "sidebar__link"
-              }
-            >
-              <span className="sidebar__icono">
-                <HiScale />
-              </span>
-              <span className="sidebar__texto-link">Comparador proveedores</span>
-            </NavLink>
-          </nav>
+        <div className="sidebar__brand-text">
+          <h1 className="sidebar__brand-title">FertiControl</h1>
+          <p className="sidebar__brand-subtitle">Sistema de gestión</p>
         </div>
       </div>
 
-      <div className="sidebar__inferior">
-        <div className="sidebar__resumen">
-          <span className="sidebar__resumen-label">Panel administrativo</span>
-          <p>
-            Gestiona productos, proveedores, unidades de medida, presentaciones y compras de forma centralizada.
+      <div className="sidebar__section">
+        <span className="sidebar__section-title">Módulos</span>
+
+        <nav className="sidebar__nav" aria-label="Navegación principal">
+          {modulosNavegacion.map(({ to, label, icon: Icono }) => (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+                isActive ? "sidebar__link activo" : "sidebar__link"
+              }
+            >
+              <span className="sidebar__icon" aria-hidden="true">
+                <Icono />
+              </span>
+
+              <span className="sidebar__label">{label}</span>
+            </NavLink>
+          ))}
+        </nav>
+      </div>
+
+      <div className="sidebar__footer">
+        <div className="sidebar__footer-card">
+          <span className="sidebar__footer-title">Panel administrativo</span>
+          <p className="sidebar__footer-text">
+            Gestiona productos, proveedores, unidades de medida, presentaciones
+            y compras desde una sola plataforma.
           </p>
         </div>
       </div>

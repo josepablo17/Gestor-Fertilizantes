@@ -1,7 +1,7 @@
 function TablaProductos({ productos, onEditar, onDesactivar }) {
   return (
-    <div className="tabla-responsive">
-      <table className="tabla-modulo">
+    <div className="table-wrapper">
+      <table className="table">
         <thead>
           <tr>
             <th>Producto</th>
@@ -16,63 +16,54 @@ function TablaProductos({ productos, onEditar, onDesactivar }) {
         <tbody>
           {productos.map((producto) => (
             <tr key={producto.idProducto}>
-              <td>
-                <div className="celda-principal">
-                  <span className="texto-principal">
-                    {producto.nombre || "Sin nombre"}
-                  </span>
-                </div>
+              <td className="table__cell-strong">
+                {producto.nombre || "Sin nombre"}
               </td>
 
-              <td>
-                <span className="texto-secundario">
-                  {producto.categoria || "Sin categoría"}
-                </span>
+              <td className="table__cell-muted">
+                {producto.categoria || "Sin categoría"}
               </td>
 
-              <td>
-                <span className="texto-secundario">
-                  {producto.marca || "Sin marca"}
-                </span>
+              <td className="table__cell-muted">
+                {producto.marca || "Sin marca"}
               </td>
 
               <td>
                 <span
-                  className="texto-truncado"
+                  className="table__cell-muted table__truncate"
                   title={producto.descripcion || "Sin descripción"}
                 >
                   {producto.descripcion || "Sin descripción"}
                 </span>
               </td>
 
-              <td>
+              <td className="table__cell-nowrap">
                 <span
                   className={
                     producto.activo
-                      ? "estado-badge estado-activo"
-                      : "estado-badge estado-inactivo"
+                      ? "badge badge--success"
+                      : "badge badge--neutral"
                   }
                 >
-                  <span className="punto-estado"></span>
                   {producto.activo ? "Activo" : "Inactivo"}
                 </span>
               </td>
 
-              <td>
-                <div className="acciones-tabla">
+              <td className="table__cell-nowrap">
+                <div className="table__actions">
                   <button
-                    className="boton-base boton-tabla boton-editar"
-                    onClick={() => onEditar(producto)}
                     type="button"
+                    className="btn btn--secondary btn--sm"
+                    onClick={() => onEditar(producto)}
                   >
                     Editar
                   </button>
 
                   {producto.activo && (
                     <button
-                      className="boton-base boton-tabla boton-eliminar"
-                      onClick={() => onDesactivar(producto)}
                       type="button"
+                      className="btn btn--danger btn--sm"
+                      onClick={() => onDesactivar(producto)}
                     >
                       Desactivar
                     </button>

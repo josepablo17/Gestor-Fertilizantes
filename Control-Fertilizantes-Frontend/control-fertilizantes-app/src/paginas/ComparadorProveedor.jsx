@@ -11,7 +11,6 @@ import Loader from "../componentes/Loader";
 
 import { mostrarError } from "../utils/alertas";
 
-
 function ComparadorProveedor() {
   const [filtros, setFiltros] = useState({
     idProducto: "",
@@ -102,67 +101,102 @@ function ComparadorProveedor() {
   };
 
   return (
-    <div className="pagina-comparador-proveedor">
-      <div className="contenedor-comparador-proveedor">
-        {cargando && <Loader/>}
-
-        <div className="encabezado-comparador">
-          <div className="encabezado-comparador__texto">
-            <h1>Comparador Inteligente de Proveedores</h1>
-            <p>
-              Compare precios, estabilidad y comportamiento histórico para
-              tomar mejores decisiones de compra en FertiControl.
-            </p>
-          </div>
+    <section className="page">
+      {/* HEADER */}
+      <header className="page__header">
+        <div className="page__header-content">
+          <h1 className="page__title">Comparador de proveedores</h1>
+          <p className="page__subtitle">
+            Analiza precios, estabilidad y comportamiento histórico para tomar mejores decisiones.
+          </p>
         </div>
 
-        <FiltrosComparadorProveedor
-          productos={productos}
-          presentaciones={presentacionesFiltradas}
-          filtros={filtros}
-          setFiltros={setFiltros}
-          onComparar={manejarComparar}
-          onLimpiar={manejarLimpiar}
-        />
+        <div className="page__actions">
+          <button
+            className="btn btn--primary btn--md"
+            onClick={manejarComparar}
+          >
+            Comparar
+          </button>
+        </div>
+      </header>
 
+      <div className="page__body">
+        {/* FILTROS */}
+        <section className="card">
+          <div className="card__body">
+            <FiltrosComparadorProveedor
+              productos={productos}
+              presentaciones={presentacionesFiltradas}
+              filtros={filtros}
+              setFiltros={setFiltros}
+              onComparar={manejarComparar}
+              onLimpiar={manejarLimpiar}
+            />
+          </div>
+        </section>
+
+        {/* LOADER */}
+        {cargando && <Loader />}
+
+        {/* ERROR */}
         {(error || errorProductos || errorPresentaciones) && (
-          <div className="mensaje-error-comparador">
-            <p>
-              {error ||
-                errorProductos ||
-                errorPresentaciones ||
-                "Ocurrió un error al cargar la información."}
-            </p>
-          </div>
+          <section className="card">
+            <div className="card__body">
+              <p className="text-danger">
+                {error ||
+                  errorProductos ||
+                  errorPresentaciones ||
+                  "Ocurrió un error al cargar la información."}
+              </p>
+            </div>
+          </section>
         )}
 
-        {resumen && <ResumenComparadorProveedor resumen={resumen} />}
+        {/* RESUMEN */}
+        {resumen && (
+          <section className="card">
+            <div className="card__body">
+              <ResumenComparadorProveedor resumen={resumen} />
+            </div>
+          </section>
+        )}
 
+        {/* TABLA */}
         {proveedores.length > 0 && (
-          <TablaComparadorProveedor
-            proveedores={proveedores}
-            onVerDetalle={manejarVerDetalle}
-          />
+          <section className="card">
+            <div className="card__body">
+              <TablaComparadorProveedor
+                proveedores={proveedores}
+                onVerDetalle={manejarVerDetalle}
+              />
+            </div>
+          </section>
         )}
 
-        {modalDetalleAbierto && detalleProveedor && (
-          <ModalDetalleProveedor
-            detalleProveedor={detalleProveedor}
-            onCerrar={cerrarModalDetalle}
-          />
-        )}
-
+        {/* EMPTY */}
         {!cargando && !error && !comparativa && (
-          <div className="estado-vacio-comparador">
-            <h3>Seleccione un producto para iniciar la comparación</h3>
-            <p>
-              Use los filtros para analizar proveedores, comparar precios y ver
-              la recomendación automática del sistema.
-            </p>
-          </div>
+          <section className="card">
+            <div className="card__body">
+              <div className="estado-vacio-modulo">
+                <h3>Seleccione un producto</h3>
+                <p>
+                  Use los filtros para comparar proveedores y analizar precios.
+                </p>
+              </div>
+            </div>
+          </section>
         )}
       </div>
-    </div>
+
+      {/* MODAL */}
+      {modalDetalleAbierto && detalleProveedor && (
+        <ModalDetalleProveedor
+          detalleProveedor={detalleProveedor}
+          onCerrar={cerrarModalDetalle}
+        />
+      )}
+    </section>
   );
 }
 

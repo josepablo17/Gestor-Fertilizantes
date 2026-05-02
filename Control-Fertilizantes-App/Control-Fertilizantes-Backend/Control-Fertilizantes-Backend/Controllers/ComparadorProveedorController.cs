@@ -1,4 +1,5 @@
-﻿using Control_Fertilizantes_Backend.Interfaces;
+﻿using Control_Fertilizantes_Backend.DTOs;
+using Control_Fertilizantes_Backend.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Control_Fertilizantes_Backend.Controllers
@@ -16,11 +17,11 @@ namespace Control_Fertilizantes_Backend.Controllers
 
         [HttpGet("Comparar")]
         public async Task<IActionResult> ObtenerComparativa(
-            int idProducto,
-            int idPresentacionProducto,
-            string? moneda = null,
-            int? mesesAnalisis = null,
-            bool soloAutorizados = false)
+            [FromQuery] int idProducto,
+            [FromQuery] int idPresentacionProducto,
+            [FromQuery] string? moneda = null,
+            [FromQuery] int? mesesAnalisis = null,
+            [FromQuery] bool soloAutorizados = false)
         {
             var resultado = await _comparadorProveedorServicio.ObtenerComparativaAsync(
                 idProducto,
@@ -30,16 +31,19 @@ namespace Control_Fertilizantes_Backend.Controllers
                 soloAutorizados
             );
 
-            return Ok(resultado);
+            return Ok(ApiRespuesta<object>.CrearExito(
+                "Comparativa de proveedores obtenida correctamente.",
+                resultado
+            ));
         }
 
         [HttpGet("DetalleProveedor")]
         public async Task<IActionResult> ObtenerDetalleProveedor(
-            int idProducto,
-            int idPresentacionProducto,
-            int idProveedor,
-            string? moneda = null,
-            int? mesesAnalisis = null)
+            [FromQuery] int idProducto,
+            [FromQuery] int idPresentacionProducto,
+            [FromQuery] int idProveedor,
+            [FromQuery] string? moneda = null,
+            [FromQuery] int? mesesAnalisis = null)
         {
             var resultado = await _comparadorProveedorServicio.ObtenerDetalleProveedorAsync(
                 idProducto,
@@ -50,9 +54,16 @@ namespace Control_Fertilizantes_Backend.Controllers
             );
 
             if (resultado == null)
-                return NotFound(new { mensaje = "No se encontró información del proveedor para los filtros seleccionados." });
+            {
+                return NotFound(ApiRespuesta<object>.CrearError(
+                    "No se encontró información del proveedor para los filtros seleccionados."
+                ));
+            }
 
-            return Ok(resultado);
+            return Ok(ApiRespuesta<object>.CrearExito(
+                "Detalle del proveedor obtenido correctamente.",
+                resultado
+            ));
         }
     }
 }

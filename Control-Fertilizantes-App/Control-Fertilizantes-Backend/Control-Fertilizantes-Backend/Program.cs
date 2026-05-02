@@ -5,6 +5,7 @@ using Control_Fertilizantes_Backend.Middlewares;
 using Control_Fertilizantes_Backend.Repositories;
 using Control_Fertilizantes_Backend.Services;
 using Microsoft.AspNetCore.Mvc;
+using TuProyecto.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,6 +52,11 @@ builder.Services.AddScoped<ICompraInteligenciaRepositorio, CompraInteligenciaRep
 builder.Services.AddScoped<ICompraInteligenciaServicio, CompraInteligenciaServicio>();
 builder.Services.AddScoped<IComparadorProveedorRepositorio, ComparadorProveedorRepositorio>();
 builder.Services.AddScoped<IComparadorProveedorServicio, ComparadorProveedorServicio>();
+builder.Services.AddScoped<IProformaPdfServicio, ProformaPdfServicio>();
+builder.Services.AddScoped<ICompraAutomaticaRepositorio, CompraAutomaticaRepositorio>();
+builder.Services.AddScoped<ICompraAutomaticaServicio, CompraAutomaticaServicio>();
+builder.Services.AddScoped<IProformaProveedorRepositorio, ProformaProveedorRepositorio>();
+builder.Services.AddScoped<IProformaProveedorServicio, ProformaProveedorServicio>();
 
 builder.Services.AddCors(options =>
 {

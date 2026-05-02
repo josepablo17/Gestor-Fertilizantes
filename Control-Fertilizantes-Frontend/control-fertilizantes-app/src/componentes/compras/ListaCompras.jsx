@@ -52,17 +52,17 @@ function ListaCompras({ recargar, onEditar, onAgregar }) {
     filtroFecha
   ]);
 
-const {
-  paginaActual,
-  totalPaginas,
-  indiceInicial,
-  indiceFinal,
-  itemsPaginados: comprasPaginadas,
-  irAPagina,
-  irAnterior,
-  irSiguiente,
-  paginasVisibles
-} = usePaginacion(comprasFiltradas, comprasPorPagina, [
+  const {
+    paginaActual,
+    totalPaginas,
+    indiceInicial,
+    indiceFinal,
+    itemsPaginados: comprasPaginadas,
+    irAPagina,
+    irAnterior,
+    irSiguiente,
+    paginasVisibles
+  } = usePaginacion(comprasFiltradas, comprasPorPagina, [
     busquedaProducto,
     busquedaProveedor,
     filtroMoneda,
@@ -79,132 +79,121 @@ const {
   };
 
   return (
-    <div className="seccion-modulo">
-      <div className="cabecera-lista">
-        <div className="titulo-seccion">
-          <h2>Lista de Compras</h2>
-          <p>
-            Consulta, filtra y administra las compras registradas en el sistema.
-          </p>
-        </div>
+  <section className="page-section">
 
-        {onAgregar && (
-          <button
-            className="boton-base boton-agregar"
-            onClick={onAgregar}
-            type="button"
-          >
-            Registrar compra
-          </button>
-        )}
+    {/* HEADER */}
+    <div className="page-section__header">
+      <div>
+        <h2 className="page-section__title">Lista de compras</h2>
+        <p className="page-section__subtitle">
+          Consulta, filtra y administra las compras registradas en el sistema.
+        </p>
       </div>
 
-      {!cargando && !error && compras.length > 0 && (
-        <>
-          <FiltrosCompras
-            busquedaProducto={busquedaProducto}
-            setBusquedaProducto={setBusquedaProducto}
-            busquedaProveedor={busquedaProveedor}
-            setBusquedaProveedor={setBusquedaProveedor}
-            filtroMoneda={filtroMoneda}
-            setFiltroMoneda={setFiltroMoneda}
-            filtroTendencia={filtroTendencia}
-            setFiltroTendencia={setFiltroTendencia}
-            filtroFecha={filtroFecha}
-            setFiltroFecha={setFiltroFecha}
-            monedasDisponibles={monedasDisponibles}
-            tendenciasDisponibles={tendenciasDisponibles}
-            onLimpiarFiltros={limpiarFiltros}
-          />
-
-          <div className="resumen-lista">
-            <span>
-              {comprasFiltradas.length > 0
-                ? `Mostrando ${indiceInicial + 1}-${Math.min(indiceFinal, comprasFiltradas.length)} de ${comprasFiltradas.length} compra${comprasFiltradas.length !== 1 ? "s" : ""}`
-                : obtenerTextoResumen(compras.length, comprasFiltradas.length)}
-            </span>
-          </div>
-        </>
-      )}
-
-      {cargando ? (
-        <EstadoLista tipo="cargando" mensaje="Cargando compras..." />
-      ) : error ? (
-        <EstadoLista tipo="error" mensaje={error} />
-      ) : compras.length === 0 ? (
-        <EstadoLista
-          tipo="vacio"
-          mensaje="No hay compras registradas"
-          subtitulo="Cuando registres compras, aparecerán aquí para analizarlas."
-        />
-      ) : comprasFiltradas.length === 0 ? (
-        <EstadoLista
-          tipo="vacio"
-          mensaje="No se encontraron resultados"
-          subtitulo="Prueba con otra búsqueda o cambia los filtros."
-        />
-      ) : (
-        <>
-          <TablaCompras
-            compras={comprasPaginadas}
-            onEditar={onEditar}
-          />
-
-          {totalPaginas > 1 && (
-            <div className="paginacion">
-              <button
-                type="button"
-                className="boton-paginacion"
-                onClick={irAnterior}
-                disabled={paginaActual === 1}
-              >
-                Anterior
-              </button>
-
-                      <div className="numeros-paginacion">
-                        {paginasVisibles.map((item, index) => {
-                          if (item === "...") {
-                            return (
-                              <span
-                                key={`ellipsis-${index}`}
-                                className="separador-paginacion"
-                              >
-                                ...
-                              </span>
-                            );
-                          }
-
-                          return (
-                            <button
-                              key={item}
-                              type="button"
-                              className={
-                                paginaActual === item
-                                  ? "boton-paginacion numero-pagina activa"
-                                  : "boton-paginacion numero-pagina"
-                              }
-                              onClick={() => irAPagina(item)}
-                            >
-                              {item}
-                            </button>
-                          );
-                        })}
-                      </div>
-
-              <button
-                type="button"
-                className="boton-paginacion"
-                onClick={irSiguiente}
-                disabled={paginaActual === totalPaginas}
-              >
-                Siguiente
-              </button>
-            </div>
-          )}
-        </>
+      {onAgregar && (
+        <button
+          className="btn btn--primary btn--md"
+          onClick={onAgregar}
+          type="button"
+        >
+          Registrar compra
+        </button>
       )}
     </div>
-  );
+
+    {/* CONTENIDO */}
+    {cargando ? (
+      <EstadoLista tipo="cargando" mensaje="Cargando compras..." />
+    ) : error ? (
+      <EstadoLista tipo="error" mensaje={error} />
+    ) : compras.length === 0 ? (
+      <EstadoLista
+        tipo="vacio"
+        mensaje="No hay compras registradas"
+        subtitulo="Cuando registres compras, aparecerán aquí para analizarlas."
+      />
+    ) : comprasFiltradas.length === 0 ? (
+      <EstadoLista
+        tipo="vacio"
+        mensaje="No se encontraron resultados"
+        subtitulo="Prueba con otra búsqueda o cambia los filtros."
+      />
+    ) : (
+      <>
+        {/* FILTROS */}
+        <FiltrosCompras
+          busquedaProducto={busquedaProducto}
+          setBusquedaProducto={setBusquedaProducto}
+          busquedaProveedor={busquedaProveedor}
+          setBusquedaProveedor={setBusquedaProveedor}
+          filtroMoneda={filtroMoneda}
+          setFiltroMoneda={setFiltroMoneda}
+          filtroTendencia={filtroTendencia}
+          setFiltroTendencia={setFiltroTendencia}
+          filtroFecha={filtroFecha}
+          setFiltroFecha={setFiltroFecha}
+          monedasDisponibles={monedasDisponibles}
+          tendenciasDisponibles={tendenciasDisponibles}
+          onLimpiarFiltros={limpiarFiltros}
+        />
+
+        {/* RESUMEN */}
+        <div className="table__cell-muted" style={{ padding: "0 0 var(--space-3) 0" }}>
+          {comprasFiltradas.length > 0
+            ? `Mostrando ${indiceInicial + 1}-${Math.min(indiceFinal, comprasFiltradas.length)} de ${comprasFiltradas.length}`
+            : obtenerTextoResumen(compras.length, comprasFiltradas.length)}
+        </div>
+
+        {/* TABLA */}
+        <TablaCompras
+          compras={comprasPaginadas}
+          onEditar={onEditar}
+        />
+
+        {/* PAGINACIÓN */}
+        {totalPaginas > 1 && (
+          <div className="toolbar">
+            <button
+              type="button"
+              className="btn btn--ghost"
+              onClick={irAnterior}
+              disabled={paginaActual === 1}
+            >
+              Anterior
+            </button>
+
+            <div className="toolbar__group">
+              {paginasVisibles.map((numeroPagina) => (
+                <button
+                  key={numeroPagina}
+                  type="button"
+                  className={
+                    paginaActual === numeroPagina
+                      ? "btn btn--primary"
+                      : "btn btn--ghost"
+                  }
+                  onClick={() => irAPagina(numeroPagina)}
+                  aria-current={paginaActual === numeroPagina ? "page" : undefined}
+                >
+                  {numeroPagina}
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              className="btn btn--ghost"
+              onClick={irSiguiente}
+              disabled={paginaActual === totalPaginas}
+            >
+              Siguiente
+            </button>
+          </div>
+        )}
+      </>
+    )}
+  </section>
+);
 }
 
 export default ListaCompras;

@@ -53,128 +53,126 @@ function TablaComparadorProveedor({ proveedores = [], onVerDetalle }) {
     );
   }
 
-  return (
-    <div className="tabla-comparador-card">
-      <div className="tabla-comparador-card__encabezado">
-        <div>
+ return (
+    <section className="card">
+      <div className="card__header">
+        <div className="stack" style={{ gap: "0.35rem" }}>
           <h2>Comparativa de proveedores</h2>
-          <p>
+          <p className="text-muted">
             Analice el comportamiento histórico de cada proveedor y compare cuál
             representa la mejor opción de compra.
           </p>
         </div>
       </div>
 
-      <div className="tabla-responsive">
-        <table className="tabla-comparador">
-          <thead>
-            <tr>
-              <th>Proveedor</th>
-              <th>Último precio</th>
-              <th>Promedio histórico</th>
-              <th>Última compra</th>
-              <th>Compras</th>
-              <th>Variación</th>
-              <th>Dif. vs promedio</th>
-              <th>Tendencia</th>
-              <th>Puntaje</th>
-              <th>Evaluación</th>
-              <th>Acción</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {proveedores.map((proveedor) => (
-              <tr key={proveedor.idProveedor}>
-                <td>
-                  <div className="celda-proveedor-comparador">
-                    <div className="celda-proveedor-comparador__nombre">
-                      {proveedor.nombreProveedor}
-                    </div>
-
-                    <div className="celda-proveedor-comparador__badges">
-                      {proveedor.esMejorPrecio && (
-                        <span className="badge-comparador badge-comparador--mejor-precio">
-                          Mejor precio
-                        </span>
-                      )}
-
-                      {proveedor.esMasEstable && (
-                        <span className="badge-comparador badge-comparador--mas-estable">
-                          Más estable
-                        </span>
-                      )}
-
-                      {proveedor.esProveedorRecomendado && (
-                        <span className="badge-comparador badge-comparador--recomendado">
-                          Recomendado
-                        </span>
-                      )}
-                    </div>
-
-                    {proveedor.recomendacion && (
-                      <div className="celda-proveedor-comparador__texto">
-                        {proveedor.recomendacion}
-                      </div>
-                    )}
-                  </div>
-                </td>
-
-                <td>{formatearMoneda(proveedor.ultimoPrecioUnitario)}</td>
-
-                <td>{formatearMoneda(proveedor.promedioHistorico)}</td>
-
-                <td>{formatearFecha(proveedor.fechaUltimaCompra)}</td>
-
-                <td>{proveedor.cantidadCompras}</td>
-
-                <td>{Number(proveedor.variacionPorcentual ?? 0).toFixed(2)}%</td>
-
-                <td>
-                  <span
-                    className={
-                      Number(proveedor.diferenciaVsPromedioPorcentual) <= 0
-                        ? "texto-variacion texto-variacion--favorable"
-                        : "texto-variacion texto-variacion--desfavorable"
-                    }
-                  >
-                    {Number(proveedor.diferenciaVsPromedioPorcentual ?? 0).toFixed(2)}%
-                  </span>
-                </td>
-
-                <td>
-                  <span className={obtenerClaseTendencia(proveedor.tendencia)}>
-                    {proveedor.tendencia || "Sin referencia"}
-                  </span>
-                </td>
-
-                <td>
-                  <span className="puntaje-comparador">
-                    {Number(proveedor.puntajeTotal ?? 0).toFixed(2)}
-                  </span>
-                </td>
-
-                <td>
-                  <span className={obtenerClaseEvaluacion(proveedor.evaluacion)}>
-                    {proveedor.evaluacion || "Sin evaluación"}
-                  </span>
-                </td>
-
-                <td>
-                  <button
-                    type="button"
-                    className="boton-tabla-detalle"
-                    onClick={() => onVerDetalle(proveedor.idProveedor)}
-                  >
-                    Ver detalle
-                  </button>
-                </td>
+      <div className="card__body">
+        <div className="table-wrapper">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Proveedor</th>
+                <th>Último precio</th>
+                <th>Promedio histórico</th>
+                <th>Última compra</th>
+                <th>Compras</th>
+                <th>Variación</th>
+                <th>Dif. vs promedio</th>
+                <th>Tendencia</th>
+                <th>Puntaje</th>
+                <th>Evaluación</th>
+                <th>Acción</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {proveedores.map((proveedor) => (
+                <tr key={proveedor.idProveedor}>
+                  <td>
+                    <div className="stack" style={{ gap: "0.5rem" }}>
+                      <div>{proveedor.nombreProveedor}</div>
+
+                      <div
+                        className="flex"
+                        style={{ gap: "0.5rem", flexWrap: "wrap" }}
+                      >
+                        {proveedor.esMejorPrecio && (
+                          <span className="badge text-success">Mejor precio</span>
+                        )}
+
+                        {proveedor.esMasEstable && (
+                          <span className="badge">Más estable</span>
+                        )}
+
+                        {proveedor.esProveedorRecomendado && (
+                          <span className="badge">Recomendado</span>
+                        )}
+                      </div>
+
+                      {proveedor.recomendacion && (
+                        <div className="text-muted">{proveedor.recomendacion}</div>
+                      )}
+                    </div>
+                  </td>
+
+                  <td>{formatearMoneda(proveedor.ultimoPrecioUnitario)}</td>
+
+                  <td>{formatearMoneda(proveedor.promedioHistorico)}</td>
+
+                  <td>{formatearFecha(proveedor.fechaUltimaCompra)}</td>
+
+                  <td>{proveedor.cantidadCompras}</td>
+
+                  <td>{Number(proveedor.variacionPorcentual ?? 0).toFixed(2)}%</td>
+
+                  <td>
+                    <span
+                      className={
+                        Number(proveedor.diferenciaVsPromedioPorcentual) <= 0
+                          ? "text-success"
+                          : "text-danger"
+                      }
+                    >
+                      {Number(
+                        proveedor.diferenciaVsPromedioPorcentual ?? 0
+                      ).toFixed(2)}
+                      %
+                    </span>
+                  </td>
+
+                  <td>
+                    <span className={obtenerClaseTendencia(proveedor.tendencia)}>
+                      {proveedor.tendencia || "Sin referencia"}
+                    </span>
+                  </td>
+
+                  <td>
+                    <span className="badge">
+                      {Number(proveedor.puntajeTotal ?? 0).toFixed(2)}
+                    </span>
+                  </td>
+
+                  <td>
+                    <span className={obtenerClaseEvaluacion(proveedor.evaluacion)}>
+                      {proveedor.evaluacion || "Sin evaluación"}
+                    </span>
+                  </td>
+
+                  <td>
+                    <button
+                      type="button"
+                      className="btn btn--ghost"
+                      onClick={() => onVerDetalle(proveedor.idProveedor)}
+                    >
+                      Ver detalle
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
 

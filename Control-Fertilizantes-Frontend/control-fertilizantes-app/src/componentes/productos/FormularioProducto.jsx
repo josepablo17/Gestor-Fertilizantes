@@ -10,7 +10,11 @@ const productoInicial = {
   descripcion: ""
 };
 
-function FormularioProducto({ onProductoGuardado, productoEditar, onCancelarEdicion }) {
+function FormularioProducto({
+  onProductoGuardado,
+  productoEditar,
+  onCancelarEdicion
+}) {
   const [producto, setProducto] = useState(productoInicial);
 
   const estaEditando = productoEditar !== null;
@@ -44,10 +48,16 @@ function FormularioProducto({ onProductoGuardado, productoEditar, onCancelarEdic
     try {
       if (estaEditando) {
         await actualizarProducto(producto);
-        await mostrarExito("Producto actualizado", "El producto se actualizó correctamente.");
+        await mostrarExito(
+          "Producto actualizado",
+          "El producto se actualizó correctamente."
+        );
       } else {
         await insertarProducto(producto);
-        await mostrarExito("Producto guardado", "El producto se registró correctamente.");
+        await mostrarExito(
+          "Producto guardado",
+          "El producto se registró correctamente."
+        );
       }
 
       setProducto(productoInicial);
@@ -74,86 +84,105 @@ function FormularioProducto({ onProductoGuardado, productoEditar, onCancelarEdic
     }
   };
 
- return (
-  <div className="card-modulo">
-    <div className="titulo-seccion">
-      <h2>{estaEditando ? "Editar Producto" : "Agregar Producto"}</h2>
-      <p>
-        {estaEditando
-          ? "Modifica la información del producto seleccionado."
-          : "Completa los campos para registrar un nuevo producto."}
-      </p>
+  return (
+  <>
+    <div className="page-section__header">
+      <div>
+        <h2 className="page-section__title">
+          {estaEditando ? "Editar producto" : "Agregar producto"}
+        </h2>
+        <p className="page-section__subtitle">
+          {estaEditando
+            ? "Modifica la información del producto seleccionado."
+            : "Completa los campos para registrar un nuevo producto."}
+        </p>
+      </div>
     </div>
 
-    <form className="formulario-modulo" onSubmit={manejarSubmit}>
-      <div className="campo-formulario">
-        <label htmlFor="nombre">Nombre</label>
-        <input
-          id="nombre"
-          type="text"
-          name="nombre"
-          placeholder="Ejemplo: Urea"
-          value={producto.nombre}
-          onChange={manejarCambio}
-          required
-        />
+    <form className="form" onSubmit={manejarSubmit}>
+      <div className="form-row">
+        <div className="form-group">
+          <label className="form-label" htmlFor="nombre">
+            Nombre
+          </label>
+          <input
+            id="nombre"
+            type="text"
+            name="nombre"
+            placeholder="Ejemplo: Urea"
+            value={producto.nombre}
+            onChange={manejarCambio}
+            className="input"
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label className="form-label" htmlFor="categoria">
+            Categoría
+          </label>
+          <input
+            id="categoria"
+            type="text"
+            name="categoria"
+            placeholder="Ejemplo: Fertilizante"
+            value={producto.categoria}
+            onChange={manejarCambio}
+            className="input"
+            required
+          />
+        </div>
       </div>
 
-      <div className="campo-formulario">
-        <label htmlFor="categoria">Categoría</label>
-        <input
-          id="categoria"
-          type="text"
-          name="categoria"
-          placeholder="Ejemplo: Fertilizante"
-          value={producto.categoria}
-          onChange={manejarCambio}
-          required
-        />
+      <div className="form-row">
+        <div className="form-group">
+          <label className="form-label" htmlFor="marca">
+            Marca
+          </label>
+          <input
+            id="marca"
+            type="text"
+            name="marca"
+            placeholder="Ejemplo: Genérica"
+            value={producto.marca}
+            onChange={manejarCambio}
+            className="input"
+            required
+          />
+        </div>
       </div>
 
-      <div className="campo-formulario">
-        <label htmlFor="marca">Marca</label>
-        <input
-          id="marca"
-          type="text"
-          name="marca"
-          placeholder="Ejemplo: Genérica"
-          value={producto.marca}
-          onChange={manejarCambio}
-          required
-        />
-      </div>
-
-      <div className="campo-formulario campo-formulario-completo">
-        <label htmlFor="descripcion">Descripción</label>
+      <div className="form-group">
+        <label className="form-label" htmlFor="descripcion">
+          Descripción
+        </label>
         <textarea
           id="descripcion"
           name="descripcion"
           placeholder="Describe el producto..."
           value={producto.descripcion}
           onChange={manejarCambio}
-          rows="4"
+          className="textarea"
         />
       </div>
 
-      <div className="acciones-formulario">
+      <div className="form-actions">
         {estaEditando && (
           <button
             type="button"
-            className="boton-base boton-secundario"
+            className="btn btn--secondary"
             onClick={manejarCancelar}
           >
             Cancelar
           </button>
         )}
 
-        <button type="submit" className="boton-base boton-primario">
+        <button type="submit" className="btn btn--primary">
           {estaEditando ? "Actualizar producto" : "Guardar producto"}
         </button>
       </div>
     </form>
-  </div>
+  </>
 );
 }
 

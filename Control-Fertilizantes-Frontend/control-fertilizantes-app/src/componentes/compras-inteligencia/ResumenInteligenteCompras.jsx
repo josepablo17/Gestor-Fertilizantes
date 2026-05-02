@@ -8,128 +8,101 @@ function ResumenInteligenteCompras({ resumen }) {
   }
 
   const claseTendencia = obtenerClaseTendencia(resumen.tendenciaGeneral);
-  const claseVariacionPromedio = obtenerClaseVariacion(resumen.porcentajeVariacionVsPromedio);
 
+  const insightHistorico = obtenerInsightHistoricoResumen(resumen);
   const posicionPrecio = obtenerPosicionPrecio(
     resumen.ultimoPrecioUnitario,
     resumen.precioMinimoHistorico,
     resumen.precioMaximoHistorico
   );
 
-  const insightHistorico = obtenerInsightHistorico(resumen);
+  const lecturaBase = obtenerLecturaBase(resumen.cantidadCompras);
+  const amplitudRango = obtenerAmplitudRango(
+    resumen.precioMinimoHistorico,
+    resumen.precioMaximoHistorico
+  );
 
   return (
     <section className="resumen-inteligente-seccion">
       <div className="encabezado-resumen-inteligente">
         <div>
-          <h3>Panorama histórico del precio</h3>
+          <h3>Contexto histórico del precio</h3>
           <p>
-            Este resumen muestra cómo se comporta el precio dentro de su historial para ayudarte a contextualizar la evaluación.
+            Esta vista explica qué tan amplio, estable y útil es el historial
+            disponible para respaldar la evaluación.
           </p>
         </div>
       </div>
 
       <div className="resumen-inteligente-insight">
         <span className="resumen-inteligente-insight-etiqueta">
-          Lectura rápida del histórico
+          Lectura del histórico
         </span>
         <p className="resumen-inteligente-insight-texto">
           {insightHistorico}
         </p>
       </div>
 
-      <div className="resumen-inteligente">
-        <article className="card-base card-resumen-inteligente card-kpi-hero card-kpi-hero-principal">
+      <div className="resumen-inteligente--contexto">
+        <article className="card-resumen-inteligente card-kpi-hero card-kpi-hero-principal">
           <div className="card-resumen-superior">
-            <span className="card-resumen-etiqueta">Promedio histórico</span>
-            <span className="card-resumen-chip">Referencia</span>
+            <span className="card-resumen-etiqueta">Base del análisis</span>
+            <span className="card-resumen-chip">Confiabilidad</span>
           </div>
 
           <div className="card-resumen-cuerpo">
             <h3 className="card-resumen-valor">
-              {formatearMoneda(resumen.precioPromedioHistorico)}
+              {formatearNumeroEntero(resumen.cantidadCompras)} registros
             </h3>
-            <p className="card-resumen-extra">
-              Valor de referencia construido a partir del historial disponible.
-            </p>
+            <p className="card-resumen-extra">{lecturaBase}</p>
           </div>
         </article>
 
-        <article className="card-base card-resumen-inteligente card-kpi-hero">
+        <article className="card-resumen-inteligente card-kpi-hero">
           <div className="card-resumen-superior">
-            <span className="card-resumen-etiqueta">Precio actual</span>
-            <span className="card-resumen-chip">Último registro</span>
+            <span className="card-resumen-etiqueta">Rango histórico</span>
+            <span className="card-resumen-chip">Min - Max</span>
           </div>
 
           <div className="card-resumen-cuerpo">
             <h3 className="card-resumen-valor">
-              {formatearMoneda(resumen.ultimoPrecioUnitario)}
+              {formatearMoneda(resumen.precioMinimoHistorico)} -{" "}
+              {formatearMoneda(resumen.precioMaximoHistorico)}
             </h3>
             <p className="card-resumen-extra">
-              Precio unitario observado en la compra más reciente.
+              Margen total observado dentro del histórico disponible.
             </p>
           </div>
         </article>
 
-        <article className="card-base card-resumen-inteligente card-kpi-variacion">
-          <span className="card-resumen-etiqueta">Posición frente al promedio</span>
-          <h3 className={`card-resumen-valor ${claseVariacionPromedio}`}>
-            {formatearPorcentaje(resumen.porcentajeVariacionVsPromedio)}
-          </h3>
+        <article className="card-resumen-inteligente card-kpi-secundario">
+          <span className="card-resumen-etiqueta">
+            Posición actual en el rango
+          </span>
+          <h3 className="card-resumen-valor">{posicionPrecio}</h3>
           <p className="card-resumen-extra">
-            Diferencia del precio actual con respecto a la referencia histórica.
+            Ubicación estimada del precio actual entre el mínimo y el máximo
+            histórico.
           </p>
         </article>
 
-        <article className="card-base card-resumen-inteligente card-kpi-tendencia">
-          <span className="card-resumen-etiqueta">Tendencia histórica</span>
+        <article className="card-resumen-inteligente card-kpi-secundario">
+          <span className="card-resumen-etiqueta">Amplitud del rango</span>
+          <h3 className="card-resumen-valor">{amplitudRango}</h3>
+          <p className="card-resumen-extra">
+            Diferencia total entre el piso y el techo histórico.
+          </p>
+        </article>
+
+        <article className="card-resumen-inteligente card-kpi-tendencia">
+          <span className="card-resumen-etiqueta">Tendencia general</span>
           <div className="card-resumen-tendencia-wrap">
             <span className={`badge-tendencia ${claseTendencia}`}>
               {resumen.tendenciaGeneral || "Sin dato"}
             </span>
           </div>
           <p className="card-resumen-extra">
-            Dirección predominante observada en el comportamiento reciente del precio.
-          </p>
-        </article>
-
-        <article className="card-base card-resumen-inteligente card-kpi-secundario">
-          <span className="card-resumen-etiqueta">Registros analizados</span>
-          <h3 className="card-resumen-valor">
-            {formatearNumeroEntero(resumen.cantidadCompras)}
-          </h3>
-          <p className="card-resumen-extra">
-            Cantidad de compras utilizadas para respaldar el análisis.
-          </p>
-        </article>
-
-        <article className="card-base card-resumen-inteligente card-kpi-secundario">
-          <span className="card-resumen-etiqueta">Piso histórico</span>
-          <h3 className="card-resumen-valor">
-            {formatearMoneda(resumen.precioMinimoHistorico)}
-          </h3>
-          <p className="card-resumen-extra">
-            Valor mínimo registrado en el historial del producto.
-          </p>
-        </article>
-
-        <article className="card-base card-resumen-inteligente card-kpi-secundario">
-          <span className="card-resumen-etiqueta">Techo histórico</span>
-          <h3 className="card-resumen-valor">
-            {formatearMoneda(resumen.precioMaximoHistorico)}
-          </h3>
-          <p className="card-resumen-extra">
-            Valor máximo registrado dentro del histórico disponible.
-          </p>
-        </article>
-
-        <article className="card-base card-resumen-inteligente card-kpi-secundario">
-          <span className="card-resumen-etiqueta">Posición en el rango</span>
-          <h3 className="card-resumen-valor">
-            {posicionPrecio}
-          </h3>
-          <p className="card-resumen-extra">
-            Ubicación estimada del precio actual entre el mínimo y el máximo histórico.
+            Dirección predominante observada en la evolución reciente del precio.
           </p>
         </article>
       </div>
@@ -137,48 +110,67 @@ function ResumenInteligenteCompras({ resumen }) {
   );
 }
 
-function obtenerInsightHistorico(resumen) {
+function obtenerInsightHistoricoResumen(resumen) {
   const cantidadCompras = Number(resumen.cantidadCompras);
-  const promedio = Number(resumen.precioPromedioHistorico);
-  const actual = Number(resumen.ultimoPrecioUnitario);
-  const minimo = Number(resumen.precioMinimoHistorico);
-  const maximo = Number(resumen.precioMaximoHistorico);
+  const posicionPrecio = obtenerPosicionPrecio(
+    resumen.ultimoPrecioUnitario,
+    resumen.precioMinimoHistorico,
+    resumen.precioMaximoHistorico
+  );
   const tendencia = resumen.tendenciaGeneral || "sin tendencia definida";
-
-  const rangoValido =
-    !isNaN(minimo) &&
-    !isNaN(maximo) &&
-    maximo > minimo;
-
-  let posicionTexto = "sin posición calculable";
-
-  if (rangoValido && !isNaN(actual)) {
-    const posicion = ((actual - minimo) / (maximo - minimo)) * 100;
-
-    if (posicion <= 33) {
-      posicionTexto = "en la zona baja del rango histórico";
-    } else if (posicion <= 66) {
-      posicionTexto = "en una zona media del rango histórico";
-    } else {
-      posicionTexto = "en la zona alta del rango histórico";
-    }
-  }
+  const amplitudRango = obtenerAmplitudRango(
+    resumen.precioMinimoHistorico,
+    resumen.precioMaximoHistorico
+  );
 
   if (!isNaN(cantidadCompras) && cantidadCompras <= 2) {
-    return `El análisis se construye con pocos registros y debe interpretarse con cautela. Aun así, el precio actual se ubica ${posicionTexto}, con una tendencia ${tendencia}.`;
+    return `El histórico todavía es corto, por lo que conviene interpretar la evaluación con cautela. Aun así, el precio actual se ubica en ${posicionPrecio} del rango observado y la tendencia general es ${tendencia}.`;
   }
 
-  if (!isNaN(actual) && !isNaN(promedio)) {
-    if (actual < promedio) {
-      return `El precio actual se mantiene por debajo del promedio histórico y se ubica ${posicionTexto}. La tendencia general observada es ${tendencia}.`;
-    }
-
-    if (actual > promedio) {
-      return `El precio actual se encuentra por encima del promedio histórico y se ubica ${posicionTexto}. La tendencia general observada es ${tendencia}.`;
-    }
+  if (!isNaN(cantidadCompras) && cantidadCompras <= 5) {
+    return `Ya existe una base inicial para contextualizar la compra. El precio actual se ubica en ${posicionPrecio} del rango histórico, con una amplitud de ${amplitudRango} y una tendencia ${tendencia}.`;
   }
 
-  return `El comportamiento histórico muestra una tendencia ${tendencia}, y el precio actual se ubica ${posicionTexto}.`;
+  return `El histórico ofrece una base más sólida para interpretar la compra. El precio actual se ubica en ${posicionPrecio} del rango observado, la amplitud del rango es ${amplitudRango} y la tendencia general registrada es ${tendencia}.`;
+}
+
+function obtenerLecturaBase(cantidadCompras) {
+  const cantidad = Number(cantidadCompras);
+
+  if (isNaN(cantidad)) {
+    return "No hay suficiente información para calificar la base histórica.";
+  }
+
+  if (cantidad <= 2) {
+    return "Base limitada. Conviene interpretar la evaluación con cautela.";
+  }
+
+  if (cantidad <= 5) {
+    return "Base inicial. Ya permite una referencia, aunque todavía puede variar bastante.";
+  }
+
+  if (cantidad <= 10) {
+    return "Base aceptable. El histórico empieza a ser más representativo.";
+  }
+
+  return "Base sólida. El análisis cuenta con suficiente historial para respaldar mejor la lectura.";
+}
+
+function obtenerAmplitudRango(minimo, maximo) {
+  const valorMinimo = Number(minimo);
+  const valorMaximo = Number(maximo);
+
+  if (
+    isNaN(valorMinimo) ||
+    isNaN(valorMaximo) ||
+    valorMaximo <= valorMinimo
+  ) {
+    return "N/A";
+  }
+
+  const amplitud = valorMaximo - valorMinimo;
+
+  return formatearMoneda(amplitud);
 }
 
 function obtenerPosicionPrecio(actual, minimo, maximo) {
@@ -201,29 +193,6 @@ function obtenerPosicionPrecio(actual, minimo, maximo) {
   return `${posicionNormalizada.toFixed(0)}%`;
 }
 
-function formatearMoneda(valor) {
-  if (valor === null || valor === undefined) return "N/A";
-
-  return Number(valor).toLocaleString("es-CR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
-}
-
-function formatearNumeroEntero(valor) {
-  if (valor === null || valor === undefined) return "N/A";
-
-  return Number(valor).toLocaleString("es-CR", {
-    maximumFractionDigits: 0
-  });
-}
-
-function formatearPorcentaje(valor) {
-  if (valor === null || valor === undefined) return "N/A";
-
-  return `${Number(valor).toFixed(2)}%`;
-}
-
 function obtenerClaseTendencia(tendencia) {
   if (!tendencia) return "tendencia-neutral";
 
@@ -239,11 +208,21 @@ function obtenerClaseTendencia(tendencia) {
   return "tendencia-neutral";
 }
 
-function obtenerClaseVariacion(valor) {
-  if (valor === null || valor === undefined) return "variacion-neutral";
-  if (Number(valor) > 0) return "variacion-alza";
-  if (Number(valor) < 0) return "variacion-baja";
-  return "variacion-neutral";
+function formatearMoneda(valor) {
+  if (valor === null || valor === undefined) return "N/A";
+
+  return Number(valor).toLocaleString("es-CR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+function formatearNumeroEntero(valor) {
+  if (valor === null || valor === undefined) return "N/A";
+
+  return Number(valor).toLocaleString("es-CR", {
+    maximumFractionDigits: 0
+  });
 }
 
 export default ResumenInteligenteCompras;

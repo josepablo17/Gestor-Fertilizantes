@@ -16,34 +16,37 @@ function Compras() {
   };
 
   return (
-    <div className="pagina-modulo">
-      <div className="contenedor-modulo">
-        <div className="encabezado-modulo encabezado-con-acciones">
-          <div>
-            <h1>Gestión de Compras</h1>
-            <p>
-              Administra y consulta las compras de fertilizantes registradas en el sistema.
-            </p>
-          </div>
+    <section className="page">
+      <header className="page__header">
+        <div className="page__header-content">
+          <h1 className="page__title">Gestión de Compras</h1>
+          <p className="page__subtitle">
+            Administra y registra las compras realizadas en el sistema.
+          </p>
+        </div>
 
+        <div className="page__actions">
           <button
             type="button"
-            className="boton-base boton-primario"
+            className="btn btn--primary btn--md"
             onClick={irANuevaCompra}
           >
             Registrar compra
           </button>
         </div>
+      </header>
 
-        <div className="card-modulo">
-          <ListaCompras
-            recargar={recargarLista}
-            onEditar={irAEditarCompra}
-            onAgregar={irANuevaCompra}
-          />
-        </div>
+      <div className="page__body">
+        <section className="card">
+          <div className="card__body">
+            <ListaCompras
+              recargar={recargarLista}
+              onEditar={irAEditarCompra}
+            />
+          </div>
+        </section>
       </div>
-    </div>
+    </section>
   );
 }
 

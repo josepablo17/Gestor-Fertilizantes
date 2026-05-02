@@ -1,14 +1,16 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
-import "../../estilos/sidebar.css";
+import "../../estilos/layout/app-layout.css";
 
 function LayoutPrivado() {
   return (
-    <div className="layout">
+    <div className="app-layout">
       <Sidebar />
 
-      <main className="layout__contenido">
-        <Outlet />
+      <main className="app-layout__main">
+        <div className="app-layout__content">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

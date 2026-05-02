@@ -4,7 +4,6 @@ import FormularioUnidadMedida from "../componentes/unidadesMedida/FormularioUnid
 import { obtenerUnidadMedidaPorId } from "../api/unidadMedidaApi";
 import { mostrarError } from "../utils/alertas";
 import Loader from "../componentes/Loader";
-import "../estilos/loader.css";
 
 function UnidadMedidaFormulario() {
     const navigate = useNavigate();
@@ -50,36 +49,43 @@ function UnidadMedidaFormulario() {
     return (
         <div className="pagina-modulo">
             <div className="contenedor-modulo">
-                <div className="encabezado-modulo encabezado-con-acciones">
-                    <div>
-                        <h1>{estaEditando ? "Editar Unidad de Medida" : "Nueva Unidad de Medida"}</h1>
-                        <p>
-                            {estaEditando
-                                ? "Actualiza la información de la unidad de medida seleccionada."
-                                : "Completa el formulario para registrar una nueva unidad de medida."}
-                        </p>
+                <section className="card">
+                    <div className="card__header">
+                        <div>
+                            <h1 className="card__title">
+                                {estaEditando ? "Editar Unidad de Medida" : "Nueva Unidad de Medida"}
+                            </h1>
+                            <p className="card__subtitle">
+                                {estaEditando
+                                    ? "Actualiza la información de la unidad de medida seleccionada."
+                                    : "Completa el formulario para registrar una nueva unidad de medida."}
+                            </p>
+                        </div>
+
+                        <button
+                            type="button"
+                            className="btn btn--secondary btn--md"
+                            onClick={manejarCancelar}
+                        >
+                            Volver al listado
+                        </button>
                     </div>
 
-                    <button
-                        type="button"
-                        className="boton-base boton-secundario"
-                        onClick={manejarCancelar}
-                    >
-                        Volver al listado
-                    </button>
-                </div>
-
-                <div className="card-modulo">
-                    {cargando ? (
-                        <Loader texto="Cargando información de la unidad de medida..." alto="260px" />
-                    ) : (
-                        <FormularioUnidadMedida
-                            onUnidadMedidaGuardada={manejarUnidadMedidaGuardada}
-                            unidadMedidaEditar={unidadMedidaEditar}
-                            onCancelarEdicion={manejarCancelar}
-                        />
-                    )}
-                </div>
+                    <div className="card__body">
+                        {cargando ? (
+                            <Loader
+                                texto="Cargando información de la unidad de medida..."
+                                alto="260px"
+                            />
+                        ) : (
+                            <FormularioUnidadMedida
+                                onUnidadMedidaGuardada={manejarUnidadMedidaGuardada}
+                                unidadMedidaEditar={unidadMedidaEditar}
+                                onCancelarEdicion={manejarCancelar}
+                            />
+                        )}
+                    </div>
+                </section>
             </div>
         </div>
     );

@@ -15,9 +15,23 @@ function TablaCompras({ compras, onEditar }) {
     return `${moneda || ""} ${Number(monto).toFixed(2)}`.trim();
   };
 
+  const obtenerClaseTendencia = (tendencia) => {
+    const valor = tendencia?.toLowerCase();
+
+    if (valor === "subió") {
+      return "badge badge--neutral";
+    }
+
+    if (valor === "bajó") {
+      return "badge badge--success";
+    }
+
+    return "badge badge--neutral";
+  };
+
   return (
-    <div className="tabla-responsive">
-      <table className="tabla-modulo">
+    <div className="table-wrapper">
+      <table className="table">
         <thead>
           <tr>
             <th>Producto</th>
@@ -36,76 +50,69 @@ function TablaCompras({ compras, onEditar }) {
           {compras.map((compra) => (
             <tr key={compra.idCompra}>
               <td>
-                <div className="celda-principal">
-                  <span className="texto-principal">
+                <div>
+                  <span className="table__cell-strong">
                     {compra.nombreProducto || "Sin producto"}
                   </span>
-                  <span className="texto-secundario">
+                  <br />
+                  <span className="table__cell-muted">
                     {compra.categoria || "Sin categoría"} • {compra.marca || "Sin marca"}
                   </span>
                 </div>
               </td>
 
               <td>
-                <span className="texto-secundario">
+                <span className="table__cell-muted">
                   {compra.nombreProveedor || "Sin proveedor"}
                 </span>
               </td>
 
               <td>
-                <div className="celda-principal">
-                  <span className="texto-principal">
+                <div>
+                  <span className="table__cell-strong">
                     {compra.presentacion || "Sin presentación"}
                   </span>
-                  <span className="texto-secundario">
+                  <br />
+                  <span className="table__cell-muted">
                     {compra.cantidadPresentacion || "0"} {compra.unidadMedida || ""}
                   </span>
                 </div>
               </td>
 
               <td>
-                <span className="texto-secundario">
+                <span className="table__cell-muted">
                   {formatearFecha(compra.fechaCompra)}
                 </span>
               </td>
 
               <td>
-                <span className="texto-secundario">
+                <span className="table__cell-muted">
                   {compra.cantidadComprada ?? "0"}
                 </span>
               </td>
 
               <td>
-                <span className="texto-secundario">
+                <span className="table__cell-muted">
                   {formatearMonto(compra.precioTotal, compra.moneda)}
                 </span>
               </td>
 
               <td>
-                <span className="texto-secundario">
+                <span className="table__cell-muted">
                   {formatearMonto(compra.precioUnitarioCalculado, compra.moneda)}
                 </span>
               </td>
 
               <td>
-                <span
-                  className={`estado-badge ${
-                    compra.tendenciaPrecio?.toLowerCase() === "subió"
-                      ? "estado-inactivo"
-                      : compra.tendenciaPrecio?.toLowerCase() === "bajó"
-                      ? "estado-activo"
-                      : "estado-pendiente"
-                  }`}
-                >
-                  <span className="punto-estado"></span>
+                <span className={obtenerClaseTendencia(compra.tendenciaPrecio)}>
                   {compra.tendenciaPrecio || "Sin tendencia"}
                 </span>
               </td>
 
               <td>
-                <div className="acciones-tabla">
+                <div className="table__actions">
                   <button
-                    className="boton-base boton-tabla boton-editar"
+                    className="btn btn--ghost btn--sm"
                     onClick={() => onEditar(compra)}
                     type="button"
                   >

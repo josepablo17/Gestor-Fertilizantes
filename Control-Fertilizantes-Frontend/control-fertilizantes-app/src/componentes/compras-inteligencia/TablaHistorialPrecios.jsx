@@ -1,27 +1,27 @@
 function TablaHistorialPrecios({ historial }) {
   if (!historial || historial.length === 0) {
     return (
-      <div className="estado-vacio-modulo tabla-historial-vacia">
+      <div className="estado-vacio-modulo">
         No hay contexto inteligente disponible para los filtros seleccionados.
       </div>
     );
   }
 
   return (
-    <section className="tabla-historial-seccion">
-      <div className="card-base card-tabla-historial">
-        <div className="encabezado-tabla-historial">
-          <div>
-            <h3>Contexto inteligente del historial de precios</h3>
-            <p>
-              Compras clave seleccionadas automáticamente para interpretar mejor
-              la evolución del precio.
-            </p>
-          </div>
+    <section className="card">
+      <div className="card__header">
+        <div>
+          <h3 className="card__title">Contexto inteligente del historial de precios</h3>
+          <p className="card__subtitle">
+            Compras clave seleccionadas automáticamente para interpretar mejor
+            la evolución del precio.
+          </p>
         </div>
+      </div>
 
-        <div className="tabla-responsive">
-          <table className="tabla-modulo tabla-historial-precios">
+      <div className="card__body">
+        <div className="table-wrapper">
+          <table className="table">
             <thead>
               <tr>
                 <th>Insight</th>
@@ -45,50 +45,63 @@ function TablaHistorialPrecios({ historial }) {
                 const claseInsight = obtenerClaseInsight(item.insight);
 
                 return (
-                  <tr
-                    key={item.idCompra ?? `${item.fechaCompra}-${index}`}
-                    className={claseInsight}
-                  >
+                  <tr key={item.idCompra ?? `${item.fechaCompra}-${index}`}>
                     <td>
-                      <span className={`badge-insight-tabla ${claseInsight}`}>
+                      <span className={`badge ${claseInsight}`}>
                         {item.insight || "Compra relevante"}
                       </span>
                     </td>
 
-                    <td className="celda-fecha">
-                      {formatearFecha(item.fechaCompra)}
+                    <td>
+                      <span className="table__cell-muted">
+                        {formatearFecha(item.fechaCompra)}
+                      </span>
                     </td>
 
-                    <td className="celda-proveedor">
-                      <span className="proveedor-nombre">
+                    <td>
+                      <span className="table__cell-strong">
                         {item.nombreProveedor || "N/A"}
                       </span>
                     </td>
 
-                    <td>{formatearNumero(item.cantidadComprada)}</td>
-
-                    <td>{formatearMoneda(item.precioTotal)}</td>
-
-                    <td className="celda-precio-unitario">
-                      <strong>{formatearMoneda(item.precioUnitarioCalculado)}</strong>
+                    <td>
+                      <span className="table__cell-muted">
+                        {formatearNumero(item.cantidadComprada)}
+                      </span>
                     </td>
 
-                    <td>{formatearMoneda(item.precioUnitarioAnterior)}</td>
+                    <td>
+                      <span className="table__cell-muted">
+                        {formatearMoneda(item.precioTotal)}
+                      </span>
+                    </td>
 
                     <td>
-                      <span className={`valor-variacion ${claseDiferencia}`}>
+                      <span className="table__cell-strong">
+                        {formatearMoneda(item.precioUnitarioCalculado)}
+                      </span>
+                    </td>
+
+                    <td>
+                      <span className="table__cell-muted">
+                        {formatearMoneda(item.precioUnitarioAnterior)}
+                      </span>
+                    </td>
+
+                    <td>
+                      <span className={claseDiferencia}>
                         {formatearMoneda(item.diferenciaPrecio)}
                       </span>
                     </td>
 
                     <td>
-                      <span className={`valor-variacion ${clasePorcentaje}`}>
+                      <span className={clasePorcentaje}>
                         {formatearPorcentaje(item.porcentajeCambioPrecio)}
                       </span>
                     </td>
 
                     <td>
-                      <span className={`badge-tendencia ${claseTendencia}`}>
+                      <span className={`badge ${claseTendencia}`}>
                         {item.tendenciaPrecio || "Sin dato"}
                       </span>
                     </td>

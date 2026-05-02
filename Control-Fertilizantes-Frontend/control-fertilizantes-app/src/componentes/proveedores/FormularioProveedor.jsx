@@ -11,57 +11,61 @@ const proveedorInicial={
     esProveedorAutorizado:true
 };
 
-function FormularioProveedor({onProveedorGuardado,proveedorEditar,onCancelarEdicion}){
-    const [proveedor,setProveedor] = useState(proveedorInicial);
+function FormularioProveedor({
+    onProveedorGuardado,
+    proveedorEditar,
+    onCancelarEdicion
+}) {
+    const [proveedor, setProveedor] = useState(proveedorInicial);
     const estaEditando = proveedorEditar !== null;
 
-    useEffect(()=>{
-        if (proveedorEditar){
+    useEffect(() => {
+        if (proveedorEditar) {
             setProveedor({
-                idProveedor:proveedorEditar.idProveedor || 0,
-                nombre:proveedorEditar.nombre||"",
-                contacto:proveedorEditar.contacto||"",
-                telefono:proveedorEditar.telefono||"",
-                correo:proveedorEditar.correo||"",
-                esProveedorAutorizado:proveedorEditar.esProveedorAutorizado ?? true
+                idProveedor: proveedorEditar.idProveedor || 0,
+                nombre: proveedorEditar.nombre || "",
+                contacto: proveedorEditar.contacto || "",
+                telefono: proveedorEditar.telefono || "",
+                correo: proveedorEditar.correo || "",
+                esProveedorAutorizado: proveedorEditar.esProveedorAutorizado ?? true
             });
-        }else{
+        } else {
             setProveedor(proveedorInicial);
         }
-    },[proveedorEditar]);
+    }, [proveedorEditar]);
 
-    const manejarCambio=(e)=>{
+    const manejarCambio = (e) => {
         const { name, value, type, checked } = e.target;
 
-        setProveedor((prev)=>({
+        setProveedor((prev) => ({
             ...prev,
-            [name]:type==="checkbox"?checked:value
+            [name]: type === "checkbox" ? checked : value
         }));
     };
 
-    const manejarSubmit =  async(e)=>{
+    const manejarSubmit = async (e) => {
         e.preventDefault();
 
-        try{
-            if(estaEditando){
+        try {
+            if (estaEditando) {
                 await actualizarProveedor(proveedor);
-                await mostrarExito("Proveedor actualizado","El proveedor se actualizó correctamente.");
-            }else{
+                await mostrarExito("Proveedor actualizado", "El proveedor se actualizó correctamente.");
+            } else {
                 await insertarProveedor(proveedor);
-                await mostrarExito("Proveedor guardado","El proveedor se registro correctamente.");
+                await mostrarExito("Proveedor guardado", "El proveedor se registró correctamente.");
             }
 
             setProveedor(proveedorInicial);
 
-            if(onProveedorGuardado){
+            if (onProveedorGuardado) {
                 onProveedorGuardado();
             }
-        } catch (error){
+        } catch (error) {
             await mostrarError(
                 "Ocurrió un error",
                 estaEditando
-                ? "No se pudo actualizar el proveedor."
-                : "No se pudo registar el proveedor."
+                    ? "No se pudo actualizar el proveedor."
+                    : "No se pudo registrar el proveedor."
             );
             console.error(error);
         }
@@ -74,103 +78,118 @@ function FormularioProveedor({onProveedorGuardado,proveedorEditar,onCancelarEdic
             onCancelarEdicion();
         }
     };
-    
+
     return (
-        <div className="card-modulo">
-            <div className="titulo-seccion">
-                <h2>{estaEditando ? "Editar Proveedor" : "Agregar Proveedor"}</h2>
-                <p>
-                    {estaEditando
-                        ? "Modifica la información del proveedor seleccionado."
-                        : "Completa los campos para registrar un nuevo proveedor."}
-                </p>
+        <section className="page-section">
+
+            {/* HEADER */}
+            <div className="page-section__header">
+                <div>
+                    <h2 className="page-section__title">
+                        {estaEditando ? "Editar proveedor" : "Agregar proveedor"}
+                    </h2>
+                    <p className="page-section__subtitle">
+                        {estaEditando
+                            ? "Modifica la información del proveedor seleccionado."
+                            : "Completa los campos para registrar un nuevo proveedor."}
+                    </p>
+                </div>
             </div>
 
-            <form className="formulario-modulo" onSubmit={manejarSubmit}>
-                <div className="campo-formulario">
-                    <label htmlFor="nombre">Nombre</label>
-                    <input
-                        id="nombre"
-                        type="text"
-                        name="nombre"
-                        placeholder="Ejemplo: Surco"
-                        value={proveedor.nombre}
-                        onChange={manejarCambio}
-                        required
-                    />
-                </div>
+            {/* FORM */}
+            <form className="form" onSubmit={manejarSubmit}>
 
-                <div className="campo-formulario">
-                    <label htmlFor="contacto">Contacto</label>
-                    <input
-                        id="contacto"
-                        type="text"
-                        name="contacto"
-                        placeholder="Ejemplo: Carlos Rodríguez"
-                        value={proveedor.contacto}
-                        onChange={manejarCambio}
-                        required
-                    />
-                </div>
+                <div className="form-row">
+                    <div className="form-group">
+                        <label htmlFor="nombre" className="form-label">Nombre</label>
+                        <input
+                            id="nombre"
+                            type="text"
+                            name="nombre"
+                            className="input"
+                            placeholder="Ejemplo: Surco"
+                            value={proveedor.nombre}
+                            onChange={manejarCambio}
+                            required
+                        />
+                    </div>
 
-                <div className="campo-formulario">
-                    <label htmlFor="telefono">Telefono</label>
-                    <input
-                        id="telefono"
-                        type="text"
-                        name="telefono"
-                        placeholder="Ejemplo: 88889999"
-                        value={proveedor.telefono}
-                        onChange={manejarCambio}
-                        required
-                    />
-                </div>
-
-                <div className="campo-formulario">
-                    <label htmlFor="correo">Correo</label>
-                    <input
-                        id="correo"
-                        type="email"
-                        name="correo"
-                        placeholder="Ejemplo: carlos@gmail.com"
-                        value={proveedor.correo}
-                        onChange={manejarCambio}
-                        required
-                    />
-                </div>
-
-                <div className="campo-formulario campo-formulario-completo">
-                    <div className="campo-checkbox">
-                        <label htmlFor="esProveedorAutorizado" className="label-checkbox">
-                            <input
-                                id="esProveedorAutorizado"
-                                type="checkbox"
-                                name="esProveedorAutorizado"
-                                checked={proveedor.esProveedorAutorizado}
-                                onChange={manejarCambio}
-                            />
-                            Proveedor autorizado
-                        </label>
+                    <div className="form-group">
+                        <label htmlFor="contacto" className="form-label">Contacto</label>
+                        <input
+                            id="contacto"
+                            type="text"
+                            name="contacto"
+                            className="input"
+                            placeholder="Ejemplo: Carlos Rodríguez"
+                            value={proveedor.contacto}
+                            onChange={manejarCambio}
+                            required
+                        />
                     </div>
                 </div>
 
-                <div className="acciones-formulario">
+                <div className="form-row">
+                    <div className="form-group">
+                        <label htmlFor="telefono" className="form-label">Teléfono</label>
+                        <input
+                            id="telefono"
+                            type="text"
+                            name="telefono"
+                            className="input"
+                            placeholder="Ejemplo: 88889999"
+                            value={proveedor.telefono}
+                            onChange={manejarCambio}
+                            required
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="correo" className="form-label">Correo</label>
+                        <input
+                            id="correo"
+                            type="email"
+                            name="correo"
+                            className="input"
+                            placeholder="Ejemplo: carlos@gmail.com"
+                            value={proveedor.correo}
+                            onChange={manejarCambio}
+                            required
+                        />
+                    </div>
+                </div>
+
+                {/* CHECKBOX */}
+                <div className="form-group">
+                    <label style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <input
+                            type="checkbox"
+                            name="esProveedorAutorizado"
+                            checked={proveedor.esProveedorAutorizado}
+                            onChange={manejarCambio}
+                        />
+                        Proveedor autorizado
+                    </label>
+                </div>
+
+                {/* ACTIONS */}
+                <div className="form-actions">
                     {estaEditando && (
                         <button
                             type="button"
-                            className="boton-base boton-secundario"
+                            className="btn btn--secondary btn--md"
                             onClick={manejarCancelar}
                         >
                             Cancelar
                         </button>
                     )}
 
-                    <button type="submit" className="boton-base boton-primario">
+                    <button type="submit" className="btn btn--primary btn--md">
                         {estaEditando ? "Actualizar proveedor" : "Guardar proveedor"}
                     </button>
                 </div>
             </form>
-        </div>
+        </section>
     );
 }
 

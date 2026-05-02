@@ -1,0 +1,31 @@
+/* =========================================================
+   ERROR STATE
+========================================================= */
+
+.error-state {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+
+  color: #dc2626;
+}
+
+.error-state__title {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.error-state__description {
+  font-size: 0.875rem;
+  opacity: 0.9;
+}
+
+.error-state__actions {
+  margin-top: var(--space-2);
+}

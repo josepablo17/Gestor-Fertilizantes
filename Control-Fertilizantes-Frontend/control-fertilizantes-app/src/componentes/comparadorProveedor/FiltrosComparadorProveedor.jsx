@@ -45,109 +45,89 @@ function FiltrosComparadorProveedor({
   };
 
   return (
-    <div className="barra-filtros-comparador">
-      <div className="card-filtros-comparador">
-        <div className="card-filtros-comparador__encabezado">
-          <h2>Filtros de comparación</h2>
-          <p>
-            Seleccione el producto y los criterios que desea analizar para
-            comparar proveedores.
-          </p>
-        </div>
+    <div className="toolbar toolbar--wrap">
+      <div className="toolbar__group">
+        <select
+          id="idProducto"
+          value={filtros.idProducto}
+          onChange={manejarCambioProducto}
+          className="select"
+        >
+          <option value="">Seleccione un producto</option>
+          {productos.map((producto) => (
+            <option key={producto.idProducto} value={producto.idProducto}>
+              {producto.nombre}
+            </option>
+          ))}
+        </select>
 
-        <div className="grid-filtros-comparador">
-          <div className="campo-filtro-comparador">
-            <label htmlFor="idProducto">Producto</label>
-            <select
-              id="idProducto"
-              value={filtros.idProducto}
-              onChange={manejarCambioProducto}
+        <select
+          id="idPresentacionProducto"
+          value={filtros.idPresentacionProducto}
+          onChange={manejarCambioPresentacion}
+          className="select"
+          disabled={!filtros.idProducto}
+        >
+          <option value="">Seleccione una presentación</option>
+          {presentaciones.map((presentacion) => (
+            <option
+              key={presentacion.idPresentacionProducto}
+              value={presentacion.idPresentacionProducto}
             >
-              <option value="">Seleccione un producto</option>
-              {productos.map((producto) => (
-                <option key={producto.idProducto} value={producto.idProducto}>
-                  {producto.nombre}
-                </option>
-              ))}
-            </select>
-          </div>
+              {presentacion.descripcion}
+            </option>
+          ))}
+        </select>
 
-          <div className="campo-filtro-comparador">
-            <label htmlFor="idPresentacionProducto">Presentación</label>
-            <select
-              id="idPresentacionProducto"
-              value={filtros.idPresentacionProducto}
-              onChange={manejarCambioPresentacion}
-              disabled={!filtros.idProducto}
-            >
-              <option value="">Seleccione una presentación</option>
-              {presentaciones.map((presentacion) => (
-                <option
-                  key={presentacion.idPresentacionProducto}
-                  value={presentacion.idPresentacionProducto}
-                >
-                  {presentacion.descripcion}
-                </option>
-              ))}
-            </select>
-          </div>
+        <select
+          id="moneda"
+          value={filtros.moneda}
+          onChange={manejarCambioMoneda}
+          className="select"
+        >
+          <option value="">Todas las monedas</option>
+          <option value="CRC">CRC</option>
+          <option value="USD">USD</option>
+        </select>
 
-          <div className="campo-filtro-comparador">
-            <label htmlFor="moneda">Moneda</label>
-            <select
-              id="moneda"
-              value={filtros.moneda}
-              onChange={manejarCambioMoneda}
-            >
-              <option value="">Todas</option>
-              <option value="CRC">CRC</option>
-              <option value="USD">USD</option>
-            </select>
-          </div>
+        <select
+          id="mesesAnalisis"
+          value={filtros.mesesAnalisis}
+          onChange={manejarCambioMesesAnalisis}
+          className="select"
+        >
+          <option value={3}>Últimos 3 meses</option>
+          <option value={6}>Últimos 6 meses</option>
+          <option value={12}>Últimos 12 meses</option>
+          <option value={24}>Últimos 24 meses</option>
+        </select>
+      </div>
 
-          <div className="campo-filtro-comparador">
-            <label htmlFor="mesesAnalisis">Período de análisis</label>
-            <select
-              id="mesesAnalisis"
-              value={filtros.mesesAnalisis}
-              onChange={manejarCambioMesesAnalisis}
-            >
-              <option value={3}>Últimos 3 meses</option>
-              <option value={6}>Últimos 6 meses</option>
-              <option value={12}>Últimos 12 meses</option>
-              <option value={24}>Últimos 24 meses</option>
-            </select>
-          </div>
-        </div>
+      <div className="toolbar__group">
+        <label className="checkbox-inline">
+          <input
+            type="checkbox"
+            checked={filtros.soloAutorizados}
+            onChange={manejarCambioSoloAutorizados}
+          />
+          <span>Solo autorizados</span>
+        </label>
 
-        <div className="acciones-filtros-comparador">
-          <label className="check-filtro-comparador">
-            <input
-              type="checkbox"
-              checked={filtros.soloAutorizados}
-              onChange={manejarCambioSoloAutorizados}
-            />
-            <span>Mostrar solo proveedores autorizados</span>
-          </label>
+        <button
+          type="button"
+          className="btn btn--secondary"
+          onClick={onLimpiar}
+        >
+          Limpiar filtros
+        </button>
 
-          <div className="botones-filtros-comparador">
-            <button
-              type="button"
-              className="boton-secundario"
-              onClick={onLimpiar}
-            >
-              Limpiar
-            </button>
-
-            <button
-              type="button"
-              className="boton-primario"
-              onClick={onComparar}
-            >
-              Comparar proveedores
-            </button>
-          </div>
-        </div>
+        <button
+          type="button"
+          className="btn btn--primary"
+          onClick={onComparar}
+        >
+          Comparar proveedores
+        </button>
       </div>
     </div>
   );

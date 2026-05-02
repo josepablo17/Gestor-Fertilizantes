@@ -12,7 +12,7 @@ import {
 function GraficoHistorialPrecios({ historial }) {
   if (!historial || historial.length === 0) {
     return (
-      <div className="estado-vacio-modulo grafico-historial-vacio">
+      <div className="estado-vacio-modulo">
         No hay datos suficientes para mostrar el gráfico de precios.
       </div>
     );
@@ -31,11 +31,11 @@ function GraficoHistorialPrecios({ historial }) {
 
   const promedioHistorico =
     preciosValidos.length > 0
-      ? preciosValidos.reduce((acumulado, actual) => acumulado + actual, 0) / preciosValidos.length
+      ? preciosValidos.reduce((a, b) => a + b, 0) / preciosValidos.length
       : 0;
 
-  const precioMaximo = preciosValidos.length > 0 ? Math.max(...preciosValidos) : null;
-  const precioMinimo = preciosValidos.length > 0 ? Math.min(...preciosValidos) : null;
+  const precioMaximo = Math.max(...preciosValidos);
+  const precioMinimo = Math.min(...preciosValidos);
 
   const datosGrafico = datosBase.map((item) => ({
     ...item,
@@ -44,76 +44,55 @@ function GraficoHistorialPrecios({ historial }) {
   }));
 
   return (
-    <section className="grafico-historial-seccion">
-      <div className="card-base card-grafico-historial">
-        <div className="encabezado-grafico">
-          <div className="encabezado-grafico-texto">
-            <span className="grafico-kicker">Análisis visual</span>
-            <h3>Evolución del precio unitario</h3>
-            <p>
-              Comportamiento histórico del precio según las compras registradas,
-              con referencia del promedio histórico y el punto más reciente evaluado.
-            </p>
-          </div>
-
-          <div className="grafico-badge-resumen">
-            Promedio histórico: {formatearTooltipMoneda(promedioHistorico)}
-          </div>
+    <section className="card">
+      <div className="card__header flex flex--between">
+        <div>
+          <h3 className="card__title">Evolución del precio unitario</h3>
+          <p className="card__subtitle">
+            Comportamiento histórico del precio con referencia al promedio.
+          </p>
         </div>
 
-        <div className="contenedor-grafico-historial">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={datosGrafico}
-              margin={{ top: 12, right: 16, left: 0, bottom: 4 }}
-            >
-              <CartesianGrid
-                stroke="#e2e8f0"
-                strokeDasharray="3 3"
-                vertical={false}
-              />
+        <span className="badge badge--neutral">
+          Promedio: {formatearTooltipMoneda(promedioHistorico)}
+        </span>
+      </div>
+
+      <div className="card__body">
+        <div className="chart-container">
+          <ResponsiveContainer width="100%" height={320}>
+            <LineChart data={datosGrafico}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
 
               <XAxis
                 dataKey="fecha"
                 tickLine={false}
                 axisLine={false}
-                tick={{ fontSize: 12, fill: "#64748b" }}
-                dy={8}
+                className="chart-axis"
               />
 
               <YAxis
                 tickLine={false}
                 axisLine={false}
-                tick={{ fontSize: 12, fill: "#64748b" }}
-                width={56}
+                width={60}
                 tickFormatter={(value) => formatearEjeY(value)}
+                className="chart-axis"
               />
 
-              <Tooltip
-                content={<TooltipGraficoPrecio promedioHistorico={promedioHistorico} />}
-                cursor={{ stroke: "#cbd5e1", strokeDasharray: "4 4" }}
-              />
+              <Tooltip content={<TooltipGraficoPrecio promedioHistorico={promedioHistorico} />} />
 
               <ReferenceLine
                 y={promedioHistorico}
-                stroke="#94a3b8"
                 strokeDasharray="6 6"
-                ifOverflow="extendDomain"
-                label={{
-                  value: "Promedio",
-                  position: "insideTopRight",
-                  fill: "#64748b",
-                  fontSize: 12
-                }}
+                label="Promedio"
               />
 
               <Line
                 type="monotone"
                 dataKey="precioUnitario"
-                stroke="#2563eb"
-                strokeWidth={4}
+                strokeWidth={3}
                 dot={<PuntoPersonalizado />}
-                activeDot={{ r: 7 }}
+                activeDot={{ r: 6 }}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -122,7 +101,6 @@ function GraficoHistorialPrecios({ historial }) {
     </section>
   );
 }
-
 function PuntoPersonalizado(props) {
   const { cx, cy, payload } = props;
 
@@ -153,52 +131,50 @@ function PuntoPersonalizado(props) {
 }
 
 function TooltipGraficoPrecio({ active, payload, label, promedioHistorico }) {
-  if (!active || !payload || !payload.length) return null;
+  if (!active || !payload?.length) return null;
 
   const dato = payload[0]?.payload;
-  const diferenciaVsPromedio =
-    dato?.precioUnitario !== null &&
-    dato?.precioUnitario !== undefined &&
-    promedioHistorico
+
+  const diferencia =
+    dato?.precioUnitario && promedioHistorico
       ? dato.precioUnitario - promedioHistorico
       : null;
 
   return (
-    <div className="tooltip-grafico-precio">
-      <div className="tooltip-grafico-header">
-        <span className="tooltip-grafico-kicker">
-          {dato?.esUltimo
-            ? "Compra evaluada"
-            : dato?.esMaximo
-            ? "Pico histórico"
-            : dato?.esMinimo
-            ? "Mínimo histórico"
-            : "Registro histórico"}
-        </span>
-        <span className="tooltip-grafico-fecha">{label}</span>
-      </div>
+    <div className="card card--tooltip">
+      <div className="card__body stack--sm">
 
-      <div className="tooltip-grafico-grid">
-        <div className="tooltip-grafico-fila">
-          <span className="tooltip-grafico-etiqueta">Precio unitario</span>
-          <strong className="tooltip-grafico-valor">
-            {formatearTooltipMoneda(dato?.precioUnitario)}
-          </strong>
+        <div className="flex flex--between text-sm text-muted">
+          <span>
+            {dato?.esUltimo
+              ? "Compra evaluada"
+              : dato?.esMaximo
+              ? "Pico"
+              : dato?.esMinimo
+              ? "Mínimo"
+              : "Histórico"}
+          </span>
+
+          <span>{label}</span>
         </div>
 
-        <div className="tooltip-grafico-fila">
-          <span className="tooltip-grafico-etiqueta">Proveedor</span>
-          <strong className="tooltip-grafico-valor tooltip-grafico-proveedor">
-            {dato?.proveedor || "N/A"}
-          </strong>
+        <div className="stack--xs">
+          <div className="flex flex--between">
+            <span className="text-muted">Precio</span>
+            <strong>{formatearTooltipMoneda(dato?.precioUnitario)}</strong>
+          </div>
+
+          <div className="flex flex--between">
+            <span className="text-muted">Proveedor</span>
+            <strong>{dato?.proveedor || "N/A"}</strong>
+          </div>
+
+          <div className="flex flex--between">
+            <span className="text-muted">Vs promedio</span>
+            <strong>{formatearTooltipMoneda(diferencia)}</strong>
+          </div>
         </div>
 
-        <div className="tooltip-grafico-fila">
-          <span className="tooltip-grafico-etiqueta">Vs promedio</span>
-          <strong className="tooltip-grafico-valor">
-            {formatearTooltipMoneda(diferenciaVsPromedio)}
-          </strong>
-        </div>
       </div>
     </div>
   );

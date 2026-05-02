@@ -20,7 +20,7 @@ namespace Control_Fertilizantes_Backend.Repositories
             using var conexion = _conexionBD.ObtenerConexion();
 
             var resultado = await conexion.QueryAsync<UnidadMedida>(
-                "SP_UnidadesMedida_Listar",
+                "SP_UnidadMedida_Listar",
                 commandType: CommandType.StoredProcedure
             );
 

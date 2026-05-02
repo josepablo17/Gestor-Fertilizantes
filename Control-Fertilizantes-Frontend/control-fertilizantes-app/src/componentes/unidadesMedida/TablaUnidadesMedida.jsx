@@ -6,8 +6,8 @@ import {
 
 function TablaUnidadesMedida({ unidadesMedida, onEditar, onDesactivar }) {
     return (
-        <div className="tabla-responsive">
-            <table className="tabla-modulo">
+        <div className="table-wrapper">
+            <table className="table">
                 <thead>
                     <tr>
                         <th>Código</th>
@@ -24,27 +24,25 @@ function TablaUnidadesMedida({ unidadesMedida, onEditar, onDesactivar }) {
                     {unidadesMedida.map((unidadMedida) => (
                         <tr key={unidadMedida.idUnidadMedida}>
                             <td>
-                                <div className="celda-principal">
-                                    <span className="texto-principal">
-                                        {unidadMedida.codigo || "Sin código"}
-                                    </span>
-                                </div>
+                                <span className="table__cell-strong">
+                                    {unidadMedida.codigo || "Sin código"}
+                                </span>
                             </td>
 
                             <td>
-                                <span className="texto-secundario">
+                                <span className="table__cell-muted">
                                     {unidadMedida.nombre || "Sin nombre"}
                                 </span>
                             </td>
 
                             <td>
-                                <span className="texto-secundario">
+                                <span className="table__cell-muted">
                                     {unidadMedida.tipoBase || "Sin tipo base"}
                                 </span>
                             </td>
 
                             <td>
-                                <span className="texto-secundario">
+                                <span className="table__cell-muted">
                                     {formatearFactorConversion(unidadMedida.factorConversion)}
                                 </span>
                             </td>
@@ -53,11 +51,10 @@ function TablaUnidadesMedida({ unidadesMedida, onEditar, onDesactivar }) {
                                 <span
                                     className={
                                         unidadMedida.esUnidadBase
-                                            ? "estado-badge estado-activo"
-                                            : "estado-badge estado-inactivo"
+                                            ? "badge badge--success"
+                                            : "badge badge--neutral"
                                     }
                                 >
-                                    <span className="punto-estado"></span>
                                     {formatearUnidadBase(unidadMedida.esUnidadBase)}
                                 </span>
                             </td>
@@ -66,19 +63,18 @@ function TablaUnidadesMedida({ unidadesMedida, onEditar, onDesactivar }) {
                                 <span
                                     className={
                                         unidadMedida.activo
-                                            ? "estado-badge estado-activo"
-                                            : "estado-badge estado-inactivo"
+                                            ? "badge badge--success"
+                                            : "badge badge--neutral"
                                     }
                                 >
-                                    <span className="punto-estado"></span>
                                     {formatearEstado(unidadMedida.activo)}
                                 </span>
                             </td>
 
                             <td>
-                                <div className="acciones-tabla">
+                                <div className="table__actions">
                                     <button
-                                        className="boton-base boton-tabla boton-editar"
+                                        className="btn btn--ghost btn--sm"
                                         onClick={() => onEditar(unidadMedida)}
                                         type="button"
                                     >
@@ -87,7 +83,7 @@ function TablaUnidadesMedida({ unidadesMedida, onEditar, onDesactivar }) {
 
                                     {unidadMedida.activo && (
                                         <button
-                                            className="boton-base boton-tabla boton-eliminar"
+                                            className="btn btn--secondary btn--sm"
                                             onClick={() => onDesactivar(unidadMedida)}
                                             type="button"
                                         >

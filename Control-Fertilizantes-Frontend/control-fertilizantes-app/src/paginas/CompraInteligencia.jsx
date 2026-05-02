@@ -6,6 +6,7 @@ import GraficoHistorialPrecios from "../componentes/compras-inteligencia/Grafico
 import EvaluacionCompra from "../componentes/compras-inteligencia/EvaluacionCompra";
 import AlertasCompra from "../componentes/compras-inteligencia/AlertasCompras";
 import useCompraInteligencia from "../hooks/useCompraInteligencia";
+import EstadoLista from "../EstadoLista"
 import { obtenerProductos } from "../api/productosApi";
 import { obtenerPresentacionesProducto } from "../api/presentacionProductoApi";
 import { obtenerComprasClave } from "../utils/compras-inteligentes";
@@ -122,20 +123,20 @@ function CompraInteligencia() {
     }
   };
 
-  return (
-    <div className="pagina-compra-inteligencia">
-      <div className="contenedor-compra-inteligencia">
-        <div className="encabezado-compra-inteligencia">
-          <div>
-            <h1>Compras Inteligentes</h1>
-            <p>
-              Analiza el comportamiento histórico de precios, evalúa automáticamente
-              la compra más reciente y detecta alertas clave para apoyar decisiones
-              más estratégicas.
-            </p>
-          </div>
-        </div>
+return (
+  <section className="page">
+    <div className="page__header">
+      <div>
+        <h1 className="page__title">Compras Inteligentes</h1>
+        <p className="page__subtitle">
+          Analiza precios, evalúa compras y detecta riesgos para tomar mejores decisiones.
+        </p>
+      </div>
+    </div>
 
+    <div className="compra-inteligencia">
+      {/* Filtros */}
+      <div className="compra-inteligencia__bloque compra-inteligencia__bloque--filtros">
         <FiltrosCompraInteligencia
           productos={productos}
           presentaciones={presentaciones}
@@ -145,75 +146,93 @@ function CompraInteligencia() {
           setIdPresentacionProducto={setIdPresentacionProducto}
           onLimpiarFiltros={limpiarFiltros}
         />
+      </div>
 
-        {cargandoFiltros && (
-          <div className="estado-modulo">Cargando filtros...</div>
-        )}
+      {/* Estados filtros */}
+      {cargandoFiltros && (
+        <EstadoLista tipo="cargando" mensaje="Cargando filtros..." />
+      )}
 
-        {errorFiltros && (
-          <div className="estado-error">{errorFiltros}</div>
-        )}
+      {errorFiltros && (
+        <EstadoLista tipo="error" mensaje={errorFiltros} />
+      )}
 
-        {!cargandoFiltros && !errorFiltros && (
-          <>
-            {cargando && (
-              <div className="estado-modulo">
-                Cargando análisis inteligente...
-              </div>
-            )}
+      {!cargandoFiltros && !errorFiltros && (
+        <>
+          {/* Estados análisis */}
+          {cargando && (
+            <EstadoLista tipo="cargando" mensaje="Cargando análisis..." />
+          )}
 
-            {error && (
-              <div className="estado-error">{error}</div>
-            )}
+          {error && (
+            <EstadoLista tipo="error" mensaje={error} />
+          )}
 
-            {!cargando && !error && (
-              <>
-                <div className="compra-inteligencia-panel-superior">
-                  <div className="compra-inteligencia-resumen-rapido">
-                    <div className="mini-card-inteligencia">
-                      <span className="mini-card-etiqueta">Vista actual</span>
-                      <strong>
-                        {TABS_COMPRA_INTELIGENCIA.find((tab) => tab.id === tabActiva)?.label}
-                      </strong>
-                    </div>
-
-                    <div className="mini-card-inteligencia">
-                      <span className="mini-card-etiqueta">Alertas detectadas</span>
-                      <strong>{cantidadAlertas}</strong>
-                    </div>
-
-                    <div className="mini-card-inteligencia">
-                      <span className="mini-card-etiqueta">Compras analizadas</span>
-                      <strong>{cantidadCompras}</strong>
-                    </div>
-                  </div>
-
-                  <div className="tabs-compra-inteligencia">
-                    {TABS_COMPRA_INTELIGENCIA.map((tab) => (
-                      <button
-                        key={tab.id}
-                        type="button"
-                        className={`tab-compra-inteligencia ${
-                          tabActiva === tab.id ? "activa" : ""
-                        }`}
-                        onClick={() => setTabActiva(tab.id)}
-                      >
-                        {tab.label}
-                      </button>
-                    ))}
-                  </div>
+          {!cargando && !error && (
+            <>
+              {/* 🔥 Tabs (suben de nivel en jerarquía) */}
+              <section className="compra-inteligencia__seccion compra-inteligencia__seccion--tabs">
+                <div className="compra-inteligencia__tabs">
+                  {TABS_COMPRA_INTELIGENCIA.map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      className={
+                        tabActiva === tab.id
+                          ? "compra-inteligencia__tab compra-inteligencia__tab--activo"
+                          : "compra-inteligencia__tab"
+                      }
+                      onClick={() => setTabActiva(tab.id)}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
                 </div>
+              </section>
 
-                <div className="contenido-tab-compra-inteligencia">
+              {/* 🔥 Métricas globales (opcionales, no duplicar con Evaluación) */}
+              <section className="compra-inteligencia__seccion compra-inteligencia__seccion--metricas">
+                <div className="compra-inteligencia__metricas">
+                  <article className="card card--mini compra-inteligencia__metrica compra-inteligencia__metrica--alertas">
+                    <span className="label">Alertas activas</span>
+                    <strong className="compra-inteligencia__metrica-valor">
+                      {cantidadAlertas}
+                    </strong>
+                  </article>
+
+                  <article className="card card--mini compra-inteligencia__metrica">
+                    <span className="label">Compras analizadas</span>
+                    <strong className="compra-inteligencia__metrica-valor">
+                      {cantidadCompras}
+                    </strong>
+                  </article>
+
+                  <article className="card card--mini compra-inteligencia__metrica">
+                    <span className="label">Vista actual</span>
+                    <strong className="compra-inteligencia__metrica-valor">
+                      {
+                        TABS_COMPRA_INTELIGENCIA.find(
+                          (tab) => tab.id === tabActiva
+                        )?.label
+                      }
+                    </strong>
+                  </article>
+                </div>
+              </section>
+
+              {/* 🔥 Contenido único (clave del fix) */}
+              <section className="compra-inteligencia__seccion compra-inteligencia__seccion--contenido">
+                <div className="compra-inteligencia__contenido">
                   {renderizarContenidoTab()}
                 </div>
-              </>
-            )}
-          </>
-        )}
-      </div>
+              </section>
+            </>
+          )}
+        </>
+      )}
     </div>
-  );
+  </section>
+);
 }
 
 export default CompraInteligencia;

@@ -1,7 +1,7 @@
 function TablaPresentacionesProducto({ presentacionesProducto, onEditar, onDesactivar }) {
   return (
-    <div className="tabla-responsive">
-      <table className="tabla-modulo">
+    <div className="table-wrapper">
+      <table className="table">
         <thead>
           <tr>
             <th>Producto</th>
@@ -18,16 +18,14 @@ function TablaPresentacionesProducto({ presentacionesProducto, onEditar, onDesac
           {presentacionesProducto.map((presentacion) => (
             <tr key={presentacion.idPresentacionProducto}>
               <td>
-                <div className="celda-principal">
-                  <span className="texto-principal">
-                    {presentacion.nombreProducto || "Sin producto"}
-                  </span>
-                </div>
+                <span className="table__cell-strong">
+                  {presentacion.nombreProducto || "Sin producto"}
+                </span>
               </td>
 
               <td>
                 <span
-                  className="texto-truncado"
+                  className="table__cell-muted table__cell-truncate"
                   title={presentacion.descripcion || "Sin descripción"}
                 >
                   {presentacion.descripcion || "Sin descripción"}
@@ -35,19 +33,19 @@ function TablaPresentacionesProducto({ presentacionesProducto, onEditar, onDesac
               </td>
 
               <td>
-                <span className="texto-secundario">
+                <span className="table__cell-muted">
                   {presentacion.cantidad ?? "0"}
                 </span>
               </td>
 
               <td>
-                <span className="texto-secundario">
+                <span className="table__cell-muted">
                   {presentacion.nombreUnidadMedida || "Sin unidad"}
                 </span>
               </td>
 
               <td>
-                <span className="texto-secundario">
+                <span className="table__cell-muted">
                   {presentacion.cantidadNormalizada ?? "0"}
                 </span>
               </td>
@@ -56,30 +54,29 @@ function TablaPresentacionesProducto({ presentacionesProducto, onEditar, onDesac
                 <span
                   className={
                     presentacion.activo
-                      ? "estado-badge estado-activo"
-                      : "estado-badge estado-inactivo"
+                      ? "badge badge--success"
+                      : "badge badge--neutral"
                   }
                 >
-                  <span className="punto-estado"></span>
                   {presentacion.activo ? "Activo" : "Inactivo"}
                 </span>
               </td>
 
               <td>
-                <div className="acciones-tabla">
+                <div className="table__actions">
                   <button
-                    className="boton-base boton-tabla boton-editar"
-                    onClick={() => onEditar(presentacion)}
                     type="button"
+                    className="btn btn--secondary btn--sm"
+                    onClick={() => onEditar(presentacion)}
                   >
                     Editar
                   </button>
 
                   {presentacion.activo && (
                     <button
-                      className="boton-base boton-tabla boton-eliminar"
-                      onClick={() => onDesactivar(presentacion)}
                       type="button"
+                      className="btn btn--danger btn--sm"
+                      onClick={() => onDesactivar(presentacion)}
                     >
                       Desactivar
                     </button>

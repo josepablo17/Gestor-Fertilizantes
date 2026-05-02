@@ -32,46 +32,35 @@ function usePaginacion(items, itemsPorPagina, dependencias = []) {
   };
 
   const obtenerPaginasVisibles = () => {
+    const PAGINAS_INICIALES_VISIBLES = 4;
+    const PAGINAS_CONTEXTO_VISIBLES = 5;
+
     if (totalPaginas <= 7) {
       return Array.from({ length: totalPaginas }, (_, index) => index + 1);
     }
 
-    const paginas = [];
     const primeraPagina = 1;
     const ultimaPagina = totalPaginas;
+    let paginas;
 
-    paginas.push(primeraPagina);
-
-    if (paginaActual <= 4) {
-      paginas.push(2, 3, 4, 5);
-
-      if (totalPaginas > 6) {
-        paginas.push("...");
-      }
-
-      paginas.push(ultimaPagina);
-      return paginas;
+    if (paginaAjustada <= PAGINAS_INICIALES_VISIBLES) {
+      paginas = Array.from(
+        { length: PAGINAS_INICIALES_VISIBLES },
+        (_, index) => index + 1
+      );
+    } else if (paginaAjustada >= totalPaginas - PAGINAS_CONTEXTO_VISIBLES + 1) {
+      paginas = Array.from(
+        { length: PAGINAS_CONTEXTO_VISIBLES },
+        (_, index) => totalPaginas - PAGINAS_CONTEXTO_VISIBLES + index + 1
+      );
+    } else {
+      paginas = Array.from(
+        { length: PAGINAS_CONTEXTO_VISIBLES },
+        (_, index) => paginaAjustada + index
+      );
     }
 
-    if (paginaActual >= totalPaginas - 3) {
-      paginas.push("...");
-
-      for (let i = totalPaginas - 4; i < totalPaginas; i++) {
-        paginas.push(i);
-      }
-
-      paginas.push(ultimaPagina);
-      return paginas;
-    }
-
-    paginas.push("...");
-    paginas.push(paginaActual - 1);
-    paginas.push(paginaActual);
-    paginas.push(paginaActual + 1);
-    paginas.push("...");
-    paginas.push(ultimaPagina);
-
-    return paginas;
+    return [...new Set([primeraPagina, ...paginas, ultimaPagina])];
   };
 
   return {

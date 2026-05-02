@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ListaProductos from "../componentes/productos/ListaProductos";
-import "../estilos/index.css";
 
 function Productos() {
   const [recargarLista, setRecargarLista] = useState(false);
@@ -20,28 +19,38 @@ function Productos() {
   };
 
   return (
-    <div className="pagina-modulo">
-      <div className="contenedor-modulo">
-        <div className="encabezado-modulo encabezado-con-acciones">
-          <div>
-            <h1>Gestión de Productos</h1>
-            <p>Administra el catálogo de fertilizantes registrados en el sistema.</p>
-          </div>
+    <section className="page">
+      <header className="page__header">
+        <div className="page__header-content">
+          <h1 className="page__title">Gestión de productos</h1>
+          <p className="page__subtitle">
+            Administra el catálogo de fertilizantes registrados en el sistema.
+          </p>
+        </div>
 
-          <button className="boton-base boton-primario" onClick={irANuevoProducto}>
+        <div className="page__actions">
+          <button
+            type="button"
+            className="btn btn--primary btn--md"
+            onClick={irANuevoProducto}
+          >
             Agregar producto
           </button>
         </div>
+      </header>
 
-        <div className="card-modulo">
-          <ListaProductos
-            recargar={recargarLista}
-            onEditar={irAEditarProducto}
-            onProductoDesactivado={manejarProductoDesactivado}
-          />
-        </div>
+      <div className="page__body">
+        <section className="card">
+          <div className="card__body">
+            <ListaProductos
+              recargar={recargarLista}
+              onEditar={irAEditarProducto}
+              onProductoDesactivado={manejarProductoDesactivado}
+            />
+          </div>
+        </section>
       </div>
-    </div>
+    </section>
   );
 }
 

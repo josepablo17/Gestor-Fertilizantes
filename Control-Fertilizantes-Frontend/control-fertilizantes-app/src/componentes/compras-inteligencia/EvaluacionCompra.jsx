@@ -1,8 +1,8 @@
 function EvaluacionCompra({ evaluacion }) {
   if (!evaluacion) {
     return (
-      <div className="estado-vacio-modulo evaluacion-compra-vacia">
-        No hay una compra reciente disponible para evaluar automáticamente.
+      <div className="estado-vacio-modulo">
+        No hay una compra reciente para evaluar.
       </div>
     );
   }
@@ -11,7 +11,6 @@ function EvaluacionCompra({ evaluacion }) {
   const claseVariacionPromedio = obtenerClaseVariacion(evaluacion.porcentajeVsPromedio);
   const claseVariacionUltimo = obtenerClaseVariacion(evaluacion.porcentajeVsUltimo);
   const claseTendencia = obtenerClaseTendencia(evaluacion.tendenciaPrecio);
-  const claseEstadoCard = obtenerClaseEstadoCard(evaluacion.clasificacionCompra);
 
   const tituloImpacto = obtenerTituloImpacto(
     evaluacion.clasificacionCompra,
@@ -21,125 +20,109 @@ function EvaluacionCompra({ evaluacion }) {
   const recomendacionSistema = obtenerRecomendacionSistema(evaluacion);
   const observacionContextual = obtenerObservacionContextual(evaluacion);
 
-  return (
-    <section className="evaluacion-compra-seccion">
-      <article
-        className={`card-base card-evaluacion-compra card-evaluacion-destacada ${claseEstadoCard}`}
-      >
-        <div className="evaluacion-capa-brillo"></div>
+return (
+  <section className="compra-inteligencia__evaluacion">
+    <div
+      className={`compra-inteligencia__evaluacion-hero ${obtenerClaseEstadoCard(
+        evaluacion.clasificacionCompra
+      )}`}
+    >
+      <div className="compra-inteligencia__evaluacion-hero-top">
+        <span className={`badge ${claseClasificacion}`}>
+          {evaluacion.clasificacionCompra || "Sin clasificación"}
+        </span>
 
-        <div className="encabezado-evaluacion-compra">
-          <div className="evaluacion-bloque-principal">
-            <div className="evaluacion-superior">
-              <span className="evaluacion-etiqueta">
-                Evaluación automática de la compra más reciente
-              </span>
+        <span className="compra-inteligencia__evaluacion-eyebrow">
+          Evaluación automática
+        </span>
+      </div>
 
-              <span className={`evaluacion-badge ${claseClasificacion}`}>
-                {evaluacion.clasificacionCompra || "Sin clasificación"}
-              </span>
-            </div>
+      <div className="compra-inteligencia__evaluacion-hero-main">
+        <div className="compra-inteligencia__evaluacion-hero-copy">
+          <h2 className="compra-inteligencia__evaluacion-titulo">
+            {tituloImpacto}
+          </h2>
 
-            <div className="evaluacion-identidad">
-              <span className="evaluacion-contexto">
-                {evaluacion.nombreProducto || "Producto"} ·{" "}
-                {evaluacion.nombrePresentacion || "Presentación"}
-              </span>
-
-              <h2 className="evaluacion-titulo-impacto">{tituloImpacto}</h2>
-
-              <p className="evaluacion-subtitulo-impacto">
-                {observacionContextual}
-              </p>
-
-              <div className="evaluacion-recomendacion">
-                <span className="evaluacion-recomendacion-etiqueta">
-                  Recomendación del sistema
-                </span>
-                <p className="evaluacion-recomendacion-texto">
-                  {recomendacionSistema}
-                </p>
-              </div>
-            </div>
-          </div>
+          <p className="compra-inteligencia__evaluacion-observacion">
+            {observacionContextual}
+          </p>
         </div>
 
-        <div className="evaluacion-highlight-grid">
-          <div className="evaluacion-highlight-card">
-            <span className="evaluacion-highlight-etiqueta">Precio actual</span>
-            <strong className="evaluacion-highlight-valor">
-              {formatearNumero(evaluacion.precioUnitarioActual)}
-            </strong>
+        <div className="compra-inteligencia__evaluacion-impacto">
+          <span
+            className={`compra-inteligencia__evaluacion-impacto-valor ${claseVariacionPromedio}`}
+          >
+            {formatearPorcentaje(evaluacion.porcentajeVsPromedio)}
+          </span>
+          <span className="compra-inteligencia__evaluacion-impacto-label">
+            vs promedio histórico
+          </span>
+        </div>
+      </div>
+
+      <div className="compra-inteligencia__evaluacion-accion">
+        <strong>Acción sugerida</strong>
+        <p>{recomendacionSistema}</p>
+      </div>
+    </div>
+
+    <div className="compra-inteligencia__evaluacion-resumen">
+      <div className="compra-inteligencia__evaluacion-panel">
+        <div className="compra-inteligencia__evaluacion-panel-header">
+          <h3>Referencia económica</h3>
+          <p>Comparación del precio actual contra el histórico.</p>
+        </div>
+
+        <div className="compra-inteligencia__evaluacion-grid">
+          <div className="compra-inteligencia__evaluacion-item">
+            <span className="label">Precio actual</span>
+            <strong>{formatearNumero(evaluacion.precioUnitarioActual)}</strong>
           </div>
 
-          <div className="evaluacion-highlight-card">
-            <span className="evaluacion-highlight-etiqueta">Promedio histórico</span>
-            <strong className="evaluacion-highlight-valor">
-              {formatearNumero(evaluacion.precioPromedioHistorico)}
-            </strong>
+          <div className="compra-inteligencia__evaluacion-item">
+            <span className="label">Precio típico</span>
+            <strong>{formatearNumero(evaluacion.precioPromedioHistorico)}</strong>
           </div>
 
-          <div className="evaluacion-highlight-card">
-            <span className="evaluacion-highlight-etiqueta">Variación vs promedio</span>
-            <strong
-              className={`evaluacion-highlight-valor ${claseVariacionPromedio}`}
-            >
+          <div className="compra-inteligencia__evaluacion-item">
+            <span className="label">Impacto vs histórico</span>
+            <strong className={claseVariacionPromedio}>
               {formatearPorcentaje(evaluacion.porcentajeVsPromedio)}
             </strong>
           </div>
+        </div>
+      </div>
 
-          <div className="evaluacion-highlight-card">
-            <span className="evaluacion-highlight-etiqueta">Variación vs último precio</span>
-            <strong
-              className={`evaluacion-highlight-valor ${claseVariacionUltimo}`}
-            >
-              {formatearPorcentaje(evaluacion.porcentajeVsUltimo)}
-            </strong>
-          </div>
+      <div className="compra-inteligencia__evaluacion-panel">
+        <div className="compra-inteligencia__evaluacion-panel-header">
+          <h3>Contexto de la compra</h3>
+          <p>Información operativa del registro evaluado.</p>
         </div>
 
-        <div className="evaluacion-detalles-bloque">
-          <div className="evaluacion-detalles-encabezado">
-            <h3>Contexto de respaldo</h3>
-            <p>
-              Información complementaria utilizada para interpretar el resultado de
-              la compra.
-            </p>
+        <div className="compra-inteligencia__evaluacion-grid">
+          <div className="compra-inteligencia__evaluacion-item">
+            <span className="label">Proveedor</span>
+            <strong>{evaluacion.nombreProveedor || "N/A"}</strong>
           </div>
 
-          <div className="evaluacion-detalles-grid">
-            <div className="evaluacion-item">
-              <span className="evaluacion-item-etiqueta">Proveedor evaluado</span>
-              <strong className="evaluacion-item-valor">
-                {evaluacion.nombreProveedor || "N/A"}
-              </strong>
-            </div>
+          <div className="compra-inteligencia__evaluacion-item">
+            <span className="label">Fecha</span>
+            <strong>{formatearFecha(evaluacion.fechaCompra)}</strong>
+          </div>
 
-            <div className="evaluacion-item">
-              <span className="evaluacion-item-etiqueta">Fecha analizada</span>
-              <strong className="evaluacion-item-valor">
-                {formatearFecha(evaluacion.fechaCompra)}
-              </strong>
-            </div>
-
-            <div className="evaluacion-item">
-              <span className="evaluacion-item-etiqueta">Tendencia reciente</span>
-              <strong className={`evaluacion-item-valor ${claseTendencia}`}>
+          <div className="compra-inteligencia__evaluacion-item">
+            <span className="label">Tendencia</span>
+            <div className="compra-inteligencia__evaluacion-badge">
+              <span className={`badge ${claseTendencia}`}>
                 {evaluacion.tendenciaPrecio || "Sin dato"}
-              </strong>
-            </div>
-
-            <div className="evaluacion-item">
-              <span className="evaluacion-item-etiqueta">Observación del análisis</span>
-              <strong className="evaluacion-item-valor">
-                {evaluacion.mensajeEvaluacion || "Sin observación disponible"}
-              </strong>
+              </span>
             </div>
           </div>
         </div>
-      </article>
-    </section>
-  );
+      </div>
+    </div>
+  </section>
+);
 }
 
 function obtenerTituloImpacto(clasificacionCompra, porcentajeVsPromedio) {

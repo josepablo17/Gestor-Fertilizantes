@@ -33,57 +33,61 @@ function FormularioCompra({
     return `${moneda || ""} ${Number(monto).toFixed(2)}`.trim();
   };
 
-  return (
-    <div className="card-modulo">
-      <div className="titulo-seccion">
-        <h2>{estaEditando ? "Editar Compra" : "Registrar Compra"}</h2>
-        <p>
+ return (
+  <>
+    <div className="page-section__header">
+      <div>
+        <h2 className="page-section__title">
+          {estaEditando ? "Editar compra" : "Registrar compra"}
+        </h2>
+        <p className="page-section__subtitle">
           {estaEditando
             ? "Modifica la información de la compra seleccionada."
             : "Completa los campos para registrar una nueva compra."}
         </p>
       </div>
-
-      <form className="formulario-modulo" onSubmit={manejarSubmit}>
-        <CompraCamposFormulario
-          compra={compra}
-          productos={productos}
-          proveedores={proveedores}
-          presentacionesFiltradas={presentacionesFiltradas}
-          cargandoCatalogos={cargandoCatalogos}
-          onChange={manejarCambio}
-        />
-
-        <CompraInformacionReferencia
-          ultimoPrecio={ultimoPrecio}
-          cargandoUltimoPrecio={cargandoUltimoPrecio}
-          estaEditando={estaEditando}
-          compraEditar={compraEditar}
-          formatearMonto={formatearMonto}
-        />
-
-        <div className="acciones-formulario">
-          {estaEditando && (
-            <button
-              type="button"
-              className="boton-base boton-secundario"
-              onClick={manejarCancelar}
-            >
-              Cancelar
-            </button>
-          )}
-
-          <button
-            type="submit"
-            className="boton-base boton-primario"
-            disabled={cargandoCatalogos}
-          >
-            {estaEditando ? "Actualizar compra" : "Guardar compra"}
-          </button>
-        </div>
-      </form>
     </div>
-  );
+
+    <form className="form" onSubmit={manejarSubmit}>
+      <CompraCamposFormulario
+        compra={compra}
+        productos={productos}
+        proveedores={proveedores}
+        presentacionesFiltradas={presentacionesFiltradas}
+        cargandoCatalogos={cargandoCatalogos}
+        onChange={manejarCambio}
+      />
+
+      <CompraInformacionReferencia
+        ultimoPrecio={ultimoPrecio}
+        cargandoUltimoPrecio={cargandoUltimoPrecio}
+        estaEditando={estaEditando}
+        compraEditar={compraEditar}
+        formatearMonto={formatearMonto}
+      />
+
+      <div className="form-actions">
+        {estaEditando && (
+          <button
+            type="button"
+            className="btn btn--secondary"
+            onClick={manejarCancelar}
+          >
+            Cancelar
+          </button>
+        )}
+
+        <button
+          type="submit"
+          className="btn btn--primary"
+          disabled={cargandoCatalogos}
+        >
+          {estaEditando ? "Actualizar compra" : "Guardar compra"}
+        </button>
+      </div>
+    </form>
+  </>
+);
 }
 
 export default FormularioCompra;

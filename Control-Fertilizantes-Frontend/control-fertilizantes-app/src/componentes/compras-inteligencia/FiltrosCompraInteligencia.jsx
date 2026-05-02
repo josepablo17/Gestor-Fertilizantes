@@ -17,74 +17,81 @@ function FiltrosCompraInteligencia({
   const cantidadPresentaciones = presentaciones?.length ?? 0;
 
   return (
-    <section className="filtros-compra-inteligencia">
-      <div className="filtros-compra-header">
-        <div className="filtros-compra-header-texto">
-          <span className="filtros-kicker">Configuración del análisis</span>
-          <h3>Selecciona el producto y la presentación a evaluar</h3>
-          <p>
-            Define el contexto del análisis para consultar precios históricos,
-            tendencias, alertas y evaluación automática de compra.
+    <section className="card">
+      <div className="card__header">
+        <div>
+          <h3 className="card__title">Configura el análisis</h3>
+          <p className="card__subtitle">
+            Selecciona el producto y la presentación para consultar precios históricos,
+            tendencias, alertas y evaluación automática.
           </p>
         </div>
 
-        <div className="filtros-resumen">
-          <span className="filtros-resumen-item">
+        <div className="toolbar__group">
+          <span className="badge badge--neutral">
             {cantidadProductos} producto{cantidadProductos !== 1 ? "s" : ""}
           </span>
-          <span className="filtros-resumen-item">
+          <span className="badge badge--neutral">
             {cantidadPresentaciones} presentaci{cantidadPresentaciones !== 1 ? "ones" : "ón"}
           </span>
         </div>
       </div>
 
-      <div className="barra-herramientas barra-herramientas-analisis">
-        <div className="grupo-filtros grupo-filtros-analisis">
-          <div className="campo-filtro-inteligente">
-            <label className="label-filtro-inteligente">Producto</label>
-            <select
-              value={idProducto}
-              onChange={manejarCambioProducto}
-              className="select-filtro"
-            >
-              <option value="">Seleccione un producto</option>
-              {productos.map((producto) => (
-                <option key={producto.idProducto} value={producto.idProducto}>
-                  {producto.nombre}
-                </option>
-              ))}
-            </select>
+      <div className="card__body">
+        <div className="toolbar">
+          <div className="toolbar__group">
+            <div className="form__group">
+              <label className="label" htmlFor="idProducto">
+                Producto
+              </label>
+              <select
+                id="idProducto"
+                value={idProducto}
+                onChange={manejarCambioProducto}
+                className="select"
+              >
+                <option value="">Seleccione un producto</option>
+                {productos.map((producto) => (
+                  <option key={producto.idProducto} value={producto.idProducto}>
+                    {producto.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form__group">
+              <label className="label" htmlFor="idPresentacionProducto">
+                Presentación
+              </label>
+              <select
+                id="idPresentacionProducto"
+                value={idPresentacionProducto}
+                onChange={(e) => setIdPresentacionProducto(e.target.value)}
+                className="select"
+                disabled={!idProducto}
+              >
+                <option value="">Seleccione una presentación</option>
+                {presentaciones.map((presentacion) => (
+                  <option
+                    key={presentacion.idPresentacionProducto}
+                    value={presentacion.idPresentacionProducto}
+                  >
+                    {presentacion.descripcion}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          <div className="campo-filtro-inteligente">
-            <label className="label-filtro-inteligente">Presentación</label>
-            <select
-              value={idPresentacionProducto}
-              onChange={(e) => setIdPresentacionProducto(e.target.value)}
-              className="select-filtro"
-              disabled={!idProducto}
+          <div className="toolbar__group">
+            <button
+              className="btn btn--ghost btn--md"
+              onClick={onLimpiarFiltros}
+              type="button"
             >
-              <option value="">Seleccione una presentación</option>
-              {presentaciones.map((presentacion) => (
-                <option
-                  key={presentacion.idPresentacionProducto}
-                  value={presentacion.idPresentacionProducto}
-                >
-                  {presentacion.descripcion}
-                </option>
-              ))}
-            </select>
+              Limpiar filtros
+            </button>
           </div>
-        </div>
-
-        <div className="grupo-acciones-filtros">
-          <button
-            className="boton-base boton-limpiar boton-limpiar-analisis"
-            onClick={onLimpiarFiltros}
-            type="button"
-          >
-            Limpiar filtros
-          </button>
         </div>
       </div>
     </section>

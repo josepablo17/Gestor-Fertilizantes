@@ -4,7 +4,6 @@ import FormularioCompra from "../componentes/compras/FormularioCompras";
 import { obtenerCompraPorId } from "../api/compraApi";
 import { mostrarError } from "../utils/alertas";
 import Loader from "../componentes/Loader";
-import "../estilos/loader.css";
 
 function CompraFormulario() {
   const navigate = useNavigate();
@@ -47,31 +46,41 @@ function CompraFormulario() {
     navigate("/compras");
   };
 
-  return (
-    <div className="pagina-modulo">
-      <div className="contenedor-modulo">
-        <div className="encabezado-modulo encabezado-con-acciones">
-          <div>
-            <h1>{estaEditando ? "Editar Compra" : "Nueva Compra"}</h1>
-            <p>
-              {estaEditando
-                ? "Actualiza la información de la compra seleccionada."
-                : "Completa el formulario para registrar una nueva compra."}
-            </p>
-          </div>
+return (
+  <section className="page">
+    {/* HEADER */}
+    <header className="page__header">
+      <div className="page__header-content">
+        <h1 className="page__title">
+          {estaEditando ? "Editar compra" : "Nueva compra"}
+        </h1>
+        <p className="page__subtitle">
+          {estaEditando
+            ? "Actualiza la información de la compra seleccionada."
+            : "Completa el formulario para registrar una nueva compra."}
+        </p>
+      </div>
 
-          <button
-            type="button"
-            className="boton-base boton-secundario"
-            onClick={manejarCancelar}
-          >
-            Volver al listado
-          </button>
-        </div>
+      <div className="page__actions">
+        <button
+          type="button"
+          className="btn btn--secondary"
+          onClick={manejarCancelar}
+        >
+          Volver al listado
+        </button>
+      </div>
+    </header>
 
-        <div className="card-modulo">
+    {/* BODY */}
+    <div className="page__body">
+      <section className="card">
+        <div className="card__body">
           {cargando ? (
-            <Loader texto="Cargando información de la compra..." alto="260px" />
+            <Loader
+              texto="Cargando información de la compra..."
+              alto="260px"
+            />
           ) : (
             <FormularioCompra
               onCompraGuardada={manejarCompraGuardada}
@@ -80,9 +89,10 @@ function CompraFormulario() {
             />
           )}
         </div>
-      </div>
+      </section>
     </div>
-  );
+  </section>
+);
 }
 
 export default CompraFormulario;

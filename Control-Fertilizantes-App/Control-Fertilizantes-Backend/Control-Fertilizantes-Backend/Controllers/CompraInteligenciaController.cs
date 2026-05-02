@@ -1,4 +1,5 @@
-﻿using Control_Fertilizantes_Backend.Interfaces;
+﻿using Control_Fertilizantes_Backend.DTOs;
+using Control_Fertilizantes_Backend.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Control_Fertilizantes_Backend.Controllers
@@ -19,7 +20,10 @@ namespace Control_Fertilizantes_Backend.Controllers
         {
             var historial = await _compraInteligenciaServicio.ObtenerHistorialPreciosPorProductoAsync(idProducto, idPresentacionProducto);
 
-            return Ok(historial);
+            return Ok(ApiRespuesta<object>.CrearExito(
+                "Historial de precios obtenido correctamente.",
+                historial
+            ));
         }
 
         [HttpGet("ResumenInteligentePrecios")]
@@ -29,10 +33,15 @@ namespace Control_Fertilizantes_Backend.Controllers
 
             if (resumen == null)
             {
-                return NotFound(new { mensaje = "No se encontró información de compras para el producto y presentación indicados." });
+                return NotFound(ApiRespuesta<object>.CrearError(
+                    "No se encontró información de compras para el producto y presentación indicados."
+                ));
             }
 
-            return Ok(resumen);
+            return Ok(ApiRespuesta<object>.CrearExito(
+                "Resumen inteligente de precios obtenido correctamente.",
+                resumen
+            ));
         }
 
         [HttpGet("EvaluarCompra/{idCompra}")]
@@ -42,10 +51,15 @@ namespace Control_Fertilizantes_Backend.Controllers
 
             if (evaluacion == null)
             {
-                return NotFound(new { mensaje = "No se encontró información para evaluar la compra indicada." });
+                return NotFound(ApiRespuesta<object>.CrearError(
+                    "No se encontró información para evaluar la compra indicada."
+                ));
             }
 
-            return Ok(evaluacion);
+            return Ok(ApiRespuesta<object>.CrearExito(
+                "Evaluación de compra obtenida correctamente.",
+                evaluacion
+            ));
         }
 
         [HttpGet("Alertas")]
@@ -53,7 +67,10 @@ namespace Control_Fertilizantes_Backend.Controllers
         {
             var alertas = await _compraInteligenciaServicio.ObtenerAlertasPorProductoAsync(idProducto, idPresentacionProducto);
 
-            return Ok(alertas);
+            return Ok(ApiRespuesta<object>.CrearExito(
+                "Alertas obtenidas correctamente.",
+                alertas
+            ));
         }
     }
 }

@@ -1,0 +1,38 @@
+/* =========================================================
+   LOADING STATE
+========================================================= */
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+
+  padding: var(--space-6);
+  border-radius: var(--radius-lg);
+
+  background: var(--color-surface-secondary);
+}
+
+/* Spinner */
+.loading-state__spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+
+  animation: spin 0.8s linear infinite;
+}
+
+.loading-state__text {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+/* Animación */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

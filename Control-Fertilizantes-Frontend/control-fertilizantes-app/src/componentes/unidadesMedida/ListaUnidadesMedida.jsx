@@ -12,16 +12,19 @@ function ListaUnidadesMedida({ recargar, onEditar, onUnidadMedidaDesactivada, on
     } = useUnidadesMedida(recargar, onUnidadMedidaDesactivada);
 
     return (
-        <div className="seccion-modulo">
-            <div className="cabecera-lista">
-                <div className="titulo-seccion">
-                    <h2>Lista de Unidades de Medida</h2>
-                    <p>Consulta, edita y administra las unidades de medida registradas en el sistema.</p>
+        <section className="page-section">
+            {/* HEADER */}
+            <div className="page-section__header">
+                <div>
+                    <h2 className="page-section__title">Lista de unidades de medida</h2>
+                    <p className="page-section__subtitle">
+                        Consulta, edita y administra las unidades de medida registradas en el sistema.
+                    </p>
                 </div>
 
                 {onAgregar && (
                     <button
-                        className="boton-base boton-agregar"
+                        className="btn btn--primary btn--md"
                         onClick={onAgregar}
                         type="button"
                     >
@@ -30,12 +33,7 @@ function ListaUnidadesMedida({ recargar, onEditar, onUnidadMedidaDesactivada, on
                 )}
             </div>
 
-            {!cargando && !error && unidadesMedida.length > 0 && (
-                <div className="resumen-lista">
-                    <span>{obtenerTextoResumen(unidadesMedida.length)}</span>
-                </div>
-            )}
-
+            {/* CONTENIDO */}
             {cargando ? (
                 <EstadoLista tipo="cargando" mensaje="Cargando unidades de medida..." />
             ) : error ? (
@@ -47,13 +45,21 @@ function ListaUnidadesMedida({ recargar, onEditar, onUnidadMedidaDesactivada, on
                     subtitulo="Cuando agregues unidades de medida, aparecerán aquí para administrarlas."
                 />
             ) : (
-                <TablaUnidadesMedida
-                    unidadesMedida={unidadesMedida}
-                    onEditar={onEditar}
-                    onDesactivar={manejarDesactivar}
-                />
+                <>
+                    {/* RESUMEN */}
+                    <div className="table__cell-muted" style={{ padding: "0 0 var(--space-3) 0" }}>
+                        {obtenerTextoResumen(unidadesMedida.length)}
+                    </div>
+
+                    {/* TABLA */}
+                    <TablaUnidadesMedida
+                        unidadesMedida={unidadesMedida}
+                        onEditar={onEditar}
+                        onDesactivar={manejarDesactivar}
+                    />
+                </>
             )}
-        </div>
+        </section>
     );
 }
 

@@ -7,24 +7,31 @@ export async function obtenerComparativaProveedores({
   mesesAnalisis,
   soloAutorizados
 }) {
-  const params = new URLSearchParams();
+  try {
+    const params = new URLSearchParams();
 
-  params.append("idProducto", idProducto);
-  params.append("idPresentacionProducto", idPresentacionProducto);
+    params.append("idProducto", idProducto);
+    params.append("idPresentacionProducto", idPresentacionProducto);
 
-  if (moneda) params.append("moneda", moneda);
-  if (mesesAnalisis) params.append("mesesAnalisis", mesesAnalisis);
-  params.append("soloAutorizados", soloAutorizados);
+    if (moneda) params.append("moneda", moneda);
+    if (mesesAnalisis) params.append("mesesAnalisis", mesesAnalisis);
+    params.append("soloAutorizados", soloAutorizados);
 
-  const response = await fetch(
-    `${CONFIG.API_URL}/ComparadorProveedor/Comparar?${params.toString()}`
-  );
+    const respuesta = await fetch(
+      `${CONFIG.API_URL}/ComparadorProveedor/Comparar?${params.toString()}`
+    );
 
-  if (!response.ok) {
-    throw new Error("No se pudo obtener la comparativa de proveedores.");
+    const resultado = await respuesta.json();
+
+    if (!respuesta.ok) {
+      throw new Error(resultado.mensaje || "No se pudo obtener la comparativa de proveedores.");
+    }
+
+    return resultado.data ?? [];
+  } catch (error) {
+    console.error("Error en obtenerComparativaProveedores:", error);
+    throw error;
   }
-
-  return await response.json();
 }
 
 export async function obtenerDetalleProveedor({
@@ -34,22 +41,29 @@ export async function obtenerDetalleProveedor({
   moneda,
   mesesAnalisis
 }) {
-  const params = new URLSearchParams();
+  try {
+    const params = new URLSearchParams();
 
-  params.append("idProducto", idProducto);
-  params.append("idPresentacionProducto", idPresentacionProducto);
-  params.append("idProveedor", idProveedor);
+    params.append("idProducto", idProducto);
+    params.append("idPresentacionProducto", idPresentacionProducto);
+    params.append("idProveedor", idProveedor);
 
-  if (moneda) params.append("moneda", moneda);
-  if (mesesAnalisis) params.append("mesesAnalisis", mesesAnalisis);
+    if (moneda) params.append("moneda", moneda);
+    if (mesesAnalisis) params.append("mesesAnalisis", mesesAnalisis);
 
-  const response = await fetch(
-    `${CONFIG.API_URL}/ComparadorProveedor/DetalleProveedor?${params.toString()}`
-  );
+    const respuesta = await fetch(
+      `${CONFIG.API_URL}/ComparadorProveedor/DetalleProveedor?${params.toString()}`
+    );
 
-  if (!response.ok) {
-    throw new Error("No se pudo obtener el detalle del proveedor.");
+    const resultado = await respuesta.json();
+
+    if (!respuesta.ok) {
+      throw new Error(resultado.mensaje || "No se pudo obtener el detalle del proveedor.");
+    }
+
+    return resultado.data ?? null;
+  } catch (error) {
+    console.error("Error en obtenerDetalleProveedor:", error);
+    throw error;
   }
-
-  return await response.json();
 }
