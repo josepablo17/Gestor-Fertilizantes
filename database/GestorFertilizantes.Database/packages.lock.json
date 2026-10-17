@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "dependencies": {
+    ".NETStandard,Version=v2.1": {
+      "Microsoft.SqlServer.Dacpacs.Master": {
+        "type": "Direct",
+        "requested": "[160.2.8, )",
+        "resolved": "160.2.8",
+        "contentHash": "uNbEkajmnyB0su1XDKBj0WTyvdP1AarYdvbzNxXpMWLwtQ4XBtLD0awhpcskdDIAIxxEivhXEix7BqcpfwhHPQ=="
+      }
+    }
+  }
+}

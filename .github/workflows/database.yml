@@ -1,0 +1,64 @@
+name: Database DACPAC
+
+on:
+  pull_request:
+    paths: ['database/**', '.github/workflows/database.yml', '.gitignore']
+  push:
+    branches: [main]
+    paths: ['database/**', '.github/workflows/database.yml', '.gitignore']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: database
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_ROLL_FORWARD: Major
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          global-json-file: database/global.json
+      - name: Build locked database and test projects
+        run: ./scripts/Invoke-Database.ps1 -Action Build
+      - name: Start disposable SQL Server 2022
+        run: |
+          $env:MSSQL_SA_PASSWORD = 'Ci!' + [Guid]::NewGuid().ToString('N') + 'aA9'
+          Write-Output "::add-mask::$env:MSSQL_SA_PASSWORD"
+          $image = 'mcr.microsoft.com/mssql/server:2022-CU27-ubuntu-22.04@sha256:4402d880dd4c34bfa7d8705e56a86cd6c88da80a1f6bbbe741f999e76264a090'
+          docker run --detach --name gf-sql-tests --publish 127.0.0.1:1433:1433 --env ACCEPT_EULA=Y --env MSSQL_PID=Developer --env MSSQL_MEMORY_LIMIT_MB=2048 --env MSSQL_SA_PASSWORD $image
+          if ($LASTEXITCODE -ne 0) { throw 'No se pudo iniciar SQL Server de pruebas.' }
+          $connection = "Server=localhost,1433;Initial Catalog=master;User ID=sa;Password=$env:MSSQL_SA_PASSWORD;Encrypt=True;TrustServerCertificate=True;Connect Timeout=5"
+          "GF_SQL_CONNECTION_STRING=$connection" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Fresh deploy, SQL regression, data preservation and drift
+        run: ./scripts/Invoke-Database.ps1 -Action Test -SkipBuild
+      - name: Stop disposable SQL Server
+        if: always()
+        run: docker rm --force gf-sql-tests
+      - name: Upload versioned artifact and verification
+        if: success()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: database-dacpac-${{ github.sha }}
+          path: |
+            database/artifacts/package/
+            database/artifacts/verification/
+          retention-days: 14
+      - name: Upload failed test evidence
+        if: failure()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: database-test-failure-${{ github.sha }}
+          path: database/artifacts/verification/
+          if-no-files-found: ignore
+          retention-days: 7

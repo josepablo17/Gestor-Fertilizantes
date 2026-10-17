@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.Build.Sql/2.3.0">
+  <PropertyGroup>
+    <Name>GestorFertilizantes.Database</Name>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql160DatabaseSchemaProvider</DSP>
+    <ModelCollation>1033, CI</ModelCollation>
+    <DefaultCollation>SQL_Latin1_General_CP1_CI_AS</DefaultCollation>
+    <CompatibilityMode>160</CompatibilityMode>
+    <DacVersion>1.0.0.0</DacVersion>
+    <SqlServerVerification>True</SqlServerVerification>
+    <TreatTSqlWarningsAsErrors>True</TreatTSqlWarningsAsErrors>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SqlServer.Dacpacs.Master" Version="160.2.8">
+      <DatabaseVariableLiteralValue>master</DatabaseVariableLiteralValue>
+    </PackageReference>
+    <Build Remove="Scripts/**/*.sql" />
+    <PostDeploy Include="Scripts/PostDeployment.sql" />
+    <None Include="Scripts/**/*.sql" />
+  </ItemGroup>
+</Project>

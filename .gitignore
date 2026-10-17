@@ -1,0 +1,17 @@
+# Generated application/database artifacts
+**/bin/
+**/obj/
+**/artifacts/
+.vs/
+*.user
+*.dacpac
+*.bacpac
+*.bak
+*.log
+node_modules/
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.local.json
