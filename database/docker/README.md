@@ -34,6 +34,7 @@ Conexión desde SSMS u otro cliente:
 El archivo `.env` está excluido de Git y del contexto de compilación. Conservarlo al reutilizar el volumen: cambiar su contraseña escrita no cambia automáticamente la contraseña que ya tiene SQL Server. Puede generarse antes del arranque con `-Action Init`, o prepararse a partir de `.env.example`. Para cambiar puerto/base, editar `GF_SQL_PORT` o `GF_DATABASE_NAME` antes del arranque.
 
 SQL Server reserva hasta 2 GB de memoria interna y el contenedor tiene límite de 3 GB. El puerto 14333 permite coexistir con la instancia SQL Server de Windows.
+Se conceden hasta 60 segundos para que SQL Server termine ordenadamente al detener el contenedor.
 
 ## Parada, arranque y actualización
 
