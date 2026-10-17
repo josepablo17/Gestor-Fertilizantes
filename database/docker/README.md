@@ -65,12 +65,14 @@ El ciclo comprueba:
 3. Las 89 pruebas SQL sobre Linux, con otra base aleatoria que el ejecutor crea y elimina.
 4. Una historia persistida de solicitud, archivos representados por metadatos, extracción, respuesta validada y auditoría.
 5. Eliminación del contenedor SQL y creación de otro que reutiliza el mismo volumen.
-6. Reaplicación del DACPAC mediante `db-init` y comparación de hashes de todas las filas y del valor de secuencia.
+6. Reaplicación del DACPAC mediante `db-init`, comparación de hashes de todas las filas y verificación de que la secuencia no retroceda ni genere un código existente.
 7. Limpieza exclusiva de los contenedores, red y volumen del proyecto temporal generado.
 
 Resultados: `database/artifacts/docker/<guid>/`, incluyendo `integration-tests.json`, `docker-verification.json`, `persistence-verified.json` y `compose-cleanup.json`. El CI ejecuta el mismo comando y publica esos archivos junto al DACPAC.
 
 El ejecutor rechaza los modos de persistencia sobre bases cuyo nombre no sea el de una prueba Compose desechable. La parada del entorno habitual no usa la limpieza de volúmenes del recorrido de pruebas.
+
+Los códigos no necesitan ser consecutivos: una secuencia con caché puede saltar valores al reiniciar SQL Server sin perder registros. La prueba comprueba continuidad y unicidad del siguiente código, permitiendo esos saltos esperados. Referencia: [gestión de caché de secuencias de SQL Server](https://learn.microsoft.com/en-us/sql/t-sql/statements/create-sequence-transact-sql?view=sql-server-ver17#cache-management).
 
 ## Archivos y personalización
 

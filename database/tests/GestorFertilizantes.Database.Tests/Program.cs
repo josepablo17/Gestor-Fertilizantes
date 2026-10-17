@@ -1,5 +1,6 @@
 using System.Data;
 using System.Diagnostics;
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -39,9 +40,21 @@ if (args.Length == 1 && args[0] is "--seed-persistence" or "--verify-persistence
                        ?? throw new InvalidOperationException("Falta baseline de persistencia.");
         Assert(baseline.Database == settings.InitialCatalog, "La baseline pertenece a otra base de prueba.");
         Assert(JsonSerializer.Serialize(baseline.Tables) == JsonSerializer.Serialize(await Snapshot(persistenceConnection)), "La recreacion/redespliegue modifico datos persistidos.");
-        Assert(baseline.Sequence == await SequenceValue(persistenceConnection), "Se reinicio la secuencia persistida.");
-        await File.WriteAllTextAsync(Path.Combine(artifacts, "persistence-verified.json"), JsonSerializer.Serialize(new { Database = settings.InitialCatalog, AllRowsPreserved = true, SequencePreserved = true }));
-        Console.WriteLine("OK: todas las filas y la secuencia sobrevivieron a recrear SQL Server y reaplicar el DACPAC.");
+        // CACHE can advance the persisted sequence value on a server restart.
+        // Test continuity and uniqueness, not equality of an internal watermark.
+        var sequenceBefore = long.Parse(baseline.Sequence, CultureInfo.InvariantCulture);
+        var sequenceAfter = long.Parse(await SequenceValue(persistenceConnection), CultureInfo.InvariantCulture);
+        Assert(sequenceAfter >= sequenceBefore, $"La secuencia retrocedio: {sequenceBefore} -> {sequenceAfter}.");
+        await using var nextCommand = new SqlCommand("""
+        DECLARE @Siguiente bigint=NEXT VALUE FOR dbo.SecCodigoProducto;
+        SELECT @Siguiente,CONVERT(bit,CASE WHEN EXISTS(SELECT 1 FROM dbo.Productos WHERE CodigoInterno=CONCAT(N'PRD-',@Siguiente)) THEN 1 ELSE 0 END);
+        """, persistenceConnection);
+        await using var nextReader = await nextCommand.ExecuteReaderAsync();
+        await nextReader.ReadAsync();
+        var nextValue = nextReader.GetInt64(0);
+        Assert(nextValue > sequenceBefore && nextValue >= sequenceAfter && !nextReader.GetBoolean(1), "El proximo codigo no conserva continuidad y unicidad.");
+        await File.WriteAllTextAsync(Path.Combine(artifacts, "persistence-verified.json"), JsonSerializer.Serialize(new { Database = settings.InitialCatalog, AllRowsPreserved = true, SequenceNotReset = true, SequenceBefore = sequenceBefore, SequenceAfterRestart = sequenceAfter, NextGeneratedValue = nextValue }));
+        Console.WriteLine("OK: todas las filas se conservaron; el siguiente codigo sigue adelante y no se repite.");
     }
     return;
 }

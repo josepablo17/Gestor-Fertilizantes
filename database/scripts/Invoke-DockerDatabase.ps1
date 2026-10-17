@@ -97,7 +97,7 @@ try{
     Invoke-Compose -Arguments @('run','--rm','--no-deps','verify','--verify-persistence')
     $verification=Get-Content (Join-Path $artifactDirectory 'verification.json') -Raw|ConvertFrom-Json
     if($verification.Failed -ne 0 -or $verification.IntegrationTests -ne 89){throw 'Resultados SQL incompletos.'}
-    [ordered]@{Project=$project;Database=$env:GF_DATABASE_NAME;IntegrationTests=89;Linux=$true;FreshInitialization=$true;ContainerRecreated=$true;SameNamedVolume=$true;AllRowsAndSequencePreserved=$true;ReappliedDacpac=$true}|ConvertTo-Json|Set-Content (Join-Path $artifactDirectory 'docker-verification.json') -Encoding utf8
+    [ordered]@{Project=$project;Database=$env:GF_DATABASE_NAME;IntegrationTests=89;Linux=$true;FreshInitialization=$true;ContainerRecreated=$true;SameNamedVolume=$true;AllRowsPreserved=$true;SequenceNotReset=$true;ReappliedDacpac=$true}|ConvertTo-Json|Set-Content (Join-Path $artifactDirectory 'docker-verification.json') -Encoding utf8
     Write-Output 'OK: inicializacion, 89 pruebas Linux, recreacion del contenedor y redespliegue conservando historia.'
 }catch{
     if($owned){
