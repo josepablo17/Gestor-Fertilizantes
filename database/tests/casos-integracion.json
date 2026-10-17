@@ -1,0 +1,637 @@
+[
+  {
+    "Setup": "UPDATE dbo.ProformasProveedorDetalle SET EstadoRevision='Revisada' WHERE IdProformaProveedor=@Q; UPDATE dbo.ProformasProveedor SET EstadoConciliacion='Conciliada' WHERE IdProformaProveedor=@Q; EXEC dbo.usp_Proforma_Validar @Q;",
+    "Name": "Flujo completo y precio normalizado",
+    "Sql": "IF (SELECT COUNT(*) FROM dbo.vw_OfertasValidadasVigentes WHERE IdProformaProveedor=@Q)<>1 THROW 51901,N'Falta oferta',1; IF NOT EXISTS(SELECT 1 FROM dbo.vw_OfertasValidadasVigentes WHERE IdProformaProveedor=@Q AND ABS(PrecioDocumentoPorUnidadBase-100/@Normalizada)<0.000001 AND ContenidoTotalNormalizado=2*@Normalizada) THROW 51901,N'Precio o contenido incorrectos',1;"
+  },
+  {
+    "Sql": "DECLARE @OtraMarca int=(SELECT TOP(1) IdMarca FROM dbo.Marcas WHERE IdMarca<>(SELECT IdMarca FROM dbo.Productos WHERE IdProducto=@P)); INSERT dbo.Productos(Nombre,IdProductoBase,IdMarca) SELECT @Nombre,IdProductoBase,@OtraMarca FROM dbo.Productos WHERE IdProducto=@P; IF NOT EXISTS(SELECT 1 FROM dbo.Productos p JOIN dbo.Marcas m ON m.IdMarca=p.IdMarca WHERE p.Nombre=@Nombre AND p.IdMarca=@OtraMarca AND p.Marca=m.Nombre) THROW 51901,N'No admite otra marca',1;",
+    "Name": "Mismo nombre de producto con otra marca"
+  },
+  {
+    "Name": "Nombre vacio rechazado",
+    "Sql": "UPDATE dbo.Productos SET Nombre=N'   ' WHERE IdProducto=@P;",
+    "Errors": [
+      547
+    ]
+  },
+  {
+    "Name": "Marca duplicada normalizada rechazada",
+    "Sql": "INSERT dbo.Marcas(Nombre)SELECT N' '+LOWER(Nombre)+N' ' FROM dbo.Marcas WHERE IdMarca=(SELECT MIN(IdMarca) FROM dbo.Marcas);",
+    "Errors": [
+      2601,
+      2627
+    ]
+  },
+  {
+    "Name": "Linea de otra solicitud rechazada",
+    "Sql": "UPDATE dbo.ProformasProveedorDetalle SET IdSolicitudCotizacionDetalle=@D2 WHERE IdProformaProveedorDetalle=@QD;",
+    "Errors": [
+      547
+    ]
+  },
+  {
+    "Name": "Proveedor ajeno al destinatario rechazado",
+    "Sql": "UPDATE dbo.ProformasProveedor SET IdProveedor=@OtroProveedor WHERE IdProformaProveedor=@Q;",
+    "Errors": [
+      547
+    ]
+  },
+  {
+    "Name": "Producto y presentacion cruzados rechazados",
+    "Sql": "UPDATE dbo.ProformasProveedorDetalle SET IdProducto=@OtroProducto WHERE IdProformaProveedorDetalle=@QD;",
+    "Errors": [
+      547
+    ]
+  },
+  {
+    "Name": "Destinatario duplicado rechazado",
+    "Sql": "INSERT dbo.SolicitudesCotizacionProveedor(IdSolicitudCotizacion,IdProveedor)VALUES(@S1,@Proveedor);",
+    "Errors": [
+      2601,
+      2627
+    ]
+  },
+  {
+    "Name": "Numero de linea de oferta duplicado rechazado",
+    "Sql": "INSERT dbo.ProformasProveedorDetalle(IdProformaProveedor,IdSolicitudCotizacion,IdSolicitudCotizacionDetalle,NumeroLineaDocumento,EstadoOferta)VALUES(@Q,@S1,@D1,1,'SinCotizar');",
+    "Errors": [
+      2601,
+      2627
+    ]
+  },
+  {
+    "Name": "Solicitud emitida conserva sus lineas",
+    "Sql": "UPDATE dbo.SolicitudesCotizacionDetalle SET CantidadEmpaquesSolicitada=3 WHERE IdSolicitudCotizacionDetalle=@D1;",
+    "Errors": [
+      51110
+    ]
+  },
+  {
+    "Name": "Solicitud emitida conserva su cabecera",
+    "Sql": "UPDATE dbo.SolicitudesCotizacion SET Observaciones=N'cambio tardio' WHERE IdSolicitudCotizacion=@S1;",
+    "Errors": [
+      51107
+    ]
+  },
+  {
+    "Name": "No se valida sin conciliacion declarada",
+    "Sql": "EXEC dbo.usp_Proforma_Validar @Q;",
+    "Errors": [
+      547
+    ]
+  },
+  {
+    "Setup": "UPDATE dbo.ProformasProveedor SET EstadoConciliacion='Conciliada' WHERE IdProformaProveedor=@Q;",
+    "Name": "No se valida con lineas pendientes",
+    "Sql": "EXEC dbo.usp_Proforma_Validar @Q;",
+    "Errors": [
+      51122
+    ]
+  },
+  {
+    "Name": "Precio ausente no equivale a cero",
+    "Sql": "UPDATE dbo.ProformasProveedorDetalle SET PrecioUnitario=NULL,EstadoRevision='Revisada' WHERE IdProformaProveedorDetalle=@QD;",
+    "Errors": [
+      547
+    ]
+  },
+  {
+    "Name": "Sin cotizar no admite precio cero artificial",
+    "Sql": "UPDATE dbo.ProformasProveedorDetalle SET EstadoOferta='SinCotizar',PrecioUnitario=0,TotalLinea=NULL WHERE IdProformaProveedorDetalle=@QD;",
+    "Errors": [
+      547
+    ]
+  },
+  {
+    "Name": "Moneda en minusculas rechazada",
+    "Sql": "UPDATE dbo.ProformasProveedor SET Moneda='crc' WHERE IdProformaProveedor=@Q;",
+    "Errors": [
+      547
+    ]
+  },
+  {
+    "Name": "Cantidad negativa rechazada",
+    "Sql": "UPDATE dbo.ProformasProveedorDetalle SET Cantidad=-1 WHERE IdProformaProveedorDetalle=@QD;",
+    "Errors": [
+      547
+    ]
+  },
+  {
+    "Name": "Extraccion JSON invalida rechazada",
+    "Sql": "INSERT dbo.ImportacionesDocumento(IdDocumento,VersionLector,Metodo,Estado,DatosExtraidosJson)VALUES(@DocumentoRecibido,N'prueba','Manual','Parcial',N'no es json');",
+    "Errors": [
+      547
+    ]
+  },
+  {
+    "Name": "Documento original inmutable",
+    "Sql": "UPDATE dbo.Documentos SET NombreOriginal=N'alterado.pdf' WHERE IdDocumento=@DocumentoRecibido;",
+    "Errors": [
+      51100
+    ]
+  },
+  {
+    "Name": "Extraccion original inmutable",
+    "Sql": "UPDATE dbo.ImportacionesDocumento SET DatosExtraidosJson=N'{}' WHERE IdImportacionDocumento=@Importacion;",
+    "Errors": [
+      51101
+    ]
+  },
+  {
+    "Setup": "UPDATE dbo.ProformasProveedorDetalle SET PrecioUnitario=105 WHERE IdProformaProveedorDetalle=@QD;",
+    "Name": "Historial de ajustes inmutable",
+    "Sql": "UPDATE dbo.CambiosCotizacion SET Motivo=N'borrar rastro' WHERE IdProformaProveedor=@Q;",
+    "Errors": [
+      51102
+    ]
+  },
+  {
+    "Setup": "UPDATE dbo.ProformasProveedorDetalle SET EstadoRevision='Revisada' WHERE IdProformaProveedor=@Q; UPDATE dbo.ProformasProveedor SET EstadoConciliacion='Conciliada' WHERE IdProformaProveedor=@Q; EXEC dbo.usp_Proforma_Validar @Q;",
+    "Name": "Cotizacion validada conserva cabecera",
+    "Sql": "UPDATE dbo.ProformasProveedor SET Total=1 WHERE IdProformaProveedor=@Q;",
+    "Errors": [
+      51116
+    ]
+  },
+  {
+    "Setup": "UPDATE dbo.ProformasProveedorDetalle SET EstadoRevision='Revisada' WHERE IdProformaProveedor=@Q; UPDATE dbo.ProformasProveedor SET EstadoConciliacion='Conciliada' WHERE IdProformaProveedor=@Q; EXEC dbo.usp_Proforma_Validar @Q;",
+    "Name": "Cotizacion validada conserva detalle",
+    "Sql": "UPDATE dbo.ProformasProveedorDetalle SET PrecioUnitario=1 WHERE IdProformaProveedorDetalle=@QD;",
+    "Errors": [
+      51123
+    ]
+  },
+  {
+    "Setup": "UPDATE dbo.ProformasProveedorDetalle SET EstadoRevision='Revisada' WHERE IdProformaProveedor=@Q; UPDATE dbo.ProformasProveedor SET EstadoConciliacion='Conciliada' WHERE IdProformaProveedor=@Q; EXEC dbo.usp_Proforma_Validar @Q;",
+    "Name": "Nueva revision conserva anterior y reemplaza oferta vigente",
+    "Sql": "DECLARE @Q2 int;\nSET @Cabecera=JSON_MODIFY(@Cabecera,'$.total',180); SET @Cabecera=JSON_MODIFY(@Cabecera,'$.subtotal',180);\nSET @Lineas=JSON_MODIFY(@Lineas,'$[0].precioUnitario',90); SET @Lineas=JSON_MODIFY(@Lineas,'$[0].totalLinea',180);\nEXEC dbo.usp_Proforma_GuardarBorrador @SP1,@DocumentoRecibido,@Importacion,@Cabecera,@Lineas,@Q2 OUTPUT;\nUPDATE dbo.ProformasProveedorDetalle SET EstadoRevision='Revisada' WHERE IdProformaProveedor=@Q2;\nUPDATE dbo.ProformasProveedor SET EstadoConciliacion='Conciliada' WHERE IdProformaProveedor=@Q2;\nEXEC dbo.usp_Proforma_Validar @Q2;\nIF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@Q2 AND VersionRespuesta=2 AND IdProformaAnterior=@Q) THROW 51901,N'Revision sin enlace',1;\nIF (SELECT COUNT(*) FROM dbo.vw_OfertasValidadasVigentes WHERE IdSolicitudCotizacionProveedor=@SP1)<>1 THROW 51901,N'Duplico ofertas vigentes',1;\nIF NOT EXISTS(SELECT 1 FROM dbo.vw_OfertasValidadasVigentes WHERE IdProformaProveedor=@Q2 AND PrecioPorEmpaqueDocumento=90) THROW 51901,N'No eligio revision nueva',1;\nIF (SELECT PrecioUnitario FROM dbo.ProformasProveedorDetalle WHERE IdProformaProveedorDetalle=@QD)<>100 THROW 51901,N'Alteracion del original',1;"
+  },
+  {
+    "Sql": "INSERT dbo.CompraAutomaticaEquivalencias(IdProveedor,CodigoProveedor,DescripcionProveedor,IdProducto,IdPresentacionProducto)\nVALUES(@Proveedor,N'MISMO-CODIGO',N'Prueba',@P,@PP),(@OtroProveedor,N'MISMO-CODIGO',N'Prueba',@OtroProducto,@OtraPresentacion);\nDECLARE @Encontrados TABLE(IdProducto int,IdPresentacionProducto int,NombreProducto nvarchar(150),NombrePresentacion nvarchar(150));\nINSERT @Encontrados EXEC dbo.SP_CompraAutomatica_BuscarEquivalencia N'MISMO-CODIGO',N'Prueba',@Proveedor;\nIF (SELECT COUNT(*) FROM @Encontrados)<>1 OR NOT EXISTS(SELECT 1 FROM @Encontrados WHERE IdProducto=@P) THROW 51901,N'Equivalencia ajena',1;\nDELETE @Encontrados;\nINSERT @Encontrados EXEC dbo.SP_CompraAutomatica_BuscarEquivalencia N'MISMO-CODIGO',N'Prueba',@OtroProveedor;\nIF (SELECT COUNT(*) FROM @Encontrados)<>1 OR NOT EXISTS(SELECT 1 FROM @Encontrados WHERE IdProducto=@OtroProducto) THROW 51901,N'Equivalencia ajena',1;",
+    "Name": "Equivalencias separadas por proveedor"
+  },
+  {
+    "Setup": "INSERT dbo.CompraAutomaticaEquivalencias(IdProveedor,CodigoProveedor,DescripcionProveedor,IdProducto)VALUES(@Proveedor,N'X',N'Prueba',@P);",
+    "Name": "Codigo activo duplicado del mismo proveedor rechazado",
+    "Sql": "INSERT dbo.CompraAutomaticaEquivalencias(IdProveedor,CodigoProveedor,DescripcionProveedor,IdProducto)VALUES(@Proveedor,N' x ',N'Otra',@OtroProducto);",
+    "Errors": [
+      2601,
+      2627
+    ]
+  },
+  {
+    "Name": "Equivalencia con presentacion ajena rechazada",
+    "Sql": "INSERT dbo.CompraAutomaticaEquivalencias(IdProveedor,CodigoProveedor,DescripcionProveedor,IdProducto,IdPresentacionProducto)VALUES(@Proveedor,N'X',N'Prueba',@P,@OtraPresentacion);",
+    "Errors": [
+      547
+    ]
+  },
+  {
+    "Name": "Contenido normalizado incoherente rechazado",
+    "Sql": "UPDATE dbo.ProformasProveedorDetalle SET ContenidoNormalizadoOriginal=@Normalizada+1 WHERE IdProformaProveedorDetalle=@QD;",
+    "Errors": [
+      547
+    ]
+  },
+  {
+    "Name": "Conversion utilizada no se reinterpreta",
+    "Sql": "UPDATE dbo.UnidadesMedida SET Codigo=N'OTRA-UNIDAD' WHERE IdUnidadMedida=@U;",
+    "Errors": [
+      51105
+    ]
+  },
+  {
+    "Name": "Presentacion utilizada no cambia contenido",
+    "Sql": "UPDATE dbo.PresentacionesProducto SET Cantidad=Cantidad*2,CantidadNormalizada=CantidadNormalizada*2 WHERE IdPresentacionProducto=@PP;",
+    "Errors": [
+      51104
+    ]
+  },
+  {
+    "BeforeEmit": "UPDATE dbo.SolicitudesCotizacionDetalle SET PermiteAlternativas=0 WHERE IdSolicitudCotizacionDetalle=@D1;",
+    "Name": "Alternativa prohibida por solicitud rechazada",
+    "Sql": "UPDATE dbo.ProformasProveedorDetalle SET TipoOferta='Alternativa',MotivoAlternativa=N'Propuesta del proveedor',EstadoRevision='Revisada' WHERE IdProformaProveedorDetalle=@QD;",
+    "Errors": [
+      51124
+    ]
+  },
+  {
+    "Name": "No se disfraza otro producto como solicitado",
+    "Sql": "UPDATE dbo.ProformasProveedorDetalle SET IdProducto=@OtroProducto,IdPresentacionProducto=@OtraPresentacion,EstadoRevision='Revisada' WHERE IdProformaProveedorDetalle=@QD;",
+    "Errors": [
+      51124
+    ]
+  },
+  {
+    "Name": "Importacion de otro PDF rechazada",
+    "Sql": "UPDATE dbo.ProformasProveedor SET IdDocumentoOrigen=@DocumentoOtro WHERE IdProformaProveedor=@Q;",
+    "Errors": [
+      547
+    ]
+  },
+  {
+    "Sql": "UPDATE dbo.ProformasProveedorDetalle SET EstadoOferta='NoDisponible',Cantidad=NULL,PrecioUnitario=NULL,TotalLinea=NULL,EstadoRevision='Revisada' WHERE IdProformaProveedorDetalle=@QD;\nUPDATE dbo.ProformasProveedor SET Subtotal=0,Descuento=0,IVA=0,Total=0,OtrosCargos=0,EstadoConciliacion='Conciliada' WHERE IdProformaProveedor=@Q;\nEXEC dbo.usp_Proforma_Validar @Q;\nIF EXISTS(SELECT 1 FROM dbo.vw_OfertasValidadasVigentes WHERE IdProformaProveedor=@Q) THROW 51901,N'Convirtio falta de oferta en precio',1;",
+    "Name": "No disponible conserva ausencia de oferta"
+  },
+  {
+    "Sql": "UPDATE dbo.ProformasProveedorDetalle SET PrecioUnitario=105 WHERE IdProformaProveedorDetalle=@QD; IF NOT EXISTS(SELECT 1 FROM dbo.CambiosCotizacion WHERE IdProformaProveedorDetalle=@QD AND TRY_CONVERT(decimal(18,6),JSON_VALUE(CambiosJson,'$.antes.PrecioUnitario'))=100 AND TRY_CONVERT(decimal(18,6),JSON_VALUE(CambiosJson,'$.despues.PrecioUnitario'))=105) THROW 51901,N'No guarda ambos valores',1;",
+    "Name": "Auditoria conserva antes y despues"
+  },
+  {
+    "Sql": "DECLARE @IdM int=(SELECT IdMarca FROM dbo.Productos WHERE IdProducto=@P); UPDATE dbo.Marcas SET Nombre=N'MARCA PRUEBA CAMBIADA' WHERE IdMarca=@IdM; IF (SELECT MarcaOriginal FROM dbo.SolicitudesCotizacionDetalle WHERE IdSolicitudCotizacionDetalle=@D1)<>@Marca THROW 51901,N'Reescribio historia',1; IF (SELECT Marca FROM dbo.Productos WHERE IdProducto=@P)<>N'MARCA PRUEBA CAMBIADA' THROW 51901,N'Etiqueta desincronizada',1;",
+    "Name": "Cambio de etiqueta de marca no altera copia historica"
+  },
+  {
+    "Sql": "UPDATE dbo.ProformasProveedorDetalle SET Cantidad=0.1250 WHERE IdProformaProveedorDetalle=@QD; IF (SELECT Cantidad FROM dbo.ProformasProveedorDetalle WHERE IdProformaProveedorDetalle=@QD)<>0.1250 THROW 51901,N'Redondeo indebido',1;",
+    "Name": "Precision de cantidades conservada"
+  },
+  {
+    "Setup": "UPDATE dbo.Proveedores SET PaisIdentificacion='CR',TipoIdentificacion=N'PRUEBA',IdentificacionFiscal=N'PRUEBA-123' WHERE IdProveedor=@Proveedor;",
+    "Name": "Identidad fiscal duplicada rechazada",
+    "Sql": "UPDATE dbo.Proveedores SET PaisIdentificacion='CR',TipoIdentificacion=N'PRUEBA',IdentificacionFiscal=N'PRUEBA-123' WHERE IdProveedor=@OtroProveedor;",
+    "Errors": [
+      2601,
+      2627
+    ]
+  },
+  {
+    "Setup": "UPDATE dbo.ProformasProveedor SET Estado='Cancelada' WHERE IdProformaProveedor=@Q;",
+    "Name": "Fallo de detalle cancela guardado atomico",
+    "Sql": "DECLARE @Fallida int; SET @Lineas=JSON_MODIFY(@Lineas,'$[0].cantidadEmpaques',-1); EXEC dbo.usp_Proforma_GuardarBorrador @SP1,@DocumentoRecibido,@Importacion,@Cabecera,@Lineas,@Fallida OUTPUT;",
+    "Errors": [
+      547
+    ]
+  },
+  {
+    "Name": "No se crea nueva version sobre borrador",
+    "Sql": "DECLARE @Otra int; EXEC dbo.usp_Proforma_GuardarBorrador @SP1,@DocumentoRecibido,@Importacion,@Cabecera,@Lineas,@Otra OUTPUT;",
+    "Errors": [
+      51205
+    ]
+  },
+  {
+    "Sql": "IF EXISTS(SELECT 1 FROM sys.check_constraints WHERE is_disabled=1 OR is_not_trusted=1) OR EXISTS(SELECT 1 FROM sys.foreign_keys WHERE is_disabled=1 OR is_not_trusted=1) THROW 51901,N'Restricciones sin verificar',1;",
+    "Name": "Todas las restricciones habilitadas y confiables"
+  },
+  {
+    "Name": "Catalogo: alta marca base producto presentacion fraccionaria",
+    "Sql": "\n DECLARE @M table(IdMarca int); INSERT @M EXEC dbo.usp_Marca_Insertar N'Marca temporal';\n DECLARE @B table(IdProductoBase int); INSERT @B EXEC dbo.usp_ProductoBase_Insertar N'BASE-PRUEBA',N'Fertilizante prueba',N'10-30-10';\n DECLARE @NuevaMarca int=(SELECT IdMarca FROM @M),@NuevaBase int=(SELECT IdProductoBase FROM @B); DECLARE @N table(IdProducto int);\n INSERT @N EXEC dbo.SP_Producto_Insertar N'Fertilizante prueba',@NuevaBase,@NuevaMarca;\n DECLARE @NuevoProducto int=(SELECT IdProducto FROM @N),@Kg int=(SELECT IdUnidadMedida FROM dbo.UnidadesMedida WHERE Codigo='KG');\n EXEC dbo.SP_PresentacionesProducto_Insertar @NuevoProducto,N'Bolsa 2.5kg',2.5,@Kg;\n IF NOT EXISTS(SELECT 1 FROM dbo.PresentacionesProducto WHERE IdProducto=@NuevoProducto AND CantidadNormalizada=2.5) THROW 51901,N'Perdio decimal',1;\n EXEC dbo.usp_Marca_Actualizar @NuevaMarca,N'Marca temporal actualizada';\n IF NOT EXISTS(SELECT 1 FROM dbo.Productos WHERE IdProducto=@NuevoProducto AND Marca=N'Marca temporal actualizada') THROW 51901,N'Marca no sincronizada',1;\n",
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Catalogo: producto inexistente no se actualiza",
+    "Sql": "DECLARE @BaseExistente int=(SELECT IdProductoBase FROM dbo.Productos WHERE IdProducto=@P); EXEC dbo.SP_Producto_Actualizar -1,N'Nombre',@BaseExistente;",
+    "Errors": [
+      52004
+    ],
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Catalogo: marca vacia rechazada",
+    "Sql": "EXEC dbo.usp_Marca_Insertar N'   ';",
+    "Errors": [
+      52000
+    ],
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Catalogo: conversion normalizada no suministrada por cliente",
+    "Sql": "EXEC dbo.SP_PresentacionesProducto_Insertar @P,N'Nueva',12.5,@U,987;",
+    "Errors": [
+      52000
+    ],
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Solicitud: guardar capturar originales y emitir por procedimientos",
+    "Sql": "DECLARE @NuevaSolicitud bigint=NULL,@SolicitudLineas nvarchar(max)=(SELECT 1 AS numeroLinea,@P AS idProducto,@PP AS idPresentacionProducto,0.125 AS cantidadEmpaques,CONVERT(bit,1) AS permiteAlternativas FOR JSON PATH),@Destinatarios nvarchar(max)=CONCAT(N'[',@Proveedor,N',',@OtroProveedor,N']');\n EXEC dbo.usp_Solicitud_GuardarBorrador N'SOLICITUD-API','2026-10-16',NULL,N'{\"nombre\":\"Cliente API\"}',NULL,@SolicitudLineas,@Destinatarios,@NuevaSolicitud OUTPUT;\n IF NOT EXISTS(SELECT 1 FROM dbo.SolicitudesCotizacionDetalle WHERE IdSolicitudCotizacion=@NuevaSolicitud AND CantidadEmpaquesSolicitada=0.125 AND ContenidoNormalizadoOriginal=@Normalizada) THROW 51901,N'No tomo original',1;\n EXEC dbo.usp_Solicitud_Emitir @NuevaSolicitud;\n DECLARE @Dest bigint=(SELECT MIN(IdSolicitudCotizacionProveedor) FROM dbo.SolicitudesCotizacionProveedor WHERE IdSolicitudCotizacion=@NuevaSolicitud);\n EXEC dbo.usp_Solicitud_RegistrarEnvio @Dest,@DocumentoEnviado;\n EXEC dbo.usp_Solicitud_RegistrarEnvio @Dest,@DocumentoEnviado;\n IF NOT EXISTS(SELECT 1 FROM dbo.SolicitudesCotizacionProveedor WHERE IdSolicitudCotizacionProveedor=@Dest AND Estado='Enviada' AND FechaEnvio IS NOT NULL) THROW 51901,N'No registro envio',1;",
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Solicitud: reemplazar borrador de forma atomica",
+    "Sql": "DECLARE @NuevaSolicitud bigint=NULL,@SolicitudLineas nvarchar(max)=(SELECT 1 AS numeroLinea,@P AS idProducto,@PP AS idPresentacionProducto,0.125 AS cantidadEmpaques,CONVERT(bit,1) AS permiteAlternativas FOR JSON PATH),@Destinatarios nvarchar(max)=CONCAT(N'[',@Proveedor,N',',@OtroProveedor,N']');\n EXEC dbo.usp_Solicitud_GuardarBorrador N'SOLICITUD-API','2026-10-16',NULL,N'{\"nombre\":\"Cliente API\"}',NULL,@SolicitudLineas,@Destinatarios,@NuevaSolicitud OUTPUT;\n SET @SolicitudLineas=JSON_MODIFY(@SolicitudLineas,'$[0].cantidadEmpaques',3.25);\n EXEC dbo.usp_Solicitud_GuardarBorrador N'SOLICITUD-API','2026-10-16',NULL,N'{\"nombre\":\"Cliente API\"}',N'Actualizado',@SolicitudLineas,@Destinatarios,@NuevaSolicitud OUTPUT;\n IF (SELECT COUNT(*) FROM dbo.SolicitudesCotizacionDetalle WHERE IdSolicitudCotizacion=@NuevaSolicitud)<>1 OR NOT EXISTS(SELECT 1 FROM dbo.SolicitudesCotizacionDetalle WHERE IdSolicitudCotizacion=@NuevaSolicitud AND CantidadEmpaquesSolicitada=3.25) THROW 51901,N'Borrador duplicado',1;",
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Solicitud: revision conserva version anterior",
+    "Sql": "DECLARE @NuevaSolicitud bigint; EXEC dbo.usp_Solicitud_CrearRevision @S1,@NuevaSolicitud OUTPUT;\n IF NOT EXISTS(SELECT 1 FROM dbo.SolicitudesCotizacion WHERE IdSolicitudCotizacion=@NuevaSolicitud AND VersionSolicitud=2 AND Estado='Borrador' AND IdSolicitudAnterior=@S1) THROW 51901,N'Revision invalida',1;\n IF EXISTS(SELECT 1 FROM dbo.SolicitudesCotizacionProveedor WHERE IdSolicitudCotizacion=@NuevaSolicitud AND IdDocumentoEnviado IS NOT NULL) THROW 51901,N'Copio envio anterior',1;",
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Solicitud: editar emitida por API rechazado",
+    "Sql": "DECLARE @Dest nvarchar(max)=CONCAT(N'[',@Proveedor,N']'); EXEC dbo.usp_Solicitud_GuardarBorrador N'X','2026-10-16',NULL,N'{\"nombre\":\"Cliente\"}',NULL,N'[]',@Dest,@S1 OUTPUT;",
+    "Errors": [
+      52010
+    ],
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Documento: hash incompleto rechazado",
+    "Sql": "DECLARE @Id bigint; EXEC dbo.usp_Documento_Registrar N'x.pdf',N'temporal-x.pdf',0x0123,100,'Recibido',NULL,@Id OUTPUT;",
+    "Errors": [
+      52000
+    ],
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Documento e importacion por API conservan datos originales",
+    "Sql": "DECLARE @Id bigint,@I bigint,@Hash varbinary(max)=HASHBYTES('SHA2_256',N'API-PDF'); EXEC dbo.usp_Documento_Registrar N'api.pdf',N'pruebas-rollback/api.pdf',@Hash,512,'Recibido',NULL,@Id OUTPUT;\n EXEC dbo.usp_Importacion_Registrar @Id,N'lector-v1','Manual','Parcial',N'{\"original\":\"sin alterar\"}',N'[]',@I OUTPUT;\n IF NOT EXISTS(SELECT 1 FROM dbo.ImportacionesDocumento WHERE IdImportacionDocumento=@I AND DatosExtraidosJson=N'{\"original\":\"sin alterar\"}') THROW 51901,N'Datos extraidos perdidos',1;",
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Respuesta: fecha de respuesta registrada sin inventar envio",
+    "Sql": "IF NOT EXISTS(SELECT 1 FROM dbo.SolicitudesCotizacionProveedor WHERE IdSolicitudCotizacionProveedor=@SP1 AND Estado='Respondida' AND FechaEnvio IS NOT NULL AND FechaRespuesta IS NOT NULL) THROW 51901,N'No se registro respuesta',1;",
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Respuesta: correccion manual reinicia revision y conciliacion",
+    "Sql": "DECLARE @L nvarchar(max)=JSON_QUERY(@Lineas,'$[0]'); SET @L=JSON_MODIFY(@L,'$.precioUnitario',105); SET @L=JSON_MODIFY(@L,'$.totalLinea',210);\n EXEC dbo.usp_Proforma_ActualizarLinea @QD,@L,N'Corregir lectura PDF';\n IF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedorDetalle WHERE IdProformaProveedorDetalle=@QD AND PrecioUnitario=105 AND EstadoRevision='Pendiente' AND SePuedeRegistrar=0) THROW 51901,N'No reinicio revision',1;\n IF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@Q AND EstadoConciliacion='Pendiente' AND IdDocumentoOrigen=@DocumentoRecibido) THROW 51901,N'No reinicio conciliacion',1;\n IF NOT EXISTS(SELECT 1 FROM dbo.CambiosCotizacion WHERE IdProformaProveedorDetalle=@QD AND Motivo=N'Corregir lectura PDF' AND JSON_VALUE(CambiosJson,'$.antes.PrecioUnitario') IS NOT NULL) THROW 51901,N'Falta motivo historico',1;",
+    "Errors": null,
+    "Setup": "EXEC dbo.usp_Proforma_RevisarLinea @QD; EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada',N'Revision';",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Respuesta: ajuste requiere motivo",
+    "Sql": "DECLARE @L nvarchar(max)=JSON_QUERY(@Lineas,'$[0]'); EXEC dbo.usp_Proforma_ActualizarLinea @QD,@L,N'  ';",
+    "Errors": [
+      52000
+    ],
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Respuesta: conciliacion detecta cabecera que no cuadra",
+    "Sql": "EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada',N'Revisado';",
+    "Errors": [
+      52000
+    ],
+    "Setup": "UPDATE dbo.ProformasProveedor SET Total=199 WHERE IdProformaProveedor=@Q;",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Respuesta: diferencias explicitas quedan visibles",
+    "Sql": "EXEC dbo.usp_Proforma_Conciliar @Q,'ConDiferencias',N'Diferencia verificada contra PDF'; EXEC dbo.usp_Proforma_RevisarLinea @QD; EXEC dbo.usp_Proforma_Validar @Q;\n IF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@Q AND EstadoConciliacion='ConDiferencias' AND Estado='Validada') THROW 51901,N'Perdio discrepancia',1;",
+    "Errors": null,
+    "Setup": "UPDATE dbo.ProformasProveedor SET Total=199 WHERE IdProformaProveedor=@Q;",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Respuesta: correccion finalizada crea revision pendiente",
+    "Sql": "DECLARE @Revision int; EXEC dbo.usp_Proforma_CrearRevision @Q,@Revision OUTPUT;\n IF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@Revision AND VersionRespuesta=2 AND Estado='Borrador' AND EstadoConciliacion='Pendiente' AND IdDocumentoOrigen=@DocumentoRecibido) THROW 51901,N'Revision incorrecta',1;\n IF EXISTS(SELECT 1 FROM dbo.ProformasProveedorDetalle WHERE IdProformaProveedor=@Revision AND EstadoRevision<>'Pendiente') THROW 51901,N'Revision heredada sin revisar',1;",
+    "Errors": null,
+    "Setup": "EXEC dbo.usp_Proforma_RevisarLinea @QD; EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada',N'Revision de prueba'; EXEC dbo.usp_Proforma_Validar @Q;",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "JSON: propiedad desconocida rechazada",
+    "Sql": "EXEC dbo.usp_Proforma_ComprobarJson N'{\"Total\":2}',NULL;",
+    "Errors": [
+      52000
+    ],
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "JSON: duplicado rechazado",
+    "Sql": "EXEC dbo.usp_Proforma_ComprobarJson N'{\"total\":2,\"total\":3}',NULL;",
+    "Errors": [
+      52000
+    ],
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "JSON: texto demasiado largo no truncado",
+    "Sql": "DECLARE @J nvarchar(max)=N'{\"numeroProforma\":\"'+REPLICATE(N'A',51)+N'\"}'; EXEC dbo.usp_Proforma_ComprobarJson @J,NULL;",
+    "Errors": [
+      52000
+    ],
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "JSON: decimal mas preciso no redondeado",
+    "Sql": "EXEC dbo.usp_Proforma_ComprobarJson NULL,N'[{\"cantidadEmpaques\":0.00001}]';",
+    "Errors": [
+      52000
+    ],
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "JSON: partes originales deben ser objetos",
+    "Sql": "EXEC dbo.usp_Proforma_ComprobarJson N'{\"datosProveedorOriginal\":\"empresa\"}',NULL;",
+    "Errors": [
+      52000
+    ],
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Comparacion: kg usa total de linea y mantiene globales separados",
+    "Sql": "DECLARE @C table([IdSolicitudCotizacionDetalle] bigint,[NumeroLinea] int,[ProductoSolicitado] nvarchar(150),[MarcaSolicitada] nvarchar(150),[PresentacionSolicitada] nvarchar(150),[TipoBaseSolicitado] nvarchar(20),[CantidadEmpaquesSolicitada] decimal(18,4),[ContenidoTotalSolicitado] decimal(28,6),[IdSolicitudCotizacionProveedor] bigint,[IdProveedor] int,[NombreProveedorActual] nvarchar(150),[EstadoDestinatario] varchar(20),[IdProformaProveedor] int,[NumeroProforma] nvarchar(50),[VersionRespuesta] int,[FechaProforma] date,[FechaVencimiento] date,[Moneda] char(3),[EstadoConciliacion] varchar(20),[JustificacionConciliacion] nvarchar(1000),[DescuentoGlobalDocumento] decimal(18,4),[IVADocumento] decimal(18,4),[OtrosCargosDocumento] decimal(18,4),[TotalDocumento] decimal(18,4),[CondicionesPago] nvarchar(1000),[CondicionesEntrega] nvarchar(1000),[DatosProveedorOriginalJson] nvarchar(max),[IdProformaProveedorDetalle] int,[TipoOferta] varchar(20),[EstadoOferta] varchar(20),[ProductoOfrecido] nvarchar(150),[MarcaOfrecida] nvarchar(150),[PresentacionOfrecida] nvarchar(150),[CantidadEmpaquesOfrecida] decimal(18,4),[ContenidoNormalizadoOriginal] decimal(18,6),[TipoBaseOfrecido] nvarchar(20),[PrecioUnitario] decimal(18,6),[TotalLinea] decimal(18,4),[BaseTotalLinea] varchar(30),[MotivoAlternativa] nvarchar(1000),[ContenidoTotalOfrecido] decimal(28,6),[CondicionComparacion] varchar(22),[EsComparable] bit,[PrecioPorUnidadBase] decimal(28,8),[CubreCantidadSolicitada] bit,[Vigente] bit,[MenorPrecioPorUnidadBase] decimal(28,8),[MenorPrecioConCoberturaYVigencia] decimal(28,8),[EsMenorPrecioUnitario] bit,[EsMenorPrecioConCoberturaYVigencia] bit);\n INSERT @C EXEC dbo.usp_Cotizaciones_CompararSolicitud @S1,'CRC','Bruto','2026-10-16';\nIF NOT EXISTS(SELECT 1 FROM @C WHERE EsComparable=1 AND ABS(PrecioPorUnidadBase-100/@Normalizada)<0.000001 AND DescuentoGlobalDocumento=20 AND IVADocumento=10 AND OtrosCargosDocumento=5) THROW 51901,N'Prorrateo o precio incorrecto',1;",
+    "Errors": null,
+    "Setup": "UPDATE dbo.ProformasProveedor SET Descuento=20,IVA=10,OtrosCargos=5,Total=195 WHERE IdProformaProveedor=@Q;EXEC dbo.usp_Proforma_RevisarLinea @QD; EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada',N'Revision de prueba'; EXEC dbo.usp_Proforma_Validar @Q;",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Comparacion: moneda distinta queda fuera del minimo",
+    "Sql": "DECLARE @C table([IdSolicitudCotizacionDetalle] bigint,[NumeroLinea] int,[ProductoSolicitado] nvarchar(150),[MarcaSolicitada] nvarchar(150),[PresentacionSolicitada] nvarchar(150),[TipoBaseSolicitado] nvarchar(20),[CantidadEmpaquesSolicitada] decimal(18,4),[ContenidoTotalSolicitado] decimal(28,6),[IdSolicitudCotizacionProveedor] bigint,[IdProveedor] int,[NombreProveedorActual] nvarchar(150),[EstadoDestinatario] varchar(20),[IdProformaProveedor] int,[NumeroProforma] nvarchar(50),[VersionRespuesta] int,[FechaProforma] date,[FechaVencimiento] date,[Moneda] char(3),[EstadoConciliacion] varchar(20),[JustificacionConciliacion] nvarchar(1000),[DescuentoGlobalDocumento] decimal(18,4),[IVADocumento] decimal(18,4),[OtrosCargosDocumento] decimal(18,4),[TotalDocumento] decimal(18,4),[CondicionesPago] nvarchar(1000),[CondicionesEntrega] nvarchar(1000),[DatosProveedorOriginalJson] nvarchar(max),[IdProformaProveedorDetalle] int,[TipoOferta] varchar(20),[EstadoOferta] varchar(20),[ProductoOfrecido] nvarchar(150),[MarcaOfrecida] nvarchar(150),[PresentacionOfrecida] nvarchar(150),[CantidadEmpaquesOfrecida] decimal(18,4),[ContenidoNormalizadoOriginal] decimal(18,6),[TipoBaseOfrecido] nvarchar(20),[PrecioUnitario] decimal(18,6),[TotalLinea] decimal(18,4),[BaseTotalLinea] varchar(30),[MotivoAlternativa] nvarchar(1000),[ContenidoTotalOfrecido] decimal(28,6),[CondicionComparacion] varchar(22),[EsComparable] bit,[PrecioPorUnidadBase] decimal(28,8),[CubreCantidadSolicitada] bit,[Vigente] bit,[MenorPrecioPorUnidadBase] decimal(28,8),[MenorPrecioConCoberturaYVigencia] decimal(28,8),[EsMenorPrecioUnitario] bit,[EsMenorPrecioConCoberturaYVigencia] bit);\n INSERT @C EXEC dbo.usp_Cotizaciones_CompararSolicitud @S1,'CRC','Bruto','2026-10-16';\nIF NOT EXISTS(SELECT 1 FROM @C WHERE CondicionComparacion='MonedaDistinta' AND PrecioPorUnidadBase IS NULL AND EsMenorPrecioUnitario=0) THROW 51901,N'Mezclo monedas',1;",
+    "Errors": null,
+    "Setup": "UPDATE dbo.ProformasProveedor SET Moneda='USD' WHERE IdProformaProveedor=@Q;EXEC dbo.usp_Proforma_RevisarLinea @QD; EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada',N'Revision de prueba'; EXEC dbo.usp_Proforma_Validar @Q;",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Comparacion: base precio distinta queda fuera del minimo",
+    "Sql": "DECLARE @C table([IdSolicitudCotizacionDetalle] bigint,[NumeroLinea] int,[ProductoSolicitado] nvarchar(150),[MarcaSolicitada] nvarchar(150),[PresentacionSolicitada] nvarchar(150),[TipoBaseSolicitado] nvarchar(20),[CantidadEmpaquesSolicitada] decimal(18,4),[ContenidoTotalSolicitado] decimal(28,6),[IdSolicitudCotizacionProveedor] bigint,[IdProveedor] int,[NombreProveedorActual] nvarchar(150),[EstadoDestinatario] varchar(20),[IdProformaProveedor] int,[NumeroProforma] nvarchar(50),[VersionRespuesta] int,[FechaProforma] date,[FechaVencimiento] date,[Moneda] char(3),[EstadoConciliacion] varchar(20),[JustificacionConciliacion] nvarchar(1000),[DescuentoGlobalDocumento] decimal(18,4),[IVADocumento] decimal(18,4),[OtrosCargosDocumento] decimal(18,4),[TotalDocumento] decimal(18,4),[CondicionesPago] nvarchar(1000),[CondicionesEntrega] nvarchar(1000),[DatosProveedorOriginalJson] nvarchar(max),[IdProformaProveedorDetalle] int,[TipoOferta] varchar(20),[EstadoOferta] varchar(20),[ProductoOfrecido] nvarchar(150),[MarcaOfrecida] nvarchar(150),[PresentacionOfrecida] nvarchar(150),[CantidadEmpaquesOfrecida] decimal(18,4),[ContenidoNormalizadoOriginal] decimal(18,6),[TipoBaseOfrecido] nvarchar(20),[PrecioUnitario] decimal(18,6),[TotalLinea] decimal(18,4),[BaseTotalLinea] varchar(30),[MotivoAlternativa] nvarchar(1000),[ContenidoTotalOfrecido] decimal(28,6),[CondicionComparacion] varchar(22),[EsComparable] bit,[PrecioPorUnidadBase] decimal(28,8),[CubreCantidadSolicitada] bit,[Vigente] bit,[MenorPrecioPorUnidadBase] decimal(28,8),[MenorPrecioConCoberturaYVigencia] decimal(28,8),[EsMenorPrecioUnitario] bit,[EsMenorPrecioConCoberturaYVigencia] bit);\n INSERT @C EXEC dbo.usp_Cotizaciones_CompararSolicitud @S1,'CRC','Bruto','2026-10-16';\nIF NOT EXISTS(SELECT 1 FROM @C WHERE CondicionComparacion='BasePrecioDistinta' AND PrecioPorUnidadBase IS NULL) THROW 51901,N'Mezclo bases',1;",
+    "Errors": null,
+    "Setup": "UPDATE dbo.ProformasProveedorDetalle SET BaseTotalLinea='ConImpuestos' WHERE IdProformaProveedorDetalle=@QD;EXEC dbo.usp_Proforma_RevisarLinea @QD; EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada',N'Revision de prueba'; EXEC dbo.usp_Proforma_Validar @Q;",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Comparacion: cotizacion vencida no es ganadora vigente",
+    "Sql": "DECLARE @C table([IdSolicitudCotizacionDetalle] bigint,[NumeroLinea] int,[ProductoSolicitado] nvarchar(150),[MarcaSolicitada] nvarchar(150),[PresentacionSolicitada] nvarchar(150),[TipoBaseSolicitado] nvarchar(20),[CantidadEmpaquesSolicitada] decimal(18,4),[ContenidoTotalSolicitado] decimal(28,6),[IdSolicitudCotizacionProveedor] bigint,[IdProveedor] int,[NombreProveedorActual] nvarchar(150),[EstadoDestinatario] varchar(20),[IdProformaProveedor] int,[NumeroProforma] nvarchar(50),[VersionRespuesta] int,[FechaProforma] date,[FechaVencimiento] date,[Moneda] char(3),[EstadoConciliacion] varchar(20),[JustificacionConciliacion] nvarchar(1000),[DescuentoGlobalDocumento] decimal(18,4),[IVADocumento] decimal(18,4),[OtrosCargosDocumento] decimal(18,4),[TotalDocumento] decimal(18,4),[CondicionesPago] nvarchar(1000),[CondicionesEntrega] nvarchar(1000),[DatosProveedorOriginalJson] nvarchar(max),[IdProformaProveedorDetalle] int,[TipoOferta] varchar(20),[EstadoOferta] varchar(20),[ProductoOfrecido] nvarchar(150),[MarcaOfrecida] nvarchar(150),[PresentacionOfrecida] nvarchar(150),[CantidadEmpaquesOfrecida] decimal(18,4),[ContenidoNormalizadoOriginal] decimal(18,6),[TipoBaseOfrecido] nvarchar(20),[PrecioUnitario] decimal(18,6),[TotalLinea] decimal(18,4),[BaseTotalLinea] varchar(30),[MotivoAlternativa] nvarchar(1000),[ContenidoTotalOfrecido] decimal(28,6),[CondicionComparacion] varchar(22),[EsComparable] bit,[PrecioPorUnidadBase] decimal(28,8),[CubreCantidadSolicitada] bit,[Vigente] bit,[MenorPrecioPorUnidadBase] decimal(28,8),[MenorPrecioConCoberturaYVigencia] decimal(28,8),[EsMenorPrecioUnitario] bit,[EsMenorPrecioConCoberturaYVigencia] bit);\n INSERT @C EXEC dbo.usp_Cotizaciones_CompararSolicitud @S1,'CRC','Bruto','2026-10-17';\nIF NOT EXISTS(SELECT 1 FROM @C WHERE Vigente=0 AND EsMenorPrecioUnitario=1 AND EsMenorPrecioConCoberturaYVigencia=0) THROW 51901,N'Vigencia incorrecta',1;",
+    "Errors": null,
+    "Setup": "UPDATE dbo.ProformasProveedor SET FechaVencimiento='2026-10-16' WHERE IdProformaProveedor=@Q;EXEC dbo.usp_Proforma_RevisarLinea @QD; EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada',N'Revision de prueba'; EXEC dbo.usp_Proforma_Validar @Q;",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Comparacion: falta fecha vencimiento no se asume vigente",
+    "Sql": "DECLARE @C table([IdSolicitudCotizacionDetalle] bigint,[NumeroLinea] int,[ProductoSolicitado] nvarchar(150),[MarcaSolicitada] nvarchar(150),[PresentacionSolicitada] nvarchar(150),[TipoBaseSolicitado] nvarchar(20),[CantidadEmpaquesSolicitada] decimal(18,4),[ContenidoTotalSolicitado] decimal(28,6),[IdSolicitudCotizacionProveedor] bigint,[IdProveedor] int,[NombreProveedorActual] nvarchar(150),[EstadoDestinatario] varchar(20),[IdProformaProveedor] int,[NumeroProforma] nvarchar(50),[VersionRespuesta] int,[FechaProforma] date,[FechaVencimiento] date,[Moneda] char(3),[EstadoConciliacion] varchar(20),[JustificacionConciliacion] nvarchar(1000),[DescuentoGlobalDocumento] decimal(18,4),[IVADocumento] decimal(18,4),[OtrosCargosDocumento] decimal(18,4),[TotalDocumento] decimal(18,4),[CondicionesPago] nvarchar(1000),[CondicionesEntrega] nvarchar(1000),[DatosProveedorOriginalJson] nvarchar(max),[IdProformaProveedorDetalle] int,[TipoOferta] varchar(20),[EstadoOferta] varchar(20),[ProductoOfrecido] nvarchar(150),[MarcaOfrecida] nvarchar(150),[PresentacionOfrecida] nvarchar(150),[CantidadEmpaquesOfrecida] decimal(18,4),[ContenidoNormalizadoOriginal] decimal(18,6),[TipoBaseOfrecido] nvarchar(20),[PrecioUnitario] decimal(18,6),[TotalLinea] decimal(18,4),[BaseTotalLinea] varchar(30),[MotivoAlternativa] nvarchar(1000),[ContenidoTotalOfrecido] decimal(28,6),[CondicionComparacion] varchar(22),[EsComparable] bit,[PrecioPorUnidadBase] decimal(28,8),[CubreCantidadSolicitada] bit,[Vigente] bit,[MenorPrecioPorUnidadBase] decimal(28,8),[MenorPrecioConCoberturaYVigencia] decimal(28,8),[EsMenorPrecioUnitario] bit,[EsMenorPrecioConCoberturaYVigencia] bit);\n INSERT @C EXEC dbo.usp_Cotizaciones_CompararSolicitud @S1,'CRC','Bruto','2026-10-16';\nIF NOT EXISTS(SELECT 1 FROM @C WHERE Vigente IS NULL AND EsMenorPrecioConCoberturaYVigencia=0) THROW 51901,N'Invento vigencia',1;",
+    "Errors": null,
+    "Setup": "EXEC dbo.usp_Proforma_RevisarLinea @QD; EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada',N'Revision de prueba'; EXEC dbo.usp_Proforma_Validar @Q;",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Comparacion: oferta parcial no cubre solicitud",
+    "Sql": "DECLARE @C table([IdSolicitudCotizacionDetalle] bigint,[NumeroLinea] int,[ProductoSolicitado] nvarchar(150),[MarcaSolicitada] nvarchar(150),[PresentacionSolicitada] nvarchar(150),[TipoBaseSolicitado] nvarchar(20),[CantidadEmpaquesSolicitada] decimal(18,4),[ContenidoTotalSolicitado] decimal(28,6),[IdSolicitudCotizacionProveedor] bigint,[IdProveedor] int,[NombreProveedorActual] nvarchar(150),[EstadoDestinatario] varchar(20),[IdProformaProveedor] int,[NumeroProforma] nvarchar(50),[VersionRespuesta] int,[FechaProforma] date,[FechaVencimiento] date,[Moneda] char(3),[EstadoConciliacion] varchar(20),[JustificacionConciliacion] nvarchar(1000),[DescuentoGlobalDocumento] decimal(18,4),[IVADocumento] decimal(18,4),[OtrosCargosDocumento] decimal(18,4),[TotalDocumento] decimal(18,4),[CondicionesPago] nvarchar(1000),[CondicionesEntrega] nvarchar(1000),[DatosProveedorOriginalJson] nvarchar(max),[IdProformaProveedorDetalle] int,[TipoOferta] varchar(20),[EstadoOferta] varchar(20),[ProductoOfrecido] nvarchar(150),[MarcaOfrecida] nvarchar(150),[PresentacionOfrecida] nvarchar(150),[CantidadEmpaquesOfrecida] decimal(18,4),[ContenidoNormalizadoOriginal] decimal(18,6),[TipoBaseOfrecido] nvarchar(20),[PrecioUnitario] decimal(18,6),[TotalLinea] decimal(18,4),[BaseTotalLinea] varchar(30),[MotivoAlternativa] nvarchar(1000),[ContenidoTotalOfrecido] decimal(28,6),[CondicionComparacion] varchar(22),[EsComparable] bit,[PrecioPorUnidadBase] decimal(28,8),[CubreCantidadSolicitada] bit,[Vigente] bit,[MenorPrecioPorUnidadBase] decimal(28,8),[MenorPrecioConCoberturaYVigencia] decimal(28,8),[EsMenorPrecioUnitario] bit,[EsMenorPrecioConCoberturaYVigencia] bit);\n INSERT @C EXEC dbo.usp_Cotizaciones_CompararSolicitud @S1,'CRC','Bruto','2026-10-16';\nIF NOT EXISTS(SELECT 1 FROM @C WHERE EsComparable=1 AND CubreCantidadSolicitada=0 AND EsMenorPrecioConCoberturaYVigencia=0) THROW 51901,N'Cobertura incorrecta',1;",
+    "Errors": null,
+    "Setup": "UPDATE dbo.ProformasProveedorDetalle SET Cantidad=1,TotalLinea=100 WHERE IdProformaProveedorDetalle=@QD;\n UPDATE dbo.ProformasProveedor SET Subtotal=100,Total=100,FechaVencimiento='2026-10-20' WHERE IdProformaProveedor=@Q;EXEC dbo.usp_Proforma_RevisarLinea @QD; EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada',N'Revision de prueba'; EXEC dbo.usp_Proforma_Validar @Q;",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Comparacion: muestra proveedor que aun no responde",
+    "Sql": "DECLARE @C table([IdSolicitudCotizacionDetalle] bigint,[NumeroLinea] int,[ProductoSolicitado] nvarchar(150),[MarcaSolicitada] nvarchar(150),[PresentacionSolicitada] nvarchar(150),[TipoBaseSolicitado] nvarchar(20),[CantidadEmpaquesSolicitada] decimal(18,4),[ContenidoTotalSolicitado] decimal(28,6),[IdSolicitudCotizacionProveedor] bigint,[IdProveedor] int,[NombreProveedorActual] nvarchar(150),[EstadoDestinatario] varchar(20),[IdProformaProveedor] int,[NumeroProforma] nvarchar(50),[VersionRespuesta] int,[FechaProforma] date,[FechaVencimiento] date,[Moneda] char(3),[EstadoConciliacion] varchar(20),[JustificacionConciliacion] nvarchar(1000),[DescuentoGlobalDocumento] decimal(18,4),[IVADocumento] decimal(18,4),[OtrosCargosDocumento] decimal(18,4),[TotalDocumento] decimal(18,4),[CondicionesPago] nvarchar(1000),[CondicionesEntrega] nvarchar(1000),[DatosProveedorOriginalJson] nvarchar(max),[IdProformaProveedorDetalle] int,[TipoOferta] varchar(20),[EstadoOferta] varchar(20),[ProductoOfrecido] nvarchar(150),[MarcaOfrecida] nvarchar(150),[PresentacionOfrecida] nvarchar(150),[CantidadEmpaquesOfrecida] decimal(18,4),[ContenidoNormalizadoOriginal] decimal(18,6),[TipoBaseOfrecido] nvarchar(20),[PrecioUnitario] decimal(18,6),[TotalLinea] decimal(18,4),[BaseTotalLinea] varchar(30),[MotivoAlternativa] nvarchar(1000),[ContenidoTotalOfrecido] decimal(28,6),[CondicionComparacion] varchar(22),[EsComparable] bit,[PrecioPorUnidadBase] decimal(28,8),[CubreCantidadSolicitada] bit,[Vigente] bit,[MenorPrecioPorUnidadBase] decimal(28,8),[MenorPrecioConCoberturaYVigencia] decimal(28,8),[EsMenorPrecioUnitario] bit,[EsMenorPrecioConCoberturaYVigencia] bit);\n INSERT @C EXEC dbo.usp_Cotizaciones_CompararSolicitud @S1,'CRC','Bruto','2026-10-16';\nIF (SELECT COUNT(*) FROM @C)<>2 OR NOT EXISTS(SELECT 1 FROM @C WHERE IdProveedor=@OtroProveedor AND CondicionComparacion='SinRespuestaValidada') THROW 51901,N'Oculto proveedor sin respuesta',1;",
+    "Errors": null,
+    "Setup": "EXEC dbo.usp_Proforma_RevisarLinea @QD; EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada',N'Revision de prueba'; EXEC dbo.usp_Proforma_Validar @Q;",
+    "BeforeEmit": "INSERT dbo.SolicitudesCotizacionProveedor(IdSolicitudCotizacion,IdProveedor)VALUES(@S1,@OtroProveedor); DECLARE @SP3 bigint=SCOPE_IDENTITY();"
+  },
+  {
+    "Name": "Comparacion: precios iguales conservan ambos ganadores",
+    "Sql": "DECLARE @C table([IdSolicitudCotizacionDetalle] bigint,[NumeroLinea] int,[ProductoSolicitado] nvarchar(150),[MarcaSolicitada] nvarchar(150),[PresentacionSolicitada] nvarchar(150),[TipoBaseSolicitado] nvarchar(20),[CantidadEmpaquesSolicitada] decimal(18,4),[ContenidoTotalSolicitado] decimal(28,6),[IdSolicitudCotizacionProveedor] bigint,[IdProveedor] int,[NombreProveedorActual] nvarchar(150),[EstadoDestinatario] varchar(20),[IdProformaProveedor] int,[NumeroProforma] nvarchar(50),[VersionRespuesta] int,[FechaProforma] date,[FechaVencimiento] date,[Moneda] char(3),[EstadoConciliacion] varchar(20),[JustificacionConciliacion] nvarchar(1000),[DescuentoGlobalDocumento] decimal(18,4),[IVADocumento] decimal(18,4),[OtrosCargosDocumento] decimal(18,4),[TotalDocumento] decimal(18,4),[CondicionesPago] nvarchar(1000),[CondicionesEntrega] nvarchar(1000),[DatosProveedorOriginalJson] nvarchar(max),[IdProformaProveedorDetalle] int,[TipoOferta] varchar(20),[EstadoOferta] varchar(20),[ProductoOfrecido] nvarchar(150),[MarcaOfrecida] nvarchar(150),[PresentacionOfrecida] nvarchar(150),[CantidadEmpaquesOfrecida] decimal(18,4),[ContenidoNormalizadoOriginal] decimal(18,6),[TipoBaseOfrecido] nvarchar(20),[PrecioUnitario] decimal(18,6),[TotalLinea] decimal(18,4),[BaseTotalLinea] varchar(30),[MotivoAlternativa] nvarchar(1000),[ContenidoTotalOfrecido] decimal(28,6),[CondicionComparacion] varchar(22),[EsComparable] bit,[PrecioPorUnidadBase] decimal(28,8),[CubreCantidadSolicitada] bit,[Vigente] bit,[MenorPrecioPorUnidadBase] decimal(28,8),[MenorPrecioConCoberturaYVigencia] decimal(28,8),[EsMenorPrecioUnitario] bit,[EsMenorPrecioConCoberturaYVigencia] bit);\n INSERT @C EXEC dbo.usp_Cotizaciones_CompararSolicitud @S1,'CRC','Bruto','2026-10-16';\nIF (SELECT COUNT(*) FROM @C WHERE EsMenorPrecioUnitario=1)<>2 THROW 51901,N'Perdio empate',1;",
+    "Errors": null,
+    "Setup": "UPDATE dbo.SolicitudesCotizacionProveedor SET Estado='Enviada',IdDocumentoEnviado=@DocumentoEnviado,FechaEnvio=SYSUTCDATETIME() WHERE IdSolicitudCotizacionProveedor=@SP3;\n DECLARE @QB int,@QBD int; EXEC dbo.usp_Proforma_GuardarBorrador @SP3,@DocumentoOtro,NULL,@Cabecera,@Lineas,@QB OUTPUT;\n SELECT @QBD=IdProformaProveedorDetalle FROM dbo.ProformasProveedorDetalle WHERE IdProformaProveedor=@QB;\n EXEC dbo.usp_Proforma_RevisarLinea @QBD; EXEC dbo.usp_Proforma_Conciliar @QB,'Conciliada',N'Revision proveedor 2'; EXEC dbo.usp_Proforma_Validar @QB;EXEC dbo.usp_Proforma_RevisarLinea @QD; EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada',N'Revision de prueba'; EXEC dbo.usp_Proforma_Validar @Q;",
+    "BeforeEmit": "INSERT dbo.SolicitudesCotizacionProveedor(IdSolicitudCotizacion,IdProveedor)VALUES(@S1,@OtroProveedor); DECLARE @SP3 bigint=SCOPE_IDENTITY();"
+  },
+  {
+    "Name": "Comparacion: mismo grupo sin revision no autoriza equivalencia",
+    "Sql": "DECLARE @C table([IdSolicitudCotizacionDetalle] bigint,[NumeroLinea] int,[ProductoSolicitado] nvarchar(150),[MarcaSolicitada] nvarchar(150),[PresentacionSolicitada] nvarchar(150),[TipoBaseSolicitado] nvarchar(20),[CantidadEmpaquesSolicitada] decimal(18,4),[ContenidoTotalSolicitado] decimal(28,6),[IdSolicitudCotizacionProveedor] bigint,[IdProveedor] int,[NombreProveedorActual] nvarchar(150),[EstadoDestinatario] varchar(20),[IdProformaProveedor] int,[NumeroProforma] nvarchar(50),[VersionRespuesta] int,[FechaProforma] date,[FechaVencimiento] date,[Moneda] char(3),[EstadoConciliacion] varchar(20),[JustificacionConciliacion] nvarchar(1000),[DescuentoGlobalDocumento] decimal(18,4),[IVADocumento] decimal(18,4),[OtrosCargosDocumento] decimal(18,4),[TotalDocumento] decimal(18,4),[CondicionesPago] nvarchar(1000),[CondicionesEntrega] nvarchar(1000),[DatosProveedorOriginalJson] nvarchar(max),[IdProformaProveedorDetalle] int,[TipoOferta] varchar(20),[EstadoOferta] varchar(20),[ProductoOfrecido] nvarchar(150),[MarcaOfrecida] nvarchar(150),[PresentacionOfrecida] nvarchar(150),[CantidadEmpaquesOfrecida] decimal(18,4),[ContenidoNormalizadoOriginal] decimal(18,6),[TipoBaseOfrecido] nvarchar(20),[PrecioUnitario] decimal(18,6),[TotalLinea] decimal(18,4),[BaseTotalLinea] varchar(30),[MotivoAlternativa] nvarchar(1000),[ContenidoTotalOfrecido] decimal(28,6),[CondicionComparacion] varchar(22),[EsComparable] bit,[PrecioPorUnidadBase] decimal(28,8),[CubreCantidadSolicitada] bit,[Vigente] bit,[MenorPrecioPorUnidadBase] decimal(28,8),[MenorPrecioConCoberturaYVigencia] decimal(28,8),[EsMenorPrecioUnitario] bit,[EsMenorPrecioConCoberturaYVigencia] bit);\n INSERT @C EXEC dbo.usp_Cotizaciones_CompararSolicitud @S1,'CRC','Bruto','2026-10-16';\nIF NOT EXISTS(SELECT 1 FROM @C WHERE CondicionComparacion='EquivalenciaNoRevisada' AND PrecioPorUnidadBase IS NULL) THROW 51901,N'Equivalencia supuesta',1;",
+    "Errors": null,
+    "Setup": "DECLARE @Alternativo int,@AltPres int;\n INSERT dbo.Productos(Nombre,IdProductoBase,IdMarca) SELECT N'Producto alternativo de prueba',IdProductoBase,IdMarca FROM dbo.Productos WHERE IdProducto=@P; SET @Alternativo=SCOPE_IDENTITY();\n INSERT dbo.PresentacionesProducto(IdProducto,Descripcion,Cantidad,IdUnidadMedida,CantidadNormalizada)VALUES(@Alternativo,N'Envase alternativo',@Contenido,@U,@Normalizada);SET @AltPres=SCOPE_IDENTITY();\n UPDATE dbo.ProformasProveedorDetalle SET IdProducto=@Alternativo,IdPresentacionProducto=@AltPres,TipoOferta='Alternativa',MotivoAlternativa=N'Otra marca',NombreProductoOriginal=N'Producto alternativo de prueba',PresentacionOriginal=N'Envase alternativo' WHERE IdProformaProveedorDetalle=@QD;\nEXEC dbo.usp_Proforma_RevisarLinea @QD; EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada',N'Revision de prueba'; EXEC dbo.usp_Proforma_Validar @Q;",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Comparacion: equivalencia revisada permite otra marca",
+    "Sql": "DECLARE @C table([IdSolicitudCotizacionDetalle] bigint,[NumeroLinea] int,[ProductoSolicitado] nvarchar(150),[MarcaSolicitada] nvarchar(150),[PresentacionSolicitada] nvarchar(150),[TipoBaseSolicitado] nvarchar(20),[CantidadEmpaquesSolicitada] decimal(18,4),[ContenidoTotalSolicitado] decimal(28,6),[IdSolicitudCotizacionProveedor] bigint,[IdProveedor] int,[NombreProveedorActual] nvarchar(150),[EstadoDestinatario] varchar(20),[IdProformaProveedor] int,[NumeroProforma] nvarchar(50),[VersionRespuesta] int,[FechaProforma] date,[FechaVencimiento] date,[Moneda] char(3),[EstadoConciliacion] varchar(20),[JustificacionConciliacion] nvarchar(1000),[DescuentoGlobalDocumento] decimal(18,4),[IVADocumento] decimal(18,4),[OtrosCargosDocumento] decimal(18,4),[TotalDocumento] decimal(18,4),[CondicionesPago] nvarchar(1000),[CondicionesEntrega] nvarchar(1000),[DatosProveedorOriginalJson] nvarchar(max),[IdProformaProveedorDetalle] int,[TipoOferta] varchar(20),[EstadoOferta] varchar(20),[ProductoOfrecido] nvarchar(150),[MarcaOfrecida] nvarchar(150),[PresentacionOfrecida] nvarchar(150),[CantidadEmpaquesOfrecida] decimal(18,4),[ContenidoNormalizadoOriginal] decimal(18,6),[TipoBaseOfrecido] nvarchar(20),[PrecioUnitario] decimal(18,6),[TotalLinea] decimal(18,4),[BaseTotalLinea] varchar(30),[MotivoAlternativa] nvarchar(1000),[ContenidoTotalOfrecido] decimal(28,6),[CondicionComparacion] varchar(22),[EsComparable] bit,[PrecioPorUnidadBase] decimal(28,8),[CubreCantidadSolicitada] bit,[Vigente] bit,[MenorPrecioPorUnidadBase] decimal(28,8),[MenorPrecioConCoberturaYVigencia] decimal(28,8),[EsMenorPrecioUnitario] bit,[EsMenorPrecioConCoberturaYVigencia] bit);\n INSERT @C EXEC dbo.usp_Cotizaciones_CompararSolicitud @S1,'CRC','Bruto','2026-10-16';\nIF NOT EXISTS(SELECT 1 FROM @C WHERE EsComparable=1 AND TipoOferta='Alternativa') THROW 51901,N'Alternativa revisada perdida',1;",
+    "Errors": null,
+    "Setup": "DECLARE @Alternativo int,@AltPres int;\n INSERT dbo.Productos(Nombre,IdProductoBase,IdMarca) SELECT N'Producto alternativo de prueba',IdProductoBase,IdMarca FROM dbo.Productos WHERE IdProducto=@P; SET @Alternativo=SCOPE_IDENTITY();\n INSERT dbo.PresentacionesProducto(IdProducto,Descripcion,Cantidad,IdUnidadMedida,CantidadNormalizada)VALUES(@Alternativo,N'Envase alternativo',@Contenido,@U,@Normalizada);SET @AltPres=SCOPE_IDENTITY();\n UPDATE dbo.ProformasProveedorDetalle SET IdProducto=@Alternativo,IdPresentacionProducto=@AltPres,TipoOferta='Alternativa',MotivoAlternativa=N'Otra marca',NombreProductoOriginal=N'Producto alternativo de prueba',PresentacionOriginal=N'Envase alternativo' WHERE IdProformaProveedorDetalle=@QD;\nUPDATE dbo.ProductosBase SET ComparabilidadRevisada=1 WHERE IdProductoBase=(SELECT IdProductoBase FROM dbo.Productos WHERE IdProducto=@P);EXEC dbo.usp_Proforma_RevisarLinea @QD; EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada',N'Revision de prueba'; EXEC dbo.usp_Proforma_Validar @Q;",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Comparacion: alternativa puede excluirse por parametro",
+    "Sql": "DECLARE @C table([IdSolicitudCotizacionDetalle] bigint,[NumeroLinea] int,[ProductoSolicitado] nvarchar(150),[MarcaSolicitada] nvarchar(150),[PresentacionSolicitada] nvarchar(150),[TipoBaseSolicitado] nvarchar(20),[CantidadEmpaquesSolicitada] decimal(18,4),[ContenidoTotalSolicitado] decimal(28,6),[IdSolicitudCotizacionProveedor] bigint,[IdProveedor] int,[NombreProveedorActual] nvarchar(150),[EstadoDestinatario] varchar(20),[IdProformaProveedor] int,[NumeroProforma] nvarchar(50),[VersionRespuesta] int,[FechaProforma] date,[FechaVencimiento] date,[Moneda] char(3),[EstadoConciliacion] varchar(20),[JustificacionConciliacion] nvarchar(1000),[DescuentoGlobalDocumento] decimal(18,4),[IVADocumento] decimal(18,4),[OtrosCargosDocumento] decimal(18,4),[TotalDocumento] decimal(18,4),[CondicionesPago] nvarchar(1000),[CondicionesEntrega] nvarchar(1000),[DatosProveedorOriginalJson] nvarchar(max),[IdProformaProveedorDetalle] int,[TipoOferta] varchar(20),[EstadoOferta] varchar(20),[ProductoOfrecido] nvarchar(150),[MarcaOfrecida] nvarchar(150),[PresentacionOfrecida] nvarchar(150),[CantidadEmpaquesOfrecida] decimal(18,4),[ContenidoNormalizadoOriginal] decimal(18,6),[TipoBaseOfrecido] nvarchar(20),[PrecioUnitario] decimal(18,6),[TotalLinea] decimal(18,4),[BaseTotalLinea] varchar(30),[MotivoAlternativa] nvarchar(1000),[ContenidoTotalOfrecido] decimal(28,6),[CondicionComparacion] varchar(22),[EsComparable] bit,[PrecioPorUnidadBase] decimal(28,8),[CubreCantidadSolicitada] bit,[Vigente] bit,[MenorPrecioPorUnidadBase] decimal(28,8),[MenorPrecioConCoberturaYVigencia] decimal(28,8),[EsMenorPrecioUnitario] bit,[EsMenorPrecioConCoberturaYVigencia] bit);\n INSERT @C EXEC dbo.usp_Cotizaciones_CompararSolicitud @S1,'CRC','Bruto','2026-10-16',0;\nIF NOT EXISTS(SELECT 1 FROM @C WHERE CondicionComparacion='AlternativaNoIncluida') THROW 51901,N'No excluyo alternativa',1;",
+    "Errors": null,
+    "Setup": "DECLARE @Alternativo int,@AltPres int;\n INSERT dbo.Productos(Nombre,IdProductoBase,IdMarca) SELECT N'Producto alternativo de prueba',IdProductoBase,IdMarca FROM dbo.Productos WHERE IdProducto=@P; SET @Alternativo=SCOPE_IDENTITY();\n INSERT dbo.PresentacionesProducto(IdProducto,Descripcion,Cantidad,IdUnidadMedida,CantidadNormalizada)VALUES(@Alternativo,N'Envase alternativo',@Contenido,@U,@Normalizada);SET @AltPres=SCOPE_IDENTITY();\n UPDATE dbo.ProformasProveedorDetalle SET IdProducto=@Alternativo,IdPresentacionProducto=@AltPres,TipoOferta='Alternativa',MotivoAlternativa=N'Otra marca',NombreProductoOriginal=N'Producto alternativo de prueba',PresentacionOriginal=N'Envase alternativo' WHERE IdProformaProveedorDetalle=@QD;\nEXEC dbo.usp_Proforma_RevisarLinea @QD; EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada',N'Revision de prueba'; EXEC dbo.usp_Proforma_Validar @Q;",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Compras: una proforma no se registra automaticamente como compra",
+    "Sql": "EXEC dbo.SP_CompraAutomatica_InsertarCompraDesdeProforma @P,@Proveedor,@PP,'2026-10-16',1,100,N'CRC';",
+    "Errors": [
+      52010
+    ],
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Compras: moneda requerida en comparador historico",
+    "Sql": "EXEC dbo.SP_ComparadorProveedor_ObtenerComparativa @P,@PP,NULL;",
+    "Errors": [
+      52000
+    ],
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Compras: antecedentes no mezclan monedas ni fechas futuras",
+    "Sql": "\n EXEC dbo.SP_Compra_Insertar @P,@Proveedor,@PP,'2026-10-10',1,1000,N'CRC';\n EXEC dbo.SP_Compra_Insertar @P,@Proveedor,@PP,'2026-10-11',1,2,N'USD';\n EXEC dbo.SP_Compra_Insertar @P,@Proveedor,@PP,'2026-10-12',1,1200,N'CRC';\n EXEC dbo.SP_Compra_Insertar @P,@Proveedor,@PP,'2026-10-09',1,900,N'CRC';\n IF NOT EXISTS(SELECT 1 FROM dbo.vw_ComprasAnalisis WHERE FechaCompra='2026-10-12' AND Moneda='CRC' AND PrecioUnitarioAnterior=1000 AND DiferenciaPrecio=200) THROW 51901,N'Antecedente incorrecto',1;\n IF NOT EXISTS(SELECT 1 FROM dbo.vw_ComprasAnalisis WHERE Moneda='USD' AND IdCompraAnterior IS NULL) THROW 51901,N'Mezclo monedas',1;\n IF NOT EXISTS(SELECT 1 FROM dbo.vw_ComprasAnalisis WHERE FechaCompra='2026-10-10' AND PrecioUnitarioAnterior=900) THROW 51901,N'Antecedente retrospectivo desactualizado',1;\n",
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Buscador: no elimina numeros de formula",
+    "Sql": "DECLARE @B int=(SELECT IdProductoBase FROM dbo.Productos WHERE IdProducto=@P);\n EXEC dbo.SP_Producto_Insertar N'Formulacion 10-30-10',@B; EXEC dbo.SP_Producto_Insertar N'Formulacion 20-20-20',@B;\n DECLARE @R table(IdProducto int,CodigoInterno nvarchar(40),NombreProducto nvarchar(150),IdProductoBase int,IdMarca int,Marca nvarchar(150),FormulaDeclarada nvarchar(100),CoincidenciaExacta bit,CantidadCandidatos int);\n INSERT @R EXEC dbo.usp_Producto_BuscarCandidatos N'Formulacion 10-30-10 saco 25 KG';\n IF (SELECT COUNT(*) FROM @R)<>1 OR EXISTS(SELECT 1 FROM @R WHERE NombreProducto<>N'Formulacion 10-30-10') THROW 51901,N'Confundio formulas',1;",
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Buscador: ambiguedad de marcas requiere eleccion manual",
+    "Sql": "DECLARE @B int=(SELECT IdProductoBase FROM dbo.Productos WHERE IdProducto=@P),@Marca2 int=(SELECT MAX(IdMarca) FROM dbo.Marcas);\n EXEC dbo.SP_Producto_Insertar N'Formula ambigua',@B; EXEC dbo.SP_Producto_Insertar N'Formula ambigua',@B,@Marca2;\n EXEC dbo.SP_CompraAutomatica_BuscarProducto N'Formula ambigua 25 kg';",
+    "Errors": [
+      52009
+    ],
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Buscador: conserva contenido decimal con conversion de gramos",
+    "Sql": "DECLARE @G int=(SELECT IdUnidadMedida FROM dbo.UnidadesMedida WHERE Codigo='G'),@Kg int=(SELECT IdUnidadMedida FROM dbo.UnidadesMedida WHERE Codigo='KG');\n EXEC dbo.SP_PresentacionesProducto_Insertar @P,N'Bolsa prueba 2.5kg',2.5,@Kg;\n DECLARE @R table(IdPresentacionProducto int,NombrePresentacion nvarchar(150),Cantidad decimal(18,4),IdUnidadMedida int,Codigo nvarchar(20),TipoBase nvarchar(20),CantidadNormalizada decimal(18,6));\n INSERT @R EXEC dbo.SP_CompraAutomatica_BuscarPresentacion @P,2500,@G;\n IF (SELECT COUNT(*) FROM @R)<>1 OR NOT EXISTS(SELECT 1 FROM @R WHERE CantidadNormalizada=2.5) THROW 51901,N'Conversion decimal incorrecta',1;",
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Auditoria: motivo de sesion previo se restaura",
+    "Sql": "EXEC sys.sp_set_session_context @key=N'MotivoCambio',@value=N'Previo'; DECLARE @L nvarchar(max)=JSON_QUERY(@Lineas,'$[0]'); EXEC dbo.usp_Proforma_ActualizarLinea @QD,@L,N'Nuevo';\n IF CONVERT(nvarchar(100),SESSION_CONTEXT(N'MotivoCambio'))<>N'Previo' THROW 51901,N'Contamino contexto de sesion',1;\n EXEC sys.sp_set_session_context @key=N'MotivoCambio',@value=NULL;",
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Solicitud JSON: cantidades demasiado precisas rechazadas",
+    "Sql": "DECLARE @Nueva bigint=NULL,@Ls nvarchar(max)=CONCAT(N'[{\"numeroLinea\":1,\"idProducto\":',@P,N',\"idPresentacionProducto\":',@PP,N',\"cantidadEmpaques\":0.00001}]');\n EXEC dbo.usp_Solicitud_GuardarBorrador N'X','2026-10-16',NULL,NULL,NULL,@Ls,N'[]',@Nueva OUTPUT;",
+    "Errors": [
+      52000
+    ],
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "JSON: fraccion minima no se convierte silenciosamente a cero",
+    "Sql": "EXEC dbo.usp_Proforma_ComprobarJson NULL,N'[{\"cantidadEmpaques\":0.00000000000000000001}]';",
+    "Errors": [
+      52000
+    ],
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Respuesta: agregar linea adicional conserva auditoria",
+    "Sql": "DECLARE @L nvarchar(max)=JSON_QUERY(@Lineas,'$[0]'),@NuevaLinea int;\n SET @L=JSON_MODIFY(@L,'$.idSolicitudDetalle',NULL); SET @L=JSON_MODIFY(@L,'$.numeroLinea',2); SET @L=JSON_MODIFY(@L,'$.tipoOferta','Adicional');\n EXEC dbo.usp_Proforma_AgregarLinea @Q,@L,N'Linea adicional visible en documento',@NuevaLinea OUTPUT;\n IF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedorDetalle WHERE IdProformaProveedorDetalle=@NuevaLinea AND TipoOferta='Adicional' AND IdSolicitudCotizacionDetalle IS NULL AND EstadoRevision='Pendiente') THROW 51901,N'Linea adicional incorrecta',1;\n IF NOT EXISTS(SELECT 1 FROM dbo.CambiosCotizacion WHERE IdProformaProveedorDetalle=@NuevaLinea AND Motivo=N'Linea adicional visible en documento') THROW 51901,N'Adicion sin auditoria',1;",
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Respuesta: corregir cabecera conserva documento e importacion",
+    "Sql": "SET @Cabecera=JSON_MODIFY(@Cabecera,'$.observaciones',N'Dato corregido'); EXEC dbo.usp_Proforma_ActualizarCabecera @Q,@Cabecera,N'Correccion manual';\n IF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@Q AND Observaciones=N'Dato corregido' AND IdDocumentoOrigen=@DocumentoRecibido AND IdImportacionDocumento=@Importacion AND EstadoConciliacion='Pendiente') THROW 51901,N'Cabecera altero evidencia',1;",
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Comparacion: calcula precio por litro de una oferta liquida",
+    "Sql": "DECLARE @C table([IdSolicitudCotizacionDetalle] bigint,[NumeroLinea] int,[ProductoSolicitado] nvarchar(150),[MarcaSolicitada] nvarchar(150),[PresentacionSolicitada] nvarchar(150),[TipoBaseSolicitado] nvarchar(20),[CantidadEmpaquesSolicitada] decimal(18,4),[ContenidoTotalSolicitado] decimal(28,6),[IdSolicitudCotizacionProveedor] bigint,[IdProveedor] int,[NombreProveedorActual] nvarchar(150),[EstadoDestinatario] varchar(20),[IdProformaProveedor] int,[NumeroProforma] nvarchar(50),[VersionRespuesta] int,[FechaProforma] date,[FechaVencimiento] date,[Moneda] char(3),[EstadoConciliacion] varchar(20),[JustificacionConciliacion] nvarchar(1000),[DescuentoGlobalDocumento] decimal(18,4),[IVADocumento] decimal(18,4),[OtrosCargosDocumento] decimal(18,4),[TotalDocumento] decimal(18,4),[CondicionesPago] nvarchar(1000),[CondicionesEntrega] nvarchar(1000),[DatosProveedorOriginalJson] nvarchar(max),[IdProformaProveedorDetalle] int,[TipoOferta] varchar(20),[EstadoOferta] varchar(20),[ProductoOfrecido] nvarchar(150),[MarcaOfrecida] nvarchar(150),[PresentacionOfrecida] nvarchar(150),[CantidadEmpaquesOfrecida] decimal(18,4),[ContenidoNormalizadoOriginal] decimal(18,6),[TipoBaseOfrecido] nvarchar(20),[PrecioUnitario] decimal(18,6),[TotalLinea] decimal(18,4),[BaseTotalLinea] varchar(30),[MotivoAlternativa] nvarchar(1000),[ContenidoTotalOfrecido] decimal(28,6),[CondicionComparacion] varchar(22),[EsComparable] bit,[PrecioPorUnidadBase] decimal(28,8),[CubreCantidadSolicitada] bit,[Vigente] bit,[MenorPrecioPorUnidadBase] decimal(28,8),[MenorPrecioConCoberturaYVigencia] decimal(28,8),[EsMenorPrecioUnitario] bit,[EsMenorPrecioConCoberturaYVigencia] bit);\n INSERT @C EXEC dbo.usp_Cotizaciones_CompararSolicitud @S1,'CRC','Bruto','2026-10-16';\nIF NOT EXISTS(SELECT 1 FROM @C WHERE TipoBaseOfrecido='VOLUMEN' AND ContenidoTotalOfrecido=20 AND PrecioPorUnidadBase=10) THROW 51901,N'Precio por litro incorrecto',1;",
+    "Errors": null,
+    "Setup": "EXEC dbo.usp_Proforma_RevisarLinea @QD; EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada',N'Revision de prueba'; EXEC dbo.usp_Proforma_Validar @Q;",
+    "BeforeEmit": "DECLARE @Litro int=(SELECT IdUnidadMedida FROM dbo.UnidadesMedida WHERE Codigo='L'),@PV int,@PPV int;\n INSERT dbo.Productos(Nombre,IdProductoBase) SELECT N'Liquido para prueba',IdProductoBase FROM dbo.Productos WHERE IdProducto=@P; SET @PV=SCOPE_IDENTITY();\n INSERT dbo.PresentacionesProducto(IdProducto,Descripcion,Cantidad,IdUnidadMedida,CantidadNormalizada)VALUES(@PV,N'Bidon 10 litros',10,@Litro,10);SET @PPV=SCOPE_IDENTITY();\n SET @P=@PV;SET @PP=@PPV;SET @U=@Litro;SET @CodigoUnidad=N'L';SET @TipoBase=N'VOLUMEN';SET @Factor=1;SET @Contenido=10;SET @Normalizada=10;SET @Nombre=N'Liquido para prueba';SET @Marca=NULL;SET @Presentacion=N'Bidon 10 litros';\n UPDATE dbo.SolicitudesCotizacionDetalle SET IdProducto=@P,IdPresentacionProducto=@PP,NombreProductoOriginal=@Nombre,MarcaOriginal=NULL,PresentacionOriginal=@Presentacion,ContenidoEmpaqueOriginal=@Contenido,IdUnidadMedidaOriginal=@U,CodigoUnidadOriginal=@CodigoUnidad,TipoBaseOriginal=@TipoBase,FactorConversionOriginal=@Factor,ContenidoNormalizadoOriginal=@Normalizada WHERE IdSolicitudCotizacionDetalle=@D1;"
+  },
+  {
+    "Name": "Comparacion: nunca convierte kg a litros",
+    "Sql": "DECLARE @C table([IdSolicitudCotizacionDetalle] bigint,[NumeroLinea] int,[ProductoSolicitado] nvarchar(150),[MarcaSolicitada] nvarchar(150),[PresentacionSolicitada] nvarchar(150),[TipoBaseSolicitado] nvarchar(20),[CantidadEmpaquesSolicitada] decimal(18,4),[ContenidoTotalSolicitado] decimal(28,6),[IdSolicitudCotizacionProveedor] bigint,[IdProveedor] int,[NombreProveedorActual] nvarchar(150),[EstadoDestinatario] varchar(20),[IdProformaProveedor] int,[NumeroProforma] nvarchar(50),[VersionRespuesta] int,[FechaProforma] date,[FechaVencimiento] date,[Moneda] char(3),[EstadoConciliacion] varchar(20),[JustificacionConciliacion] nvarchar(1000),[DescuentoGlobalDocumento] decimal(18,4),[IVADocumento] decimal(18,4),[OtrosCargosDocumento] decimal(18,4),[TotalDocumento] decimal(18,4),[CondicionesPago] nvarchar(1000),[CondicionesEntrega] nvarchar(1000),[DatosProveedorOriginalJson] nvarchar(max),[IdProformaProveedorDetalle] int,[TipoOferta] varchar(20),[EstadoOferta] varchar(20),[ProductoOfrecido] nvarchar(150),[MarcaOfrecida] nvarchar(150),[PresentacionOfrecida] nvarchar(150),[CantidadEmpaquesOfrecida] decimal(18,4),[ContenidoNormalizadoOriginal] decimal(18,6),[TipoBaseOfrecido] nvarchar(20),[PrecioUnitario] decimal(18,6),[TotalLinea] decimal(18,4),[BaseTotalLinea] varchar(30),[MotivoAlternativa] nvarchar(1000),[ContenidoTotalOfrecido] decimal(28,6),[CondicionComparacion] varchar(22),[EsComparable] bit,[PrecioPorUnidadBase] decimal(28,8),[CubreCantidadSolicitada] bit,[Vigente] bit,[MenorPrecioPorUnidadBase] decimal(28,8),[MenorPrecioConCoberturaYVigencia] decimal(28,8),[EsMenorPrecioUnitario] bit,[EsMenorPrecioConCoberturaYVigencia] bit);\n INSERT @C EXEC dbo.usp_Cotizaciones_CompararSolicitud @S1,'CRC','Bruto','2026-10-16';\nIF NOT EXISTS(SELECT 1 FROM @C WHERE CondicionComparacion='DimensionDistinta' AND PrecioPorUnidadBase IS NULL) THROW 51901,N'Mezclo dimensiones',1;",
+    "Errors": null,
+    "Setup": "DECLARE @Alternativo int,@AltPres int;\n INSERT dbo.Productos(Nombre,IdProductoBase,IdMarca) SELECT N'Producto alternativo de prueba',IdProductoBase,IdMarca FROM dbo.Productos WHERE IdProducto=@P; SET @Alternativo=SCOPE_IDENTITY();\n INSERT dbo.PresentacionesProducto(IdProducto,Descripcion,Cantidad,IdUnidadMedida,CantidadNormalizada)VALUES(@Alternativo,N'Envase alternativo',@Contenido,@U,@Normalizada);SET @AltPres=SCOPE_IDENTITY();\n UPDATE dbo.ProformasProveedorDetalle SET IdProducto=@Alternativo,IdPresentacionProducto=@AltPres,TipoOferta='Alternativa',MotivoAlternativa=N'Otra marca',NombreProductoOriginal=N'Producto alternativo de prueba',PresentacionOriginal=N'Envase alternativo' WHERE IdProformaProveedorDetalle=@QD;\nDECLARE @Litro int=(SELECT IdUnidadMedida FROM dbo.UnidadesMedida WHERE Codigo='L'),@PresVol int;\n INSERT dbo.PresentacionesProducto(IdProducto,Descripcion,Cantidad,IdUnidadMedida,CantidadNormalizada)VALUES(@Alternativo,N'Liquido alternativo',5,@Litro,5);SET @PresVol=SCOPE_IDENTITY();\n UPDATE dbo.ProformasProveedorDetalle SET IdPresentacionProducto=@PresVol,PresentacionOriginal=N'Liquido alternativo',ContenidoEmpaqueOriginal=5,IdUnidadMedidaOriginal=@Litro,CodigoUnidadOriginal=N'L',TipoBaseOriginal=N'VOLUMEN',FactorConversionOriginal=1,ContenidoNormalizadoOriginal=5 WHERE IdProformaProveedorDetalle=@QD;EXEC dbo.usp_Proforma_RevisarLinea @QD; EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada',N'Revision de prueba'; EXEC dbo.usp_Proforma_Validar @Q;",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Comparacion: no disponible no aparece como precio cero",
+    "Sql": "DECLARE @C table([IdSolicitudCotizacionDetalle] bigint,[NumeroLinea] int,[ProductoSolicitado] nvarchar(150),[MarcaSolicitada] nvarchar(150),[PresentacionSolicitada] nvarchar(150),[TipoBaseSolicitado] nvarchar(20),[CantidadEmpaquesSolicitada] decimal(18,4),[ContenidoTotalSolicitado] decimal(28,6),[IdSolicitudCotizacionProveedor] bigint,[IdProveedor] int,[NombreProveedorActual] nvarchar(150),[EstadoDestinatario] varchar(20),[IdProformaProveedor] int,[NumeroProforma] nvarchar(50),[VersionRespuesta] int,[FechaProforma] date,[FechaVencimiento] date,[Moneda] char(3),[EstadoConciliacion] varchar(20),[JustificacionConciliacion] nvarchar(1000),[DescuentoGlobalDocumento] decimal(18,4),[IVADocumento] decimal(18,4),[OtrosCargosDocumento] decimal(18,4),[TotalDocumento] decimal(18,4),[CondicionesPago] nvarchar(1000),[CondicionesEntrega] nvarchar(1000),[DatosProveedorOriginalJson] nvarchar(max),[IdProformaProveedorDetalle] int,[TipoOferta] varchar(20),[EstadoOferta] varchar(20),[ProductoOfrecido] nvarchar(150),[MarcaOfrecida] nvarchar(150),[PresentacionOfrecida] nvarchar(150),[CantidadEmpaquesOfrecida] decimal(18,4),[ContenidoNormalizadoOriginal] decimal(18,6),[TipoBaseOfrecido] nvarchar(20),[PrecioUnitario] decimal(18,6),[TotalLinea] decimal(18,4),[BaseTotalLinea] varchar(30),[MotivoAlternativa] nvarchar(1000),[ContenidoTotalOfrecido] decimal(28,6),[CondicionComparacion] varchar(22),[EsComparable] bit,[PrecioPorUnidadBase] decimal(28,8),[CubreCantidadSolicitada] bit,[Vigente] bit,[MenorPrecioPorUnidadBase] decimal(28,8),[MenorPrecioConCoberturaYVigencia] decimal(28,8),[EsMenorPrecioUnitario] bit,[EsMenorPrecioConCoberturaYVigencia] bit);\n INSERT @C EXEC dbo.usp_Cotizaciones_CompararSolicitud @S1,'CRC','Bruto','2026-10-16';\nIF NOT EXISTS(SELECT 1 FROM @C WHERE CondicionComparacion='NoDisponible' AND PrecioPorUnidadBase IS NULL) THROW 51901,N'Falsa oferta cero',1;",
+    "Errors": null,
+    "Setup": "UPDATE dbo.ProformasProveedorDetalle SET EstadoOferta='NoDisponible',Cantidad=NULL,PrecioUnitario=NULL,TotalLinea=NULL WHERE IdProformaProveedorDetalle=@QD;\n UPDATE dbo.ProformasProveedor SET Subtotal=0,Total=0 WHERE IdProformaProveedor=@Q;EXEC dbo.usp_Proforma_RevisarLinea @QD; EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada',N'Revision de prueba'; EXEC dbo.usp_Proforma_Validar @Q;",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Comparacion: conserva renglones de solicitud sin cotizar",
+    "Sql": "DECLARE @C table([IdSolicitudCotizacionDetalle] bigint,[NumeroLinea] int,[ProductoSolicitado] nvarchar(150),[MarcaSolicitada] nvarchar(150),[PresentacionSolicitada] nvarchar(150),[TipoBaseSolicitado] nvarchar(20),[CantidadEmpaquesSolicitada] decimal(18,4),[ContenidoTotalSolicitado] decimal(28,6),[IdSolicitudCotizacionProveedor] bigint,[IdProveedor] int,[NombreProveedorActual] nvarchar(150),[EstadoDestinatario] varchar(20),[IdProformaProveedor] int,[NumeroProforma] nvarchar(50),[VersionRespuesta] int,[FechaProforma] date,[FechaVencimiento] date,[Moneda] char(3),[EstadoConciliacion] varchar(20),[JustificacionConciliacion] nvarchar(1000),[DescuentoGlobalDocumento] decimal(18,4),[IVADocumento] decimal(18,4),[OtrosCargosDocumento] decimal(18,4),[TotalDocumento] decimal(18,4),[CondicionesPago] nvarchar(1000),[CondicionesEntrega] nvarchar(1000),[DatosProveedorOriginalJson] nvarchar(max),[IdProformaProveedorDetalle] int,[TipoOferta] varchar(20),[EstadoOferta] varchar(20),[ProductoOfrecido] nvarchar(150),[MarcaOfrecida] nvarchar(150),[PresentacionOfrecida] nvarchar(150),[CantidadEmpaquesOfrecida] decimal(18,4),[ContenidoNormalizadoOriginal] decimal(18,6),[TipoBaseOfrecido] nvarchar(20),[PrecioUnitario] decimal(18,6),[TotalLinea] decimal(18,4),[BaseTotalLinea] varchar(30),[MotivoAlternativa] nvarchar(1000),[ContenidoTotalOfrecido] decimal(28,6),[CondicionComparacion] varchar(22),[EsComparable] bit,[PrecioPorUnidadBase] decimal(28,8),[CubreCantidadSolicitada] bit,[Vigente] bit,[MenorPrecioPorUnidadBase] decimal(28,8),[MenorPrecioConCoberturaYVigencia] decimal(28,8),[EsMenorPrecioUnitario] bit,[EsMenorPrecioConCoberturaYVigencia] bit);\n INSERT @C EXEC dbo.usp_Cotizaciones_CompararSolicitud @S1,'CRC','Bruto','2026-10-16';\nIF NOT EXISTS(SELECT 1 FROM @C WHERE NumeroLinea=2 AND CondicionComparacion='LineaSinCotizar' AND PrecioPorUnidadBase IS NULL) THROW 51901,N'Oculto renglon faltante',1;",
+    "Errors": null,
+    "Setup": "EXEC dbo.usp_Proforma_RevisarLinea @QD; EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada',N'Revision de prueba'; EXEC dbo.usp_Proforma_Validar @Q;",
+    "BeforeEmit": "INSERT dbo.SolicitudesCotizacionDetalle(IdSolicitudCotizacion,NumeroLinea,IdProducto,IdPresentacionProducto,CantidadEmpaquesSolicitada,NombreProductoOriginal,MarcaOriginal,PresentacionOriginal,ContenidoEmpaqueOriginal,IdUnidadMedidaOriginal,CodigoUnidadOriginal,TipoBaseOriginal,FactorConversionOriginal,ContenidoNormalizadoOriginal)\n VALUES(@S1,2,@P,@PP,3,@Nombre,@Marca,@Presentacion,@Contenido,@U,@CodigoUnidad,@TipoBase,@Factor,@Normalizada);"
+  },
+  {
+    "Name": "Equivalencia: proveedor inactivo no produce coincidencia",
+    "Sql": "UPDATE dbo.Proveedores SET Activo=0 WHERE IdProveedor=@Proveedor; EXEC dbo.SP_CompraAutomatica_BuscarEquivalencia N'X',N'Prueba',@Proveedor;",
+    "Errors": [
+      52000
+    ],
+    "Setup": "",
+    "BeforeEmit": ""
+  }
+]

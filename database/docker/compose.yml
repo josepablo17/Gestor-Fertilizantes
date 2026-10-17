@@ -1,0 +1,54 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-CU27-ubuntu-22.04@sha256:4402d880dd4c34bfa7d8705e56a86cd6c88da80a1f6bbbe741f999e76264a090
+    environment:
+      ACCEPT_EULA: 'Y'
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Defina MSSQL_SA_PASSWORD en el entorno o archivo .env local}
+      MSSQL_MEMORY_LIMIT_MB: '2048'
+    ports:
+      - '127.0.0.1:${GF_SQL_PORT:-14333}:1433'
+    volumes:
+      - sql-data:/var/opt/mssql
+    healthcheck:
+      test: ['CMD-SHELL', 'SQLCMDPASSWORD="$${MSSQL_SA_PASSWORD}" /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -b -l 3 -Q "SELECT 1" >/dev/null']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    mem_limit: 3g
+    stop_grace_period: 60s
+    restart: unless-stopped
+
+  db-init:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: deploy
+    environment:
+      GF_SQL_SERVER: sqlserver,1433
+      GF_DATABASE_NAME: ${GF_DATABASE_NAME:-BDComprasFertilizantes}
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Defina MSSQL_SA_PASSWORD}
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: 'no'
+
+  verify:
+    profiles: [test]
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: verify
+    environment:
+      GF_SQL_CONNECTION_STRING: 'Server=sqlserver,1433;Initial Catalog=${GF_DATABASE_NAME:-BDComprasFertilizantes};User ID=sa;Password=${MSSQL_SA_PASSWORD:?Defina MSSQL_SA_PASSWORD};Encrypt=True;TrustServerCertificate=True;Connect Timeout=5'
+    volumes:
+      - type: bind
+        source: ${GF_DOCKER_ARTIFACTS_PATH:-../artifacts/docker}
+        target: /workspace/artifacts/verification
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+
+volumes:
+  sql-data:

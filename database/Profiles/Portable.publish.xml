@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProfileVersionNumber>1</ProfileVersionNumber>
+    <BlockOnPossibleDataLoss>True</BlockOnPossibleDataLoss>
+    <DropObjectsNotInSource>False</DropObjectsNotInSource>
+    <DropPermissionsNotInSource>False</DropPermissionsNotInSource>
+    <DropRoleMembersNotInSource>False</DropRoleMembersNotInSource>
+    <CreateNewDatabase>False</CreateNewDatabase>
+    <ScriptDatabaseOptions>False</ScriptDatabaseOptions>
+    <IgnorePermissions>True</IgnorePermissions>
+    <IgnoreUserSettingsObjects>True</IgnoreUserSettingsObjects>
+    <IgnoreLoginSids>True</IgnoreLoginSids>
+    <IncludeTransactionalScripts>True</IncludeTransactionalScripts>
+    <VerifyDeployment>True</VerifyDeployment>
+    <CommandTimeout>120</CommandTimeout>
+    <DatabaseLockTimeout>60</DatabaseLockTimeout>
+  </PropertyGroup>
+</Project>

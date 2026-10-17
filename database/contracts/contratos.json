@@ -1,0 +1,3119 @@
+[
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_ComparadorProveedor_ObtenerComparativa",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@IdPresentacionProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@Moneda",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 20,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@MesesAnalisis",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 5,
+        "Nombre": "@SoloAutorizados",
+        "Tipo": "bit",
+        "LongitudBytes": 1,
+        "Precision": 1,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_ComparadorProveedor_ObtenerComparativa @IdProducto int,@IdPresentacionProducto int,@Moneda nvarchar(10),@MesesAnalisis int=NULL,@SoloAutorizados bit=0 AS\nBEGIN\n SET NOCOUNT ON;\n IF @Moneda IS NULL OR @Moneda NOT IN(N'CRC',N'USD') THROW 52000,N'Indique una moneda CRC o USD para comparar compras.',1;\n IF @MesesAnalisis IS NOT NULL AND @MesesAnalisis NOT BETWEEN 1 AND 1200 THROW 52000,N'Meses de analisis fuera de rango.',1;\n WITH Filtradas AS(SELECT *,ROW_NUMBER() OVER(PARTITION BY IdProveedor ORDER BY FechaCompra DESC,IdCompra DESC) AS rn FROM dbo.vw_ComprasAnalisis\n WHERE IdProducto=@IdProducto AND IdPresentacionProducto=@IdPresentacionProducto AND Moneda=@Moneda AND (@MesesAnalisis IS NULL OR FechaCompra>=DATEADD(month,-@MesesAnalisis,CONVERT(date,GETDATE()))) AND (@SoloAutorizados=0 OR EsProveedorAutorizado=1))\n SELECT IdProveedor,MAX(NombreProveedor) AS NombreProveedor,Moneda,COUNT_BIG(*) AS CantidadCompras,AVG(PrecioUnitarioCalculado) AS PromedioHistorico,\n MIN(PrecioUnitarioCalculado) AS PrecioMinimoHistorico,MAX(PrecioUnitarioCalculado) AS PrecioMaximoHistorico,\n MAX(FechaCompra) AS FechaUltimaCompra,MAX(CASE WHEN rn=1 THEN PrecioUnitarioCalculado END) AS UltimoPrecioUnitario\n FROM Filtradas GROUP BY IdProveedor,Moneda ORDER BY UltimoPrecioUnitario,IdProveedor;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_ComparadorProveedor_ObtenerDetalleHistoricoProveedor",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@IdPresentacionProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@IdProveedor",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@Moneda",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 20,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 5,
+        "Nombre": "@MesesAnalisis",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_ComparadorProveedor_ObtenerDetalleHistoricoProveedor @IdProducto int,@IdPresentacionProducto int,@IdProveedor int,@Moneda nvarchar(10),@MesesAnalisis int=NULL AS\nBEGIN\n SET NOCOUNT ON;\n IF @Moneda IS NULL OR @Moneda NOT IN(N'CRC',N'USD') THROW 52000,N'Indique una moneda CRC o USD para comparar compras.',1;\n IF @MesesAnalisis IS NOT NULL AND @MesesAnalisis NOT BETWEEN 1 AND 1200 THROW 52000,N'Meses de analisis fuera de rango.',1;\n SELECT * FROM dbo.vw_ComprasAnalisis WHERE IdProducto=@IdProducto AND IdPresentacionProducto=@IdPresentacionProducto AND Moneda=@Moneda AND IdProveedor=@IdProveedor\n AND (@MesesAnalisis IS NULL OR FechaCompra>=DATEADD(month,-@MesesAnalisis,CONVERT(date,GETDATE()))) ORDER BY FechaCompra DESC,IdCompra DESC;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_Compra_Actualizar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdCompra",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@IdProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@IdProveedor",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@IdPresentacionProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 5,
+        "Nombre": "@FechaCompra",
+        "Tipo": "date",
+        "LongitudBytes": 3,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 6,
+        "Nombre": "@CantidadComprada",
+        "Tipo": "decimal",
+        "LongitudBytes": 9,
+        "Precision": 18,
+        "Escala": 4,
+        "EsSalida": false
+      },
+      {
+        "Orden": 7,
+        "Nombre": "@PrecioTotal",
+        "Tipo": "decimal",
+        "LongitudBytes": 9,
+        "Precision": 18,
+        "Escala": 4,
+        "EsSalida": false
+      },
+      {
+        "Orden": 8,
+        "Nombre": "@Moneda",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 20,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 9,
+        "Nombre": "@Observaciones",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 1000,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_Compra_Actualizar @IdCompra bigint,@IdProducto int,@IdProveedor int,@IdPresentacionProducto int,@FechaCompra date,@CantidadComprada decimal(18,4),@PrecioTotal decimal(18,4),@Moneda nvarchar(10),@Observaciones nvarchar(500)=NULL AS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION CompraReal;\n BEGIN TRY\n IF @CantidadComprada IS NULL OR @CantidadComprada<=0 OR @PrecioTotal IS NULL OR @PrecioTotal<=0 OR @FechaCompra IS NULL OR @FechaCompra>CONVERT(date,GETDATE())\n THROW 52000,N'Compra requiere fecha no futura y cantidad e importe positivos.',1;\n SET @Moneda=UPPER(LTRIM(RTRIM(@Moneda)));\n IF @Moneda IS NULL OR @Moneda NOT IN(N'CRC',N'USD') THROW 52000,N'El modulo historico de compras admite CRC o USD.',1;\n IF NOT EXISTS(SELECT 1 FROM dbo.Productos p JOIN dbo.ProductosBase b ON b.IdProductoBase=p.IdProductoBase LEFT JOIN dbo.Marcas m ON m.IdMarca=p.IdMarca\n JOIN dbo.PresentacionesProducto pp ON pp.IdProducto=p.IdProducto JOIN dbo.UnidadesMedida u ON u.IdUnidadMedida=pp.IdUnidadMedida\n WHERE p.IdProducto=@IdProducto AND pp.IdPresentacionProducto=@IdPresentacionProducto AND p.Activo=1 AND b.Activo=1 AND (p.IdMarca IS NULL OR m.Activo=1) AND pp.Activo=1 AND u.Activo=1)\n OR NOT EXISTS(SELECT 1 FROM dbo.Proveedores WHERE IdProveedor=@IdProveedor AND Activo=1) THROW 52000,N'Catalogos inactivos o producto y presentacion incompatibles.',1;\n DECLARE @Precio decimal(18,6)=TRY_CONVERT(decimal(18,6),@PrecioTotal/@CantidadComprada);\n IF @Precio IS NULL OR @Precio<=0 THROW 52000,N'Precio por empaque fuera de rango.',1;\n IF NOT EXISTS(SELECT 1 FROM dbo.Compras WITH(UPDLOCK,HOLDLOCK) WHERE IdCompra=@IdCompra) THROW 52004,N'Compra no existe.',1;\n DECLARE @ProductoAnterior int,@PresentacionAnterior int,@MonedaAnterior nvarchar(10);\n SELECT @ProductoAnterior=IdProducto,@PresentacionAnterior=IdPresentacionProducto,@MonedaAnterior=Moneda FROM dbo.Compras WHERE IdCompra=@IdCompra;\n UPDATE dbo.Compras SET IdProducto=@IdProducto,IdProveedor=@IdProveedor,IdPresentacionProducto=@IdPresentacionProducto,FechaCompra=@FechaCompra,\n CantidadComprada=@CantidadComprada,PrecioTotal=@PrecioTotal,Moneda=@Moneda,PrecioUnitarioCalculado=@Precio,Observaciones=NULLIF(LTRIM(RTRIM(@Observaciones)),N''),FechaModificacion=SYSDATETIME() WHERE IdCompra=@IdCompra;\n /* Cache de compatibilidad; todas las lecturas usan la vista recalculada. */\n UPDATE c SET PrecioUnitarioCalculado=v.PrecioUnitarioCalculado,IdCompraAnterior=v.IdCompraAnterior,PrecioUnitarioAnterior=v.PrecioUnitarioAnterior,\n DiferenciaPrecio=v.DiferenciaPrecio,PorcentajeCambioPrecio=v.PorcentajeCambioPrecio,TendenciaPrecio=v.TendenciaPrecio\n FROM dbo.Compras c JOIN dbo.vw_ComprasAnalisis v ON v.IdCompra=c.IdCompra\n WHERE c.IdProducto=@IdProducto AND c.IdPresentacionProducto=@IdPresentacionProducto AND c.Moneda=@Moneda;\n UPDATE c SET IdCompraAnterior=v.IdCompraAnterior,PrecioUnitarioAnterior=v.PrecioUnitarioAnterior,DiferenciaPrecio=v.DiferenciaPrecio,PorcentajeCambioPrecio=v.PorcentajeCambioPrecio,TendenciaPrecio=v.TendenciaPrecio\n FROM dbo.Compras c JOIN dbo.vw_ComprasAnalisis v ON v.IdCompra=c.IdCompra\n WHERE c.IdProducto=@ProductoAnterior AND c.IdPresentacionProducto=@PresentacionAnterior AND c.Moneda=@MonedaAnterior;\n SELECT @IdCompra AS IdCompraActualizada;\n IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK; ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION CompraReal;\n THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_Compra_AlertasPorProducto",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@IdPresentacionProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@Moneda",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 20,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_Compra_AlertasPorProducto @IdProducto int,@IdPresentacionProducto int,@Moneda nvarchar(10) AS\nBEGIN\n SET NOCOUNT ON;\n IF @Moneda IS NULL OR @Moneda NOT IN(N'CRC',N'USD') THROW 52000,N'Indique una moneda CRC o USD para comparar compras.',1; SELECT *,CONVERT(bit,CASE WHEN PorcentajeCambioPrecio>=10 THEN 1 ELSE 0 END) AS AumentoMayorOIgual10PorCiento\n FROM dbo.vw_ComprasAnalisis WHERE IdProducto=@IdProducto AND IdPresentacionProducto=@IdPresentacionProducto AND Moneda=@Moneda ORDER BY FechaCompra DESC,IdCompra DESC;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_Compra_EvaluarCompra",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdCompra",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_Compra_EvaluarCompra @IdCompra bigint AS\nBEGIN\n SET NOCOUNT ON;\n IF NOT EXISTS(SELECT 1 FROM dbo.Compras WHERE IdCompra=@IdCompra) THROW 52004,N'Compra no existe.',1;\n SELECT a.*,h.CantidadComprasHistoricas,h.PrecioPromedioHistorico,\n a.PrecioUnitarioCalculado-h.PrecioPromedioHistorico AS DiferenciaVsPromedioHistorico\n FROM dbo.vw_ComprasAnalisis a OUTER APPLY(SELECT COUNT_BIG(*) AS CantidadComprasHistoricas,AVG(v.PrecioUnitarioCalculado) AS PrecioPromedioHistorico\n FROM dbo.vw_ComprasAnalisis v WHERE v.IdProducto=a.IdProducto AND v.IdPresentacionProducto=a.IdPresentacionProducto AND v.Moneda=a.Moneda\n AND (v.FechaCompra<a.FechaCompra OR (v.FechaCompra=a.FechaCompra AND v.IdCompra<a.IdCompra)))h WHERE a.IdCompra=@IdCompra;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_Compra_HistorialPorProducto",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@Moneda",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 20,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_Compra_HistorialPorProducto @IdProducto int,@Moneda nvarchar(10)=NULL AS\nBEGIN\n SET NOCOUNT ON;\n SELECT * FROM dbo.vw_ComprasAnalisis WHERE IdProducto=@IdProducto AND (@Moneda IS NULL OR Moneda=@Moneda) ORDER BY FechaCompra DESC,IdCompra DESC;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_Compra_HistorialPreciosPorProducto",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@IdPresentacionProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@Moneda",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 20,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_Compra_HistorialPreciosPorProducto @IdProducto int,@IdPresentacionProducto int,@Moneda nvarchar(10) AS\nBEGIN\n SET NOCOUNT ON;\n IF @Moneda IS NULL OR @Moneda NOT IN(N'CRC',N'USD') THROW 52000,N'Indique una moneda CRC o USD para comparar compras.',1; SELECT * FROM dbo.vw_ComprasAnalisis WHERE IdProducto=@IdProducto AND IdPresentacionProducto=@IdPresentacionProducto AND Moneda=@Moneda ORDER BY FechaCompra DESC,IdCompra DESC;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_Compra_Insertar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@IdProveedor",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@IdPresentacionProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@FechaCompra",
+        "Tipo": "date",
+        "LongitudBytes": 3,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 5,
+        "Nombre": "@CantidadComprada",
+        "Tipo": "decimal",
+        "LongitudBytes": 9,
+        "Precision": 18,
+        "Escala": 4,
+        "EsSalida": false
+      },
+      {
+        "Orden": 6,
+        "Nombre": "@PrecioTotal",
+        "Tipo": "decimal",
+        "LongitudBytes": 9,
+        "Precision": 18,
+        "Escala": 4,
+        "EsSalida": false
+      },
+      {
+        "Orden": 7,
+        "Nombre": "@Moneda",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 20,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 8,
+        "Nombre": "@Observaciones",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 1000,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_Compra_Insertar @IdProducto int,@IdProveedor int,@IdPresentacionProducto int,@FechaCompra date,@CantidadComprada decimal(18,4),@PrecioTotal decimal(18,4),@Moneda nvarchar(10),@Observaciones nvarchar(500)=NULL AS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION CompraReal;\n BEGIN TRY\n IF @CantidadComprada IS NULL OR @CantidadComprada<=0 OR @PrecioTotal IS NULL OR @PrecioTotal<=0 OR @FechaCompra IS NULL OR @FechaCompra>CONVERT(date,GETDATE())\n THROW 52000,N'Compra requiere fecha no futura y cantidad e importe positivos.',1;\n SET @Moneda=UPPER(LTRIM(RTRIM(@Moneda)));\n IF @Moneda IS NULL OR @Moneda NOT IN(N'CRC',N'USD') THROW 52000,N'El modulo historico de compras admite CRC o USD.',1;\n IF NOT EXISTS(SELECT 1 FROM dbo.Productos p JOIN dbo.ProductosBase b ON b.IdProductoBase=p.IdProductoBase LEFT JOIN dbo.Marcas m ON m.IdMarca=p.IdMarca\n JOIN dbo.PresentacionesProducto pp ON pp.IdProducto=p.IdProducto JOIN dbo.UnidadesMedida u ON u.IdUnidadMedida=pp.IdUnidadMedida\n WHERE p.IdProducto=@IdProducto AND pp.IdPresentacionProducto=@IdPresentacionProducto AND p.Activo=1 AND b.Activo=1 AND (p.IdMarca IS NULL OR m.Activo=1) AND pp.Activo=1 AND u.Activo=1)\n OR NOT EXISTS(SELECT 1 FROM dbo.Proveedores WHERE IdProveedor=@IdProveedor AND Activo=1) THROW 52000,N'Catalogos inactivos o producto y presentacion incompatibles.',1;\n DECLARE @Precio decimal(18,6)=TRY_CONVERT(decimal(18,6),@PrecioTotal/@CantidadComprada);\n IF @Precio IS NULL OR @Precio<=0 THROW 52000,N'Precio por empaque fuera de rango.',1;\n INSERT dbo.Compras(IdProducto,IdProveedor,IdPresentacionProducto,FechaCompra,CantidadComprada,PrecioTotal,Moneda,PrecioUnitarioCalculado,Observaciones)\n VALUES(@IdProducto,@IdProveedor,@IdPresentacionProducto,@FechaCompra,@CantidadComprada,@PrecioTotal,@Moneda,@Precio,NULLIF(LTRIM(RTRIM(@Observaciones)),N''));\n DECLARE @Id bigint=CONVERT(bigint,SCOPE_IDENTITY());\n /* Cache de compatibilidad; todas las lecturas usan la vista recalculada. */\n UPDATE c SET PrecioUnitarioCalculado=v.PrecioUnitarioCalculado,IdCompraAnterior=v.IdCompraAnterior,PrecioUnitarioAnterior=v.PrecioUnitarioAnterior,\n DiferenciaPrecio=v.DiferenciaPrecio,PorcentajeCambioPrecio=v.PorcentajeCambioPrecio,TendenciaPrecio=v.TendenciaPrecio\n FROM dbo.Compras c JOIN dbo.vw_ComprasAnalisis v ON v.IdCompra=c.IdCompra\n WHERE c.IdProducto=@IdProducto AND c.IdPresentacionProducto=@IdPresentacionProducto AND c.Moneda=@Moneda;\n SELECT @Id AS IdCompraInsertada;\n IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK; ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION CompraReal;\n THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_Compra_Listar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@Moneda",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 20,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@Pagina",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@TamanoPagina",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_Compra_Listar @Moneda nvarchar(10)=NULL,@Pagina int=1,@TamanoPagina int=50 AS\nBEGIN\n SET NOCOUNT ON;\n IF @Pagina IS NULL OR @Pagina<1 OR @TamanoPagina IS NULL OR @TamanoPagina NOT BETWEEN 1 AND 200 THROW 52000,N'Paginacion invalida.',1;\n SELECT *,COUNT_BIG(*) OVER() AS TotalRegistros FROM dbo.vw_ComprasAnalisis WHERE @Moneda IS NULL OR Moneda=@Moneda\n ORDER BY FechaCompra DESC,IdCompra DESC OFFSET CONVERT(bigint,@Pagina-1)*@TamanoPagina ROWS FETCH NEXT @TamanoPagina ROWS ONLY;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_Compra_ObtenerPorId",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdCompra",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_Compra_ObtenerPorId @IdCompra bigint AS\nBEGIN\n SET NOCOUNT ON;\n IF NOT EXISTS(SELECT 1 FROM dbo.Compras WHERE IdCompra=@IdCompra) THROW 52004,N'Compra no existe.',1;\n SELECT * FROM dbo.vw_ComprasAnalisis WHERE IdCompra=@IdCompra;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_Compra_ResumenInteligentePrecios",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@IdPresentacionProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@Moneda",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 20,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_Compra_ResumenInteligentePrecios @IdProducto int,@IdPresentacionProducto int,@Moneda nvarchar(10) AS\nBEGIN\n SET NOCOUNT ON;\n IF @Moneda IS NULL OR @Moneda NOT IN(N'CRC',N'USD') THROW 52000,N'Indique una moneda CRC o USD para comparar compras.',1;\n SELECT IdProducto,IdPresentacionProducto,Moneda,COUNT_BIG(*) AS CantidadCompras,AVG(PrecioUnitarioCalculado) AS PrecioPromedioHistorico,\n MIN(PrecioUnitarioCalculado) AS PrecioMinimoHistorico,MAX(PrecioUnitarioCalculado) AS PrecioMaximoHistorico,\n MIN(FechaCompra) AS FechaPrimeraCompra,MAX(FechaCompra) AS FechaUltimaCompra FROM dbo.vw_ComprasAnalisis WHERE IdProducto=@IdProducto AND IdPresentacionProducto=@IdPresentacionProducto AND Moneda=@Moneda GROUP BY IdProducto,IdPresentacionProducto,Moneda;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_Compra_UltimoPrecio",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@IdPresentacionProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@Moneda",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 20,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_Compra_UltimoPrecio @IdProducto int,@IdPresentacionProducto int,@Moneda nvarchar(10) AS\nBEGIN\n SET NOCOUNT ON;\n IF @Moneda IS NULL OR @Moneda NOT IN(N'CRC',N'USD') THROW 52000,N'Indique una moneda CRC o USD para comparar compras.',1; SELECT TOP(1) * FROM dbo.vw_ComprasAnalisis WHERE IdProducto=@IdProducto AND IdPresentacionProducto=@IdPresentacionProducto AND Moneda=@Moneda ORDER BY FechaCompra DESC,IdCompra DESC;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_CompraAutomatica_BuscarEquivalencia",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@CodigoProveedor",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 200,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@DescripcionProveedor",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 600,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@IdProveedor",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_CompraAutomatica_BuscarEquivalencia\n @CodigoProveedor nvarchar(100)=NULL,@DescripcionProveedor nvarchar(300),@IdProveedor int\nAS\nBEGIN\n SET NOCOUNT ON;\n IF NOT EXISTS(SELECT 1 FROM dbo.Proveedores WHERE IdProveedor=@IdProveedor AND Activo=1)\n THROW 52000,N'Indique un proveedor activo para buscar sus equivalencias.',1;\n DECLARE @Codigo nvarchar(100)=NULLIF(UPPER(LTRIM(RTRIM(@CodigoProveedor))),N''),\n @Descripcion nvarchar(300)=NULLIF(UPPER(LTRIM(RTRIM(@DescripcionProveedor))),N'');\n DECLARE @C table(IdProducto int,IdPresentacionProducto int,NombreProducto nvarchar(150),NombrePresentacion nvarchar(150),CodigoNormalizado nvarchar(100),DescripcionNormalizada nvarchar(300));\n INSERT @C SELECT e.IdProducto,e.IdPresentacionProducto,p.Nombre,COALESCE(pp.Descripcion,N''),e.CodigoNormalizado,UPPER(LTRIM(RTRIM(e.DescripcionProveedor)))\n FROM dbo.CompraAutomaticaEquivalencias e JOIN dbo.Productos p ON p.IdProducto=e.IdProducto AND p.Activo=1\n JOIN dbo.ProductosBase b ON b.IdProductoBase=p.IdProductoBase AND b.Activo=1 LEFT JOIN dbo.Marcas m ON m.IdMarca=p.IdMarca\n LEFT JOIN dbo.PresentacionesProducto pp ON pp.IdPresentacionProducto=e.IdPresentacionProducto LEFT JOIN dbo.UnidadesMedida u ON u.IdUnidadMedida=pp.IdUnidadMedida\n WHERE e.IdProveedor=@IdProveedor AND e.Activo=1 AND (p.IdMarca IS NULL OR m.Activo=1)\n AND (e.IdPresentacionProducto IS NULL OR (pp.Activo=1 AND u.Activo=1));\n IF @Codigo IS NOT NULL AND EXISTS(SELECT 1 FROM @C WHERE CodigoNormalizado=@Codigo)\n BEGIN\n  SELECT IdProducto,IdPresentacionProducto,NombreProducto,NombrePresentacion FROM @C WHERE CodigoNormalizado=@Codigo;\n  RETURN;\n END;\n IF (SELECT COUNT(*) FROM @C WHERE DescripcionNormalizada=@Descripcion)>1\n THROW 52009,N'Hay varias equivalencias del mismo proveedor; requiere seleccion manual.',1;\n SELECT IdProducto,IdPresentacionProducto,NombreProducto,NombrePresentacion FROM @C WHERE DescripcionNormalizada=@Descripcion;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_CompraAutomatica_BuscarPresentacion",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@Cantidad",
+        "Tipo": "decimal",
+        "LongitudBytes": 9,
+        "Precision": 18,
+        "Escala": 6,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@IdUnidadMedida",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_CompraAutomatica_BuscarPresentacion\n @IdProducto int,@Cantidad decimal(18,6),@IdUnidadMedida int\nAS\nBEGIN\n SET NOCOUNT ON;\n IF @Cantidad IS NULL OR @Cantidad<=0 THROW 52000,N'La cantidad de contenido debe ser explicita y positiva.',1;\n DECLARE @Factor decimal(18,6),@Tipo nvarchar(20);\n SELECT @Factor=FactorConversion,@Tipo=TipoBase FROM dbo.UnidadesMedida WHERE IdUnidadMedida=@IdUnidadMedida AND Activo=1;\n IF @Factor IS NULL THROW 52000,N'Unidad inexistente o inactiva. No se infiere desde texto ambiguo.',1;\n DECLARE @Normalizada decimal(18,6)=TRY_CONVERT(decimal(18,6),@Cantidad*@Factor);\n IF @Normalizada IS NULL OR @Normalizada<=0 THROW 52000,N'Contenido normalizado fuera de rango.',1;\n IF (SELECT COUNT(*) FROM dbo.PresentacionesProducto pp JOIN dbo.UnidadesMedida u ON u.IdUnidadMedida=pp.IdUnidadMedida\n WHERE pp.IdProducto=@IdProducto AND pp.Activo=1 AND u.Activo=1 AND u.TipoBase=@Tipo AND pp.CantidadNormalizada=@Normalizada)>1\n THROW 52009,N'Hay varias presentaciones con ese contenido; requiere seleccion manual.',1;\n SELECT pp.IdPresentacionProducto,pp.Descripcion AS NombrePresentacion,pp.Cantidad,pp.IdUnidadMedida,u.Codigo,u.TipoBase,pp.CantidadNormalizada\n FROM dbo.PresentacionesProducto pp JOIN dbo.Productos p ON p.IdProducto=pp.IdProducto AND p.Activo=1\n JOIN dbo.UnidadesMedida u ON u.IdUnidadMedida=pp.IdUnidadMedida AND u.Activo=1\n WHERE pp.IdProducto=@IdProducto AND pp.Activo=1 AND u.TipoBase=@Tipo AND pp.CantidadNormalizada=@Normalizada;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_CompraAutomatica_BuscarProducto",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@Descripcion",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 1000,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_CompraAutomatica_BuscarProducto @Descripcion nvarchar(500) AS\nBEGIN\n SET NOCOUNT ON;\n DECLARE @C table(IdProducto int,CodigoInterno nvarchar(40),NombreProducto nvarchar(150),IdProductoBase int,IdMarca int,Marca nvarchar(150),FormulaDeclarada nvarchar(100),CoincidenciaExacta bit,CantidadCandidatos int);\n INSERT @C EXEC dbo.usp_Producto_BuscarCandidatos @Descripcion;\n IF (SELECT COUNT(*) FROM @C)>1 THROW 52009,N'Hay varios productos candidatos; requiere seleccion manual.',1;\n SELECT IdProducto,NombreProducto,IdProductoBase,IdMarca,Marca,CoincidenciaExacta,CantidadCandidatos FROM @C;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_CompraAutomatica_BuscarProveedor",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@NombreNegocio",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 400,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@RazonSocial",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 400,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@IdentificacionFiscal",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 100,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@PaisIdentificacion",
+        "Tipo": "char",
+        "LongitudBytes": 2,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 5,
+        "Nombre": "@TipoIdentificacion",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 60,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_CompraAutomatica_BuscarProveedor\n @NombreNegocio nvarchar(200)=NULL,@RazonSocial nvarchar(200)=NULL,\n @IdentificacionFiscal nvarchar(50)=NULL,@PaisIdentificacion char(2)=NULL,@TipoIdentificacion nvarchar(30)=NULL\nAS\nBEGIN\n SET NOCOUNT ON;\n DECLARE @A nvarchar(1000)=dbo.ufn_NormalizarTextoCatalogo(@NombreNegocio),@B nvarchar(1000)=dbo.ufn_NormalizarTextoCatalogo(@RazonSocial);\n DECLARE @C table(IdProveedor int,NombreProveedor nvarchar(150));\n IF NULLIF(LTRIM(RTRIM(@IdentificacionFiscal)),N'') IS NOT NULL\n BEGIN\n  IF @PaisIdentificacion IS NULL OR @TipoIdentificacion IS NULL THROW 52000,N'Indique pais y tipo para buscar por identificacion fiscal.',1;\n  INSERT @C SELECT IdProveedor,Nombre FROM dbo.Proveedores WHERE Activo=1 AND IdentificacionFiscal=@IdentificacionFiscal AND PaisIdentificacion=@PaisIdentificacion AND TipoIdentificacion=@TipoIdentificacion;\n END ELSE BEGIN\n  IF @A=N'' AND @B=N'' THROW 52000,N'El proveedor requiere identidad o nombre del emisor.',1;\n  INSERT @C SELECT IdProveedor,Nombre FROM dbo.Proveedores WHERE Activo=1\n  AND ((@A<>N'' AND dbo.ufn_NormalizarTextoCatalogo(Nombre)=@A) OR (@B<>N'' AND dbo.ufn_NormalizarTextoCatalogo(Nombre)=@B));\n END;\n IF (SELECT COUNT(*) FROM @C)>1 THROW 52009,N'El nombre corresponde a varios proveedores; requiere seleccion manual.',1;\n SELECT * FROM @C;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_CompraAutomatica_InsertarCompraDesdeProforma",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@IdProveedor",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@IdPresentacionProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@FechaCompra",
+        "Tipo": "date",
+        "LongitudBytes": 3,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 5,
+        "Nombre": "@CantidadComprada",
+        "Tipo": "decimal",
+        "LongitudBytes": 9,
+        "Precision": 18,
+        "Escala": 4,
+        "EsSalida": false
+      },
+      {
+        "Orden": 6,
+        "Nombre": "@PrecioTotal",
+        "Tipo": "decimal",
+        "LongitudBytes": 9,
+        "Precision": 18,
+        "Escala": 4,
+        "EsSalida": false
+      },
+      {
+        "Orden": 7,
+        "Nombre": "@Moneda",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 20,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 8,
+        "Nombre": "@Observaciones",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 1000,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_CompraAutomatica_InsertarCompraDesdeProforma @IdProducto int,@IdProveedor int,@IdPresentacionProducto int,@FechaCompra date,@CantidadComprada decimal(18,4),@PrecioTotal decimal(18,4),@Moneda nvarchar(10),@Observaciones nvarchar(500)=NULL AS\nBEGIN\n SET NOCOUNT ON;\n THROW 52010,N'Una cotizacion recibida no es una compra. Use usp_Proforma_GuardarBorrador y valide la respuesta; registre una compra real por separado.',1;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_CompraAutomatica_InsertarEquivalencia",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProveedor",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@CodigoProveedor",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 200,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@DescripcionProveedor",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 600,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@IdProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 5,
+        "Nombre": "@IdPresentacionProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_CompraAutomatica_InsertarEquivalencia\n @IdProveedor int,@CodigoProveedor nvarchar(100)=NULL,@DescripcionProveedor nvarchar(300),@IdProducto int,@IdPresentacionProducto int=NULL\nAS\nBEGIN\n SET NOCOUNT ON;\n IF NOT EXISTS(SELECT 1 FROM dbo.Proveedores WHERE IdProveedor=@IdProveedor AND Activo=1)\n OR NOT EXISTS(SELECT 1 FROM dbo.Productos WHERE IdProducto=@IdProducto AND Activo=1)\n THROW 52000,N'Proveedor o producto inexistente/inactivo.',1;\n IF @IdPresentacionProducto IS NOT NULL AND NOT EXISTS(SELECT 1 FROM dbo.PresentacionesProducto WHERE IdPresentacionProducto=@IdPresentacionProducto AND IdProducto=@IdProducto AND Activo=1)\n THROW 52000,N'La presentacion debe estar activa y pertenecer al producto.',1;\n IF NULLIF(LTRIM(RTRIM(@DescripcionProveedor)),N'') IS NULL THROW 52000,N'Descripcion de proveedor obligatoria.',1;\n INSERT dbo.CompraAutomaticaEquivalencias(IdProveedor,CodigoProveedor,DescripcionProveedor,IdProducto,IdPresentacionProducto)\n VALUES(@IdProveedor,NULLIF(LTRIM(RTRIM(@CodigoProveedor)),N''),LTRIM(RTRIM(@DescripcionProveedor)),@IdProducto,@IdPresentacionProducto);\n SELECT CONVERT(int,SCOPE_IDENTITY()) AS IdEquivalencia;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_PresentacionesProducto_Actualizar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdPresentacionProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@IdProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@Descripcion",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 300,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@Cantidad",
+        "Tipo": "decimal",
+        "LongitudBytes": 9,
+        "Precision": 18,
+        "Escala": 4,
+        "EsSalida": false
+      },
+      {
+        "Orden": 5,
+        "Nombre": "@IdUnidadMedida",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 6,
+        "Nombre": "@CantidadNormalizada",
+        "Tipo": "decimal",
+        "LongitudBytes": 9,
+        "Precision": 18,
+        "Escala": 6,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_PresentacionesProducto_Actualizar\n @IdPresentacionProducto int,@IdProducto int,@Descripcion nvarchar(150),@Cantidad decimal(18,4),@IdUnidadMedida int,@CantidadNormalizada decimal(18,6)=NULL\nAS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION OperacionCatalogo;\n BEGIN TRY\nIF NULLIF(LTRIM(RTRIM(@Descripcion)),N'') IS NULL THROW 52000,N'Descripcion es obligatorio.',1;\n IF @Cantidad IS NULL OR @Cantidad<=0 THROW 52000,N'Contenido por empaque debe ser positivo.',1;\n IF NOT EXISTS(SELECT 1 FROM dbo.Productos WHERE IdProducto=@IdProducto AND Activo=1) THROW 52000,N'Producto inexistente o inactivo.',1;\n DECLARE @Factor decimal(18,6)=(SELECT FactorConversion FROM dbo.UnidadesMedida WHERE IdUnidadMedida=@IdUnidadMedida AND Activo=1);\n IF @Factor IS NULL THROW 52000,N'Unidad inexistente o inactiva.',1;\n DECLARE @Calculada decimal(18,6)=TRY_CONVERT(decimal(18,6),@Cantidad*@Factor);\n IF @Calculada IS NULL OR @Calculada<=0 THROW 52000,N'Contenido normalizado fuera de rango.',1;\n IF @CantidadNormalizada IS NOT NULL AND @CantidadNormalizada<>@Calculada THROW 52000,N'Cantidad normalizada incoherente con el factor.',1;\nIF NOT EXISTS(SELECT 1 FROM dbo.PresentacionesProducto WITH(UPDLOCK,HOLDLOCK) WHERE IdPresentacionProducto=@IdPresentacionProducto) THROW 52004,N'Presentacion no existe.',1; UPDATE dbo.PresentacionesProducto SET IdProducto=@IdProducto,Descripcion=LTRIM(RTRIM(@Descripcion)),Cantidad=@Cantidad,IdUnidadMedida=@IdUnidadMedida,CantidadNormalizada=@Calculada,FechaModificacion=SYSUTCDATETIME() WHERE IdPresentacionProducto=@IdPresentacionProducto; SELECT @IdPresentacionProducto AS IdPresentacionProducto;\n  IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK;\n  ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION OperacionCatalogo;\n  THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_PresentacionesProducto_Desactivar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdPresentacionProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_PresentacionesProducto_Desactivar\n @IdPresentacionProducto int\nAS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION OperacionCatalogo;\n BEGIN TRY\nIF NOT EXISTS(SELECT 1 FROM dbo.PresentacionesProducto WITH(UPDLOCK,HOLDLOCK) WHERE IdPresentacionProducto=@IdPresentacionProducto) THROW 52004,N'Presentacion no existe.',1; UPDATE dbo.PresentacionesProducto SET Activo=0,FechaModificacion=SYSUTCDATETIME() WHERE IdPresentacionProducto=@IdPresentacionProducto; SELECT 1 AS FilasAfectadas;\n  IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK;\n  ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION OperacionCatalogo;\n  THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_PresentacionesProducto_Insertar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@Descripcion",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 300,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@Cantidad",
+        "Tipo": "decimal",
+        "LongitudBytes": 9,
+        "Precision": 18,
+        "Escala": 4,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@IdUnidadMedida",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 5,
+        "Nombre": "@CantidadNormalizada",
+        "Tipo": "decimal",
+        "LongitudBytes": 9,
+        "Precision": 18,
+        "Escala": 6,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_PresentacionesProducto_Insertar\n @IdProducto int,@Descripcion nvarchar(150),@Cantidad decimal(18,4),@IdUnidadMedida int,@CantidadNormalizada decimal(18,6)=NULL\nAS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION OperacionCatalogo;\n BEGIN TRY\nIF NULLIF(LTRIM(RTRIM(@Descripcion)),N'') IS NULL THROW 52000,N'Descripcion es obligatorio.',1;\n IF @Cantidad IS NULL OR @Cantidad<=0 THROW 52000,N'Contenido por empaque debe ser positivo.',1;\n IF NOT EXISTS(SELECT 1 FROM dbo.Productos WHERE IdProducto=@IdProducto AND Activo=1) THROW 52000,N'Producto inexistente o inactivo.',1;\n DECLARE @Factor decimal(18,6)=(SELECT FactorConversion FROM dbo.UnidadesMedida WHERE IdUnidadMedida=@IdUnidadMedida AND Activo=1);\n IF @Factor IS NULL THROW 52000,N'Unidad inexistente o inactiva.',1;\n DECLARE @Calculada decimal(18,6)=TRY_CONVERT(decimal(18,6),@Cantidad*@Factor);\n IF @Calculada IS NULL OR @Calculada<=0 THROW 52000,N'Contenido normalizado fuera de rango.',1;\n IF @CantidadNormalizada IS NOT NULL AND @CantidadNormalizada<>@Calculada THROW 52000,N'Cantidad normalizada incoherente con el factor.',1;\nINSERT dbo.PresentacionesProducto(IdProducto,Descripcion,Cantidad,IdUnidadMedida,CantidadNormalizada)VALUES(@IdProducto,LTRIM(RTRIM(@Descripcion)),@Cantidad,@IdUnidadMedida,@Calculada); SELECT CONVERT(int,SCOPE_IDENTITY()) AS IdPresentacionProducto;\n  IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK;\n  ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION OperacionCatalogo;\n  THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_PresentacionesProducto_Listar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@SoloActivos",
+        "Tipo": "bit",
+        "LongitudBytes": 1,
+        "Precision": 1,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_PresentacionesProducto_Listar\n @IdProducto int=NULL,@SoloActivos bit=0\nAS\nBEGIN\n SET NOCOUNT ON;\nSELECT pp.*,p.Nombre AS NombreProducto,p.IdProductoBase,p.IdMarca,m.Nombre AS Marca,u.Codigo AS CodigoUnidadMedida,u.Nombre AS NombreUnidadMedida,u.TipoBase,u.FactorConversion\n FROM dbo.PresentacionesProducto pp JOIN dbo.Productos p ON p.IdProducto=pp.IdProducto LEFT JOIN dbo.Marcas m ON m.IdMarca=p.IdMarca JOIN dbo.UnidadesMedida u ON u.IdUnidadMedida=pp.IdUnidadMedida WHERE (@IdProducto IS NULL OR pp.IdProducto=@IdProducto) AND (@SoloActivos=0 OR (pp.Activo=1 AND p.Activo=1 AND u.Activo=1)) ORDER BY p.Nombre,pp.CantidadNormalizada,pp.IdPresentacionProducto;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_PresentacionesProducto_ObtenerPorId",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdPresentacionProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_PresentacionesProducto_ObtenerPorId\n @IdPresentacionProducto int\nAS\nBEGIN\n SET NOCOUNT ON;\nIF NOT EXISTS(SELECT 1 FROM dbo.PresentacionesProducto WHERE IdPresentacionProducto=@IdPresentacionProducto) THROW 52004,N'Presentacion no existe.',1;\nSELECT pp.*,p.Nombre AS NombreProducto,p.IdProductoBase,p.IdMarca,m.Nombre AS Marca,u.Codigo AS CodigoUnidadMedida,u.Nombre AS NombreUnidadMedida,u.TipoBase,u.FactorConversion\n FROM dbo.PresentacionesProducto pp JOIN dbo.Productos p ON p.IdProducto=pp.IdProducto LEFT JOIN dbo.Marcas m ON m.IdMarca=p.IdMarca JOIN dbo.UnidadesMedida u ON u.IdUnidadMedida=pp.IdUnidadMedida WHERE pp.IdPresentacionProducto=@IdPresentacionProducto;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_Producto_Actualizar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@Nombre",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 300,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@IdProductoBase",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@IdMarca",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 5,
+        "Nombre": "@Categoria",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 200,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 6,
+        "Nombre": "@Descripcion",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 500,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 7,
+        "Nombre": "@CodigoInterno",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 80,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_Producto_Actualizar\n @IdProducto int,@Nombre nvarchar(150),@IdProductoBase int,@IdMarca int=NULL,@Categoria nvarchar(100)=NULL,@Descripcion nvarchar(250)=NULL,@CodigoInterno nvarchar(40)=NULL\nAS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION OperacionCatalogo;\n BEGIN TRY\nIF NULLIF(LTRIM(RTRIM(@Nombre)),N'') IS NULL THROW 52000,N'Nombre es obligatorio.',1;\n IF NOT EXISTS(SELECT 1 FROM dbo.ProductosBase WHERE IdProductoBase=@IdProductoBase AND Activo=1) THROW 52000,N'Producto base inexistente o inactivo.',1;\n IF @IdMarca IS NOT NULL AND NOT EXISTS(SELECT 1 FROM dbo.Marcas WHERE IdMarca=@IdMarca AND Activo=1) THROW 52000,N'Marca inexistente o inactiva.',1;\n SET @Categoria=NULLIF(LTRIM(RTRIM(@Categoria)),N''); SET @Descripcion=NULLIF(LTRIM(RTRIM(@Descripcion)),N''); SET @CodigoInterno=NULLIF(LTRIM(RTRIM(@CodigoInterno)),N'');\n IF NOT EXISTS(SELECT 1 FROM dbo.Productos WITH(UPDLOCK,HOLDLOCK) WHERE IdProducto=@IdProducto) THROW 52004,N'Producto no existe.',1;\n UPDATE dbo.Productos SET Nombre=LTRIM(RTRIM(@Nombre)),IdProductoBase=@IdProductoBase,IdMarca=@IdMarca,Categoria=@Categoria,Descripcion=@Descripcion,\n CodigoInterno=COALESCE(@CodigoInterno,CodigoInterno),FechaModificacion=SYSUTCDATETIME() WHERE IdProducto=@IdProducto;\n SELECT @IdProducto AS IdProducto;\n  IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK;\n  ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION OperacionCatalogo;\n  THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_Producto_Desactivar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_Producto_Desactivar\n @IdProducto int\nAS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION OperacionCatalogo;\n BEGIN TRY\nIF NOT EXISTS(SELECT 1 FROM dbo.Productos WITH(UPDLOCK,HOLDLOCK) WHERE IdProducto=@IdProducto) THROW 52004,N'Producto no existe.',1; UPDATE dbo.Productos SET Activo=0,FechaModificacion=SYSUTCDATETIME() WHERE IdProducto=@IdProducto; SELECT 1 AS FilasAfectadas;\n  IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK;\n  ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION OperacionCatalogo;\n  THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_Producto_Insertar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@Nombre",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 300,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@IdProductoBase",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@IdMarca",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@Categoria",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 200,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 5,
+        "Nombre": "@Descripcion",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 500,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 6,
+        "Nombre": "@CodigoInterno",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 80,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_Producto_Insertar\n @Nombre nvarchar(150),@IdProductoBase int,@IdMarca int=NULL,@Categoria nvarchar(100)=NULL,@Descripcion nvarchar(250)=NULL,@CodigoInterno nvarchar(40)=NULL\nAS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION OperacionCatalogo;\n BEGIN TRY\nIF NULLIF(LTRIM(RTRIM(@Nombre)),N'') IS NULL THROW 52000,N'Nombre es obligatorio.',1;\n IF NOT EXISTS(SELECT 1 FROM dbo.ProductosBase WHERE IdProductoBase=@IdProductoBase AND Activo=1) THROW 52000,N'Producto base inexistente o inactivo.',1;\n IF @IdMarca IS NOT NULL AND NOT EXISTS(SELECT 1 FROM dbo.Marcas WHERE IdMarca=@IdMarca AND Activo=1) THROW 52000,N'Marca inexistente o inactiva.',1;\n SET @Categoria=NULLIF(LTRIM(RTRIM(@Categoria)),N''); SET @Descripcion=NULLIF(LTRIM(RTRIM(@Descripcion)),N''); SET @CodigoInterno=NULLIF(LTRIM(RTRIM(@CodigoInterno)),N'');\n IF @CodigoInterno IS NULL INSERT dbo.Productos(Nombre,IdProductoBase,IdMarca,Categoria,Descripcion) VALUES(LTRIM(RTRIM(@Nombre)),@IdProductoBase,@IdMarca,@Categoria,@Descripcion);\n ELSE INSERT dbo.Productos(CodigoInterno,Nombre,IdProductoBase,IdMarca,Categoria,Descripcion) VALUES(@CodigoInterno,LTRIM(RTRIM(@Nombre)),@IdProductoBase,@IdMarca,@Categoria,@Descripcion);\n SELECT CONVERT(int,SCOPE_IDENTITY()) AS IdProducto;\n  IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK;\n  ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION OperacionCatalogo;\n  THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_Producto_Listar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@SoloActivos",
+        "Tipo": "bit",
+        "LongitudBytes": 1,
+        "Precision": 1,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@Buscar",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 300,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@IdProductoBase",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@IdMarca",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_Producto_Listar\n @SoloActivos bit=0,@Buscar nvarchar(150)=NULL,@IdProductoBase int=NULL,@IdMarca int=NULL\nAS\nBEGIN\n SET NOCOUNT ON;\nSELECT p.IdProducto,p.CodigoInterno,p.IdProductoBase,b.Codigo AS CodigoProductoBase,b.Nombre AS NombreProductoBase,\n b.FormulaDeclarada,b.ComparabilidadRevisada,p.IdMarca,m.Nombre AS Marca,p.Nombre,p.Categoria,p.Descripcion,p.Activo,p.FechaCreacion,p.FechaModificacion\n FROM dbo.Productos p JOIN dbo.ProductosBase b ON b.IdProductoBase=p.IdProductoBase LEFT JOIN dbo.Marcas m ON m.IdMarca=p.IdMarca\n WHERE (@SoloActivos=0 OR p.Activo=1) AND (@Buscar IS NULL OR p.Nombre LIKE N'%'+@Buscar+N'%' OR p.CodigoInterno=@Buscar)\n AND (@IdProductoBase IS NULL OR p.IdProductoBase=@IdProductoBase) AND (@IdMarca IS NULL OR p.IdMarca=@IdMarca) ORDER BY p.Nombre,p.IdProducto;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_Producto_ObtenerPorId",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_Producto_ObtenerPorId\n @IdProducto int\nAS\nBEGIN\n SET NOCOUNT ON;\nIF NOT EXISTS(SELECT 1 FROM dbo.Productos WHERE IdProducto=@IdProducto) THROW 52004,N'Producto no existe.',1;\nSELECT p.IdProducto,p.CodigoInterno,p.IdProductoBase,b.Codigo AS CodigoProductoBase,b.Nombre AS NombreProductoBase,\n b.FormulaDeclarada,b.ComparabilidadRevisada,p.IdMarca,m.Nombre AS Marca,p.Nombre,p.Categoria,p.Descripcion,p.Activo,p.FechaCreacion,p.FechaModificacion\n FROM dbo.Productos p JOIN dbo.ProductosBase b ON b.IdProductoBase=p.IdProductoBase LEFT JOIN dbo.Marcas m ON m.IdMarca=p.IdMarca WHERE p.IdProducto=@IdProducto;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_Productos_ListarParaDropdown",
+    "Parametros": [],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_Productos_ListarParaDropdown\n\nAS\nBEGIN\n SET NOCOUNT ON;\nSELECT p.IdProducto,p.CodigoInterno,p.IdProductoBase,b.Codigo AS CodigoProductoBase,b.Nombre AS NombreProductoBase,\n b.FormulaDeclarada,b.ComparabilidadRevisada,p.IdMarca,m.Nombre AS Marca,p.Nombre,p.Categoria,p.Descripcion,p.Activo,p.FechaCreacion,p.FechaModificacion\n FROM dbo.Productos p JOIN dbo.ProductosBase b ON b.IdProductoBase=p.IdProductoBase LEFT JOIN dbo.Marcas m ON m.IdMarca=p.IdMarca WHERE p.Activo=1 AND b.Activo=1 AND (p.IdMarca IS NULL OR m.Activo=1) ORDER BY p.Nombre,p.IdProducto;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_ProformaProveedor_Insertar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdSolicitudCotizacionProveedor",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@IdDocumentoOrigen",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@IdImportacionDocumento",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@CabeceraJson",
+        "Tipo": "nvarchar",
+        "LongitudBytes": -1,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 5,
+        "Nombre": "@LineasJson",
+        "Tipo": "nvarchar",
+        "LongitudBytes": -1,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 6,
+        "Nombre": "@IdProformaProveedor",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": true
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_ProformaProveedor_Insertar\n @IdSolicitudCotizacionProveedor bigint,@IdDocumentoOrigen bigint,@IdImportacionDocumento bigint=NULL,@CabeceraJson nvarchar(max),@LineasJson nvarchar(max),@IdProformaProveedor int OUTPUT\nAS\nBEGIN\n SET NOCOUNT ON;\n\n EXEC dbo.usp_Proforma_GuardarBorrador @IdSolicitudCotizacionProveedor,@IdDocumentoOrigen,@IdImportacionDocumento,@CabeceraJson,@LineasJson,@IdProformaProveedor OUTPUT;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_ProformaProveedor_Listar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdSolicitudCotizacion",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@IdProveedor",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@Estado",
+        "Tipo": "varchar",
+        "LongitudBytes": 30,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@Pagina",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 5,
+        "Nombre": "@TamanoPagina",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_ProformaProveedor_Listar\n @IdSolicitudCotizacion bigint=NULL,@IdProveedor int=NULL,@Estado varchar(30)=NULL,@Pagina int=1,@TamanoPagina int=50\nAS\nBEGIN\n SET NOCOUNT ON;\n\n IF @Pagina IS NULL OR @Pagina<1 OR @TamanoPagina IS NULL OR @TamanoPagina NOT BETWEEN 1 AND 200 THROW 52000,N'Paginacion invalida.',1;\n SELECT p.*,pr.Nombre AS NombreProveedor,s.NumeroSolicitud,s.VersionSolicitud,COUNT_BIG(*) OVER() AS TotalRegistros\n FROM dbo.ProformasProveedor p JOIN dbo.Proveedores pr ON pr.IdProveedor=p.IdProveedor JOIN dbo.SolicitudesCotizacion s ON s.IdSolicitudCotizacion=p.IdSolicitudCotizacion\n WHERE (@IdSolicitudCotizacion IS NULL OR p.IdSolicitudCotizacion=@IdSolicitudCotizacion) AND (@IdProveedor IS NULL OR p.IdProveedor=@IdProveedor) AND (@Estado IS NULL OR p.Estado=@Estado)\n ORDER BY p.FechaCreacion DESC,p.IdProformaProveedor DESC OFFSET CONVERT(bigint,@Pagina-1)*@TamanoPagina ROWS FETCH NEXT @TamanoPagina ROWS ONLY;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_ProformaProveedor_ObtenerPorId",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProformaProveedor",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_ProformaProveedor_ObtenerPorId\n @IdProformaProveedor int\nAS\nBEGIN\n SET NOCOUNT ON;\n\n IF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@IdProformaProveedor) THROW 52004,N'Cotizacion no existe.',1;\n SELECT p.*,pr.Nombre AS NombreProveedor,s.NumeroSolicitud,s.VersionSolicitud,doc.NombreOriginal AS NombreArchivo,doc.RutaAlmacenamiento,doc.Sha256\n FROM dbo.ProformasProveedor p JOIN dbo.Proveedores pr ON pr.IdProveedor=p.IdProveedor JOIN dbo.SolicitudesCotizacion s ON s.IdSolicitudCotizacion=p.IdSolicitudCotizacion\n LEFT JOIN dbo.Documentos doc ON doc.IdDocumento=p.IdDocumentoOrigen WHERE p.IdProformaProveedor=@IdProformaProveedor;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_ProformaProveedorDetalle_Insertar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProformaProveedor",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@LineaJson",
+        "Tipo": "nvarchar",
+        "LongitudBytes": -1,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@Motivo",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 2000,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@IdProformaProveedorDetalle",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": true
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_ProformaProveedorDetalle_Insertar\n @IdProformaProveedor int,@LineaJson nvarchar(max),@Motivo nvarchar(1000),@IdProformaProveedorDetalle int OUTPUT\nAS\nBEGIN\n SET NOCOUNT ON;\n\n EXEC dbo.usp_Proforma_AgregarLinea @IdProformaProveedor,@LineaJson,@Motivo,@IdProformaProveedorDetalle OUTPUT;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_ProformaProveedorDetalle_ListarPorProforma",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProformaProveedor",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_ProformaProveedorDetalle_ListarPorProforma\n @IdProformaProveedor int\nAS\nBEGIN\n SET NOCOUNT ON;\n\n IF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@IdProformaProveedor) THROW 52004,N'Cotizacion no existe.',1;\n SELECT d.*,d.NombreProductoOriginal AS NombreProducto,d.PresentacionOriginal AS DescripcionPresentacion,\n CONVERT(decimal(28,6),d.Cantidad*d.ContenidoNormalizadoOriginal) AS ContenidoTotalNormalizado\n FROM dbo.ProformasProveedorDetalle d WHERE d.IdProformaProveedor=@IdProformaProveedor ORDER BY CASE WHEN d.NumeroLineaDocumento IS NULL THEN 1 ELSE 0 END,d.NumeroLineaDocumento,d.IdProformaProveedorDetalle;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_Proveedor_Actualizar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProveedor",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@Nombre",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 300,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@Contacto",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 300,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@Telefono",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 100,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 5,
+        "Nombre": "@Correo",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 300,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 6,
+        "Nombre": "@Direccion",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 500,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 7,
+        "Nombre": "@Provincia",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 200,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 8,
+        "Nombre": "@Canton",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 200,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 9,
+        "Nombre": "@Distrito",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 200,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 10,
+        "Nombre": "@FuenteExterna",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 200,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 11,
+        "Nombre": "@IdExterno",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 200,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 12,
+        "Nombre": "@TipoIdentificacion",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 60,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 13,
+        "Nombre": "@IdentificacionFiscal",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 100,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 14,
+        "Nombre": "@PaisIdentificacion",
+        "Tipo": "char",
+        "LongitudBytes": 2,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 15,
+        "Nombre": "@EsProveedorAutorizado",
+        "Tipo": "bit",
+        "LongitudBytes": 1,
+        "Precision": 1,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 16,
+        "Nombre": "@FechaUltimaSincronizacion",
+        "Tipo": "datetime2",
+        "LongitudBytes": 8,
+        "Precision": 27,
+        "Escala": 7,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_Proveedor_Actualizar\n @IdProveedor int,@Nombre nvarchar(150),@Contacto nvarchar(150)=NULL,@Telefono nvarchar(50)=NULL,@Correo nvarchar(150)=NULL,@Direccion nvarchar(250)=NULL,@Provincia nvarchar(100)=NULL,@Canton nvarchar(100)=NULL,@Distrito nvarchar(100)=NULL,@FuenteExterna nvarchar(100)=NULL,@IdExterno nvarchar(100)=NULL,@TipoIdentificacion nvarchar(30)=NULL,@IdentificacionFiscal nvarchar(50)=NULL,@PaisIdentificacion char(2)=NULL,@EsProveedorAutorizado bit=0,@FechaUltimaSincronizacion datetime2(7)=NULL\nAS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION OperacionCatalogo;\n BEGIN TRY\nIF NULLIF(LTRIM(RTRIM(@Nombre)),N'') IS NULL THROW 52000,N'Nombre es obligatorio.',1;\nSET @Contacto=NULLIF(LTRIM(RTRIM(@Contacto)),N'');\nSET @Telefono=NULLIF(LTRIM(RTRIM(@Telefono)),N'');\nSET @Correo=NULLIF(LTRIM(RTRIM(@Correo)),N'');\nSET @Direccion=NULLIF(LTRIM(RTRIM(@Direccion)),N'');\nSET @Provincia=NULLIF(LTRIM(RTRIM(@Provincia)),N'');\nSET @Canton=NULLIF(LTRIM(RTRIM(@Canton)),N'');\nSET @Distrito=NULLIF(LTRIM(RTRIM(@Distrito)),N'');\nSET @FuenteExterna=NULLIF(LTRIM(RTRIM(@FuenteExterna)),N'');\nSET @IdExterno=NULLIF(LTRIM(RTRIM(@IdExterno)),N'');\nSET @TipoIdentificacion=NULLIF(LTRIM(RTRIM(@TipoIdentificacion)),N'');\nSET @IdentificacionFiscal=NULLIF(LTRIM(RTRIM(@IdentificacionFiscal)),N'');\nIF @EsProveedorAutorizado IS NULL THROW 52000,N'EsProveedorAutorizado es obligatorio.',1;\nIF NOT EXISTS(SELECT 1 FROM dbo.Proveedores WITH(UPDLOCK,HOLDLOCK) WHERE IdProveedor=@IdProveedor) THROW 52004,N'Proveedor no existe.',1;\n UPDATE dbo.Proveedores SET Nombre=@Nombre,Contacto=@Contacto,Telefono=@Telefono,Correo=@Correo,Direccion=@Direccion,Provincia=@Provincia,Canton=@Canton,Distrito=@Distrito,FuenteExterna=@FuenteExterna,IdExterno=@IdExterno,TipoIdentificacion=@TipoIdentificacion,IdentificacionFiscal=@IdentificacionFiscal,PaisIdentificacion=@PaisIdentificacion,EsProveedorAutorizado=@EsProveedorAutorizado,FechaUltimaSincronizacion=@FechaUltimaSincronizacion,FechaModificacion=SYSUTCDATETIME() WHERE IdProveedor=@IdProveedor; SELECT @IdProveedor AS IdProveedor;\n  IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK;\n  ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION OperacionCatalogo;\n  THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_Proveedor_Desactivar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProveedor",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_Proveedor_Desactivar\n @IdProveedor int\nAS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION OperacionCatalogo;\n BEGIN TRY\nIF NOT EXISTS(SELECT 1 FROM dbo.Proveedores WITH(UPDLOCK,HOLDLOCK) WHERE IdProveedor=@IdProveedor) THROW 52004,N'Proveedor no existe.',1; UPDATE dbo.Proveedores SET Activo=0,FechaModificacion=SYSUTCDATETIME() WHERE IdProveedor=@IdProveedor; SELECT 1 AS FilasAfectadas;\n  IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK;\n  ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION OperacionCatalogo;\n  THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_Proveedor_Insertar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@Nombre",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 300,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@Contacto",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 300,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@Telefono",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 100,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@Correo",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 300,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 5,
+        "Nombre": "@Direccion",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 500,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 6,
+        "Nombre": "@Provincia",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 200,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 7,
+        "Nombre": "@Canton",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 200,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 8,
+        "Nombre": "@Distrito",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 200,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 9,
+        "Nombre": "@FuenteExterna",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 200,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 10,
+        "Nombre": "@IdExterno",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 200,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 11,
+        "Nombre": "@TipoIdentificacion",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 60,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 12,
+        "Nombre": "@IdentificacionFiscal",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 100,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 13,
+        "Nombre": "@PaisIdentificacion",
+        "Tipo": "char",
+        "LongitudBytes": 2,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 14,
+        "Nombre": "@EsProveedorAutorizado",
+        "Tipo": "bit",
+        "LongitudBytes": 1,
+        "Precision": 1,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 15,
+        "Nombre": "@FechaUltimaSincronizacion",
+        "Tipo": "datetime2",
+        "LongitudBytes": 8,
+        "Precision": 27,
+        "Escala": 7,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_Proveedor_Insertar\n @Nombre nvarchar(150),@Contacto nvarchar(150)=NULL,@Telefono nvarchar(50)=NULL,@Correo nvarchar(150)=NULL,@Direccion nvarchar(250)=NULL,@Provincia nvarchar(100)=NULL,@Canton nvarchar(100)=NULL,@Distrito nvarchar(100)=NULL,@FuenteExterna nvarchar(100)=NULL,@IdExterno nvarchar(100)=NULL,@TipoIdentificacion nvarchar(30)=NULL,@IdentificacionFiscal nvarchar(50)=NULL,@PaisIdentificacion char(2)=NULL,@EsProveedorAutorizado bit=0,@FechaUltimaSincronizacion datetime2(7)=NULL\nAS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION OperacionCatalogo;\n BEGIN TRY\nIF NULLIF(LTRIM(RTRIM(@Nombre)),N'') IS NULL THROW 52000,N'Nombre es obligatorio.',1;\nSET @Contacto=NULLIF(LTRIM(RTRIM(@Contacto)),N'');\nSET @Telefono=NULLIF(LTRIM(RTRIM(@Telefono)),N'');\nSET @Correo=NULLIF(LTRIM(RTRIM(@Correo)),N'');\nSET @Direccion=NULLIF(LTRIM(RTRIM(@Direccion)),N'');\nSET @Provincia=NULLIF(LTRIM(RTRIM(@Provincia)),N'');\nSET @Canton=NULLIF(LTRIM(RTRIM(@Canton)),N'');\nSET @Distrito=NULLIF(LTRIM(RTRIM(@Distrito)),N'');\nSET @FuenteExterna=NULLIF(LTRIM(RTRIM(@FuenteExterna)),N'');\nSET @IdExterno=NULLIF(LTRIM(RTRIM(@IdExterno)),N'');\nSET @TipoIdentificacion=NULLIF(LTRIM(RTRIM(@TipoIdentificacion)),N'');\nSET @IdentificacionFiscal=NULLIF(LTRIM(RTRIM(@IdentificacionFiscal)),N'');\nIF @EsProveedorAutorizado IS NULL THROW 52000,N'EsProveedorAutorizado es obligatorio.',1;\nINSERT dbo.Proveedores(Nombre,Contacto,Telefono,Correo,Direccion,Provincia,Canton,Distrito,FuenteExterna,IdExterno,TipoIdentificacion,IdentificacionFiscal,PaisIdentificacion,EsProveedorAutorizado,FechaUltimaSincronizacion)VALUES(@Nombre,@Contacto,@Telefono,@Correo,@Direccion,@Provincia,@Canton,@Distrito,@FuenteExterna,@IdExterno,@TipoIdentificacion,@IdentificacionFiscal,@PaisIdentificacion,@EsProveedorAutorizado,@FechaUltimaSincronizacion); SELECT CONVERT(int,SCOPE_IDENTITY()) AS IdProveedor;\n  IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK;\n  ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION OperacionCatalogo;\n  THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_Proveedor_Listar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@SoloActivos",
+        "Tipo": "bit",
+        "LongitudBytes": 1,
+        "Precision": 1,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@Buscar",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 300,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_Proveedor_Listar\n @SoloActivos bit=0,@Buscar nvarchar(150)=NULL\nAS\nBEGIN\n SET NOCOUNT ON;\nSELECT * FROM dbo.Proveedores WHERE (@SoloActivos=0 OR Activo=1) AND (@Buscar IS NULL OR Nombre LIKE N'%'+@Buscar+N'%') ORDER BY Nombre,IdProveedor;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_Proveedor_ObtenerPorId",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProveedor",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_Proveedor_ObtenerPorId\n @IdProveedor int\nAS\nBEGIN\n SET NOCOUNT ON;\nIF NOT EXISTS(SELECT 1 FROM dbo.Proveedores WHERE IdProveedor=@IdProveedor) THROW 52004,N'Proveedor no existe.',1; SELECT * FROM dbo.Proveedores WHERE IdProveedor=@IdProveedor;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_UnidadesMedida_ListarParaDropdown",
+    "Parametros": [],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_UnidadesMedida_ListarParaDropdown\n\nAS\nBEGIN\n SET NOCOUNT ON;\nSELECT IdUnidadMedida,Codigo,Nombre,TipoBase,FactorConversion,EsUnidadBase FROM dbo.UnidadesMedida WHERE Activo=1 ORDER BY TipoBase,Codigo;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_UnidadMedida_Actualizar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdUnidadMedida",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@Codigo",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 40,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@Nombre",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 100,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@TipoBase",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 40,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 5,
+        "Nombre": "@FactorConversion",
+        "Tipo": "decimal",
+        "LongitudBytes": 9,
+        "Precision": 18,
+        "Escala": 6,
+        "EsSalida": false
+      },
+      {
+        "Orden": 6,
+        "Nombre": "@EsUnidadBase",
+        "Tipo": "bit",
+        "LongitudBytes": 1,
+        "Precision": 1,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_UnidadMedida_Actualizar\n @IdUnidadMedida int,@Codigo nvarchar(20),@Nombre nvarchar(50),@TipoBase nvarchar(20),@FactorConversion decimal(18,6),@EsUnidadBase bit\nAS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION OperacionCatalogo;\n BEGIN TRY\nIF NULLIF(LTRIM(RTRIM(@Codigo)),N'') IS NULL THROW 52000,N'Codigo es obligatorio.',1; IF NULLIF(LTRIM(RTRIM(@Nombre)),N'') IS NULL THROW 52000,N'Nombre es obligatorio.',1;\n SET @Codigo=UPPER(LTRIM(RTRIM(@Codigo))); SET @Nombre=LTRIM(RTRIM(@Nombre)); SET @TipoBase=UPPER(LTRIM(RTRIM(@TipoBase)));\n IF @TipoBase IS NULL OR @TipoBase NOT IN('PESO','VOLUMEN','UNIDAD') THROW 52000,N'Dimension de unidad invalida.',1;\n IF @FactorConversion IS NULL OR @FactorConversion<=0 OR @EsUnidadBase IS NULL THROW 52000,N'Factor o indicador de unidad base invalidos.',1;\n IF @EsUnidadBase=1 AND @FactorConversion<>1 THROW 52000,N'La unidad base debe tener factor 1.',1;\nIF NOT EXISTS(SELECT 1 FROM dbo.UnidadesMedida WITH(UPDLOCK,HOLDLOCK) WHERE IdUnidadMedida=@IdUnidadMedida) THROW 52004,N'Unidad no existe.',1; UPDATE dbo.UnidadesMedida SET Codigo=@Codigo,Nombre=@Nombre,TipoBase=@TipoBase,FactorConversion=@FactorConversion,EsUnidadBase=@EsUnidadBase WHERE IdUnidadMedida=@IdUnidadMedida; SELECT @IdUnidadMedida AS IdUnidadMedida;\n  IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK;\n  ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION OperacionCatalogo;\n  THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_UnidadMedida_Desactivar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdUnidadMedida",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_UnidadMedida_Desactivar\n @IdUnidadMedida int\nAS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION OperacionCatalogo;\n BEGIN TRY\nIF NOT EXISTS(SELECT 1 FROM dbo.UnidadesMedida WITH(UPDLOCK,HOLDLOCK) WHERE IdUnidadMedida=@IdUnidadMedida) THROW 52004,N'Unidad no existe.',1;\n IF EXISTS(SELECT 1 FROM dbo.UnidadesMedida WHERE IdUnidadMedida=@IdUnidadMedida AND EsUnidadBase=1) THROW 52010,N'No se desactiva una unidad base.',1;\n IF EXISTS(SELECT 1 FROM dbo.PresentacionesProducto WHERE IdUnidadMedida=@IdUnidadMedida AND Activo=1) THROW 52010,N'Hay presentaciones activas que utilizan la unidad.',1;\n UPDATE dbo.UnidadesMedida SET Activo=0 WHERE IdUnidadMedida=@IdUnidadMedida; SELECT 1 AS FilasAfectadas;\n  IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK;\n  ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION OperacionCatalogo;\n  THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_UnidadMedida_Insertar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@Codigo",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 40,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@Nombre",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 100,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@TipoBase",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 40,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@FactorConversion",
+        "Tipo": "decimal",
+        "LongitudBytes": 9,
+        "Precision": 18,
+        "Escala": 6,
+        "EsSalida": false
+      },
+      {
+        "Orden": 5,
+        "Nombre": "@EsUnidadBase",
+        "Tipo": "bit",
+        "LongitudBytes": 1,
+        "Precision": 1,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_UnidadMedida_Insertar\n @Codigo nvarchar(20),@Nombre nvarchar(50),@TipoBase nvarchar(20),@FactorConversion decimal(18,6),@EsUnidadBase bit\nAS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION OperacionCatalogo;\n BEGIN TRY\nIF NULLIF(LTRIM(RTRIM(@Codigo)),N'') IS NULL THROW 52000,N'Codigo es obligatorio.',1; IF NULLIF(LTRIM(RTRIM(@Nombre)),N'') IS NULL THROW 52000,N'Nombre es obligatorio.',1;\n SET @Codigo=UPPER(LTRIM(RTRIM(@Codigo))); SET @Nombre=LTRIM(RTRIM(@Nombre)); SET @TipoBase=UPPER(LTRIM(RTRIM(@TipoBase)));\n IF @TipoBase IS NULL OR @TipoBase NOT IN('PESO','VOLUMEN','UNIDAD') THROW 52000,N'Dimension de unidad invalida.',1;\n IF @FactorConversion IS NULL OR @FactorConversion<=0 OR @EsUnidadBase IS NULL THROW 52000,N'Factor o indicador de unidad base invalidos.',1;\n IF @EsUnidadBase=1 AND @FactorConversion<>1 THROW 52000,N'La unidad base debe tener factor 1.',1;\nINSERT dbo.UnidadesMedida(Codigo,Nombre,TipoBase,FactorConversion,EsUnidadBase)VALUES(@Codigo,@Nombre,@TipoBase,@FactorConversion,@EsUnidadBase); SELECT CONVERT(int,SCOPE_IDENTITY()) AS IdUnidadMedida;\n  IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK;\n  ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION OperacionCatalogo;\n  THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_UnidadMedida_Listar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@SoloActivos",
+        "Tipo": "bit",
+        "LongitudBytes": 1,
+        "Precision": 1,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_UnidadMedida_Listar\n @SoloActivos bit=0\nAS\nBEGIN\n SET NOCOUNT ON;\nSELECT * FROM dbo.UnidadesMedida WHERE @SoloActivos=0 OR Activo=1 ORDER BY TipoBase,Codigo;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "SP_UnidadMedida_ObtenerPorId",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdUnidadMedida",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.SP_UnidadMedida_ObtenerPorId\n @IdUnidadMedida int\nAS\nBEGIN\n SET NOCOUNT ON;\nIF NOT EXISTS(SELECT 1 FROM dbo.UnidadesMedida WHERE IdUnidadMedida=@IdUnidadMedida) THROW 52004,N'Unidad no existe.',1; SELECT * FROM dbo.UnidadesMedida WHERE IdUnidadMedida=@IdUnidadMedida;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Cotizaciones_CompararSolicitud",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdSolicitudCotizacion",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@Moneda",
+        "Tipo": "varchar",
+        "LongitudBytes": 10,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@BaseTotalLinea",
+        "Tipo": "varchar",
+        "LongitudBytes": 30,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@FechaReferencia",
+        "Tipo": "date",
+        "LongitudBytes": 3,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 5,
+        "Nombre": "@IncluirAlternativas",
+        "Tipo": "bit",
+        "LongitudBytes": 1,
+        "Precision": 1,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 6,
+        "Nombre": "@IdSolicitudCotizacionDetalle",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 7,
+        "Nombre": "@TipoBase",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 40,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Cotizaciones_CompararSolicitud\n @IdSolicitudCotizacion bigint,@Moneda varchar(10),@BaseTotalLinea varchar(30),@FechaReferencia date,\n @IncluirAlternativas bit=1,@IdSolicitudCotizacionDetalle bigint=NULL,@TipoBase nvarchar(20)=NULL\nAS\nBEGIN\n SET NOCOUNT ON;\n IF NOT EXISTS(SELECT 1 FROM dbo.SolicitudesCotizacion WHERE IdSolicitudCotizacion=@IdSolicitudCotizacion) THROW 52004,N'Solicitud no existe.',1;\n IF @Moneda IS NULL OR LEN(@Moneda)<>3 OR @Moneda COLLATE Latin1_General_100_BIN2 LIKE '%[^A-Z]%'\n OR @BaseTotalLinea IS NULL OR @BaseTotalLinea NOT IN('Bruto','NetoSinImpuestos','ConImpuestos') OR @FechaReferencia IS NULL\n OR @IncluirAlternativas IS NULL THROW 52000,N'Indique moneda, base de importe y fecha de referencia de comparacion.',1;\n IF @TipoBase IS NOT NULL AND @TipoBase NOT IN('PESO','VOLUMEN','UNIDAD') THROW 52000,N'Dimension invalida.',1;\n IF @IdSolicitudCotizacionDetalle IS NOT NULL AND NOT EXISTS(SELECT 1 FROM dbo.SolicitudesCotizacionDetalle\n WHERE IdSolicitudCotizacionDetalle=@IdSolicitudCotizacionDetalle AND IdSolicitudCotizacion=@IdSolicitudCotizacion)\n THROW 52000,N'La linea no pertenece a la solicitud.',1;\n ;WITH Ultimas AS(\n  SELECT p.*,ROW_NUMBER() OVER(PARTITION BY IdSolicitudCotizacionProveedor ORDER BY VersionRespuesta DESC) AS rn\n  FROM dbo.ProformasProveedor p WHERE p.IdSolicitudCotizacion=@IdSolicitudCotizacion AND p.Estado='Validada'\n ),Datos AS(\n SELECT s.IdSolicitudCotizacionDetalle,s.NumeroLinea,s.NombreProductoOriginal AS ProductoSolicitado,s.MarcaOriginal AS MarcaSolicitada,\n s.PresentacionOriginal AS PresentacionSolicitada,s.TipoBaseOriginal AS TipoBaseSolicitado,s.CantidadEmpaquesSolicitada,\n CONVERT(decimal(28,6),s.CantidadEmpaquesSolicitada*s.ContenidoNormalizadoOriginal) AS ContenidoTotalSolicitado,\n sp.IdSolicitudCotizacionProveedor,sp.IdProveedor,pr.Nombre AS NombreProveedorActual,sp.Estado AS EstadoDestinatario,\n p.IdProformaProveedor,p.NumeroProforma,p.VersionRespuesta,p.FechaProforma,p.FechaVencimiento,p.Moneda,\n p.EstadoConciliacion,p.JustificacionConciliacion,p.Descuento AS DescuentoGlobalDocumento,p.IVA AS IVADocumento,\n p.OtrosCargos AS OtrosCargosDocumento,p.Total AS TotalDocumento,p.CondicionesPago,p.CondicionesEntrega,p.DatosProveedorOriginalJson,\n d.IdProformaProveedorDetalle,d.TipoOferta,d.EstadoOferta,d.NombreProductoOriginal AS ProductoOfrecido,d.MarcaOriginal AS MarcaOfrecida,\n d.PresentacionOriginal AS PresentacionOfrecida,d.Cantidad AS CantidadEmpaquesOfrecida,d.ContenidoNormalizadoOriginal,\n d.TipoBaseOriginal AS TipoBaseOfrecido,d.PrecioUnitario,d.TotalLinea,d.BaseTotalLinea,d.MotivoAlternativa,\n CONVERT(decimal(28,6),d.Cantidad*d.ContenidoNormalizadoOriginal) AS ContenidoTotalOfrecido,\n CASE WHEN p.IdProformaProveedor IS NULL THEN 'SinRespuestaValidada'\n WHEN d.IdProformaProveedorDetalle IS NULL THEN 'LineaSinCotizar'\n WHEN d.EstadoOferta<>'Cotizada' THEN d.EstadoOferta\n WHEN p.Moneda<>@Moneda THEN 'MonedaDistinta'\n WHEN d.BaseTotalLinea<>@BaseTotalLinea THEN 'BasePrecioDistinta'\n WHEN d.TipoBaseOriginal<>s.TipoBaseOriginal THEN 'DimensionDistinta'\n WHEN d.TipoOferta='Alternativa' AND @IncluirAlternativas=0 THEN 'AlternativaNoIncluida'\n WHEN d.IdProducto<>s.IdProducto AND NOT(po.IdProductoBase=ps.IdProductoBase AND b.ComparabilidadRevisada=1) THEN 'EquivalenciaNoRevisada'\n ELSE 'Comparable' END AS CondicionComparacion\n FROM dbo.SolicitudesCotizacionDetalle s JOIN dbo.SolicitudesCotizacionProveedor sp ON sp.IdSolicitudCotizacion=s.IdSolicitudCotizacion\n JOIN dbo.Proveedores pr ON pr.IdProveedor=sp.IdProveedor JOIN dbo.Productos ps ON ps.IdProducto=s.IdProducto\n LEFT JOIN Ultimas p ON p.IdSolicitudCotizacionProveedor=sp.IdSolicitudCotizacionProveedor AND p.rn=1\n LEFT JOIN dbo.ProformasProveedorDetalle d ON d.IdProformaProveedor=p.IdProformaProveedor AND d.IdSolicitudCotizacionDetalle=s.IdSolicitudCotizacionDetalle\n LEFT JOIN dbo.Productos po ON po.IdProducto=d.IdProducto LEFT JOIN dbo.ProductosBase b ON b.IdProductoBase=po.IdProductoBase\n WHERE s.IdSolicitudCotizacion=@IdSolicitudCotizacion AND (@IdSolicitudCotizacionDetalle IS NULL OR s.IdSolicitudCotizacionDetalle=@IdSolicitudCotizacionDetalle)\n AND (@TipoBase IS NULL OR s.TipoBaseOriginal=@TipoBase)\n ),Precios AS(\n SELECT *,CONVERT(bit,CASE WHEN CondicionComparacion='Comparable' THEN 1 ELSE 0 END) AS EsComparable,\n CASE WHEN CondicionComparacion='Comparable' THEN TRY_CONVERT(decimal(28,8),TotalLinea/NULLIF(ContenidoTotalOfrecido,0)) END AS PrecioPorUnidadBase,\n CONVERT(bit,CASE WHEN ContenidoTotalOfrecido>=ContenidoTotalSolicitado THEN 1 ELSE 0 END) AS CubreCantidadSolicitada,\n CONVERT(bit,CASE WHEN FechaVencimiento IS NULL THEN NULL WHEN FechaVencimiento>=@FechaReferencia THEN 1 ELSE 0 END) AS Vigente\n FROM Datos\n ),Minimos AS(\n SELECT *,MIN(PrecioPorUnidadBase) OVER(PARTITION BY IdSolicitudCotizacionDetalle) AS MenorPrecioPorUnidadBase,\n MIN(CASE WHEN CubreCantidadSolicitada=1 AND Vigente=1 THEN PrecioPorUnidadBase END) OVER(PARTITION BY IdSolicitudCotizacionDetalle) AS MenorPrecioConCoberturaYVigencia\n FROM Precios\n )\n SELECT *,CONVERT(bit,CASE WHEN EsComparable=1 AND PrecioPorUnidadBase=MenorPrecioPorUnidadBase THEN 1 ELSE 0 END) AS EsMenorPrecioUnitario,\n CONVERT(bit,CASE WHEN EsComparable=1 AND CubreCantidadSolicitada=1 AND Vigente=1 AND PrecioPorUnidadBase=MenorPrecioConCoberturaYVigencia THEN 1 ELSE 0 END) AS EsMenorPrecioConCoberturaYVigencia\n FROM Minimos ORDER BY NumeroLinea,CASE WHEN PrecioPorUnidadBase IS NULL THEN 1 ELSE 0 END,PrecioPorUnidadBase,IdProveedor,IdProformaProveedorDetalle;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Documento_ObtenerPorId",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdDocumento",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Documento_ObtenerPorId @IdDocumento bigint AS\nBEGIN\n SET NOCOUNT ON;\n IF NOT EXISTS(SELECT 1 FROM dbo.Documentos WHERE IdDocumento=@IdDocumento) THROW 52004,N'Documento no existe.',1;\n SELECT * FROM dbo.Documentos WHERE IdDocumento=@IdDocumento;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Documento_Registrar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@NombreOriginal",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 510,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@RutaAlmacenamiento",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 1600,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@Sha256",
+        "Tipo": "varbinary",
+        "LongitudBytes": -1,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@TamanoBytes",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 5,
+        "Nombre": "@Origen",
+        "Tipo": "varchar",
+        "LongitudBytes": 20,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 6,
+        "Nombre": "@VersionPlantilla",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 80,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 7,
+        "Nombre": "@IdDocumento",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": true
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Documento_Registrar\n @NombreOriginal nvarchar(255),@RutaAlmacenamiento nvarchar(800),@Sha256 varbinary(max),@TamanoBytes bigint,\n @Origen varchar(20),@VersionPlantilla nvarchar(40)=NULL,@IdDocumento bigint OUTPUT\nAS\nBEGIN\n SET NOCOUNT ON;\n IF @Sha256 IS NULL OR DATALENGTH(@Sha256)<>32 THROW 52000,N'SHA-256 debe contener exactamente 32 bytes.',1;\n IF NULLIF(LTRIM(RTRIM(@NombreOriginal)),N'') IS NULL OR NULLIF(LTRIM(RTRIM(@RutaAlmacenamiento)),N'') IS NULL\n  THROW 52000,N'Nombre y ruta del archivo son obligatorios.',1;\n IF @TamanoBytes IS NULL OR @TamanoBytes<=0 OR @Origen IS NULL OR @Origen NOT IN('Generado','Recibido')\n  THROW 52000,N'Tamano u origen de documento invalido.',1;\n INSERT dbo.Documentos(NombreOriginal,RutaAlmacenamiento,Sha256,TamanoBytes,Origen,VersionPlantilla)\n VALUES(LTRIM(RTRIM(@NombreOriginal)),LTRIM(RTRIM(@RutaAlmacenamiento)),CONVERT(binary(32),@Sha256),@TamanoBytes,@Origen,NULLIF(LTRIM(RTRIM(@VersionPlantilla)),N''));\n SET @IdDocumento=CONVERT(bigint,SCOPE_IDENTITY());\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Equivalencia_Actualizar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdEquivalencia",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@CodigoProveedor",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 200,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@DescripcionProveedor",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 600,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@IdProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 5,
+        "Nombre": "@IdPresentacionProducto",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Equivalencia_Actualizar\n @IdEquivalencia int,@CodigoProveedor nvarchar(100)=NULL,@DescripcionProveedor nvarchar(300),@IdProducto int,@IdPresentacionProducto int=NULL\nAS\nBEGIN\n SET NOCOUNT ON;\n IF NOT EXISTS(SELECT 1 FROM dbo.CompraAutomaticaEquivalencias WHERE IdEquivalencia=@IdEquivalencia) THROW 52004,N'Equivalencia no existe.',1;\n IF NOT EXISTS(SELECT 1 FROM dbo.Productos WHERE IdProducto=@IdProducto AND Activo=1) THROW 52000,N'Producto inexistente o inactivo.',1;\n IF @IdPresentacionProducto IS NOT NULL AND NOT EXISTS(SELECT 1 FROM dbo.PresentacionesProducto WHERE IdPresentacionProducto=@IdPresentacionProducto AND IdProducto=@IdProducto AND Activo=1)\n THROW 52000,N'Presentacion incorrecta o inactiva.',1;\n UPDATE dbo.CompraAutomaticaEquivalencias SET CodigoProveedor=NULLIF(LTRIM(RTRIM(@CodigoProveedor)),N''),DescripcionProveedor=LTRIM(RTRIM(@DescripcionProveedor)),\n IdProducto=@IdProducto,IdPresentacionProducto=@IdPresentacionProducto,FechaModificacion=GETDATE() WHERE IdEquivalencia=@IdEquivalencia;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Equivalencia_CambiarActivo",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdEquivalencia",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@Activo",
+        "Tipo": "bit",
+        "LongitudBytes": 1,
+        "Precision": 1,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Equivalencia_CambiarActivo @IdEquivalencia int,@Activo bit AS\nBEGIN\n SET NOCOUNT ON;\n IF @Activo IS NULL THROW 52000,N'Activo es obligatorio.',1;\n IF NOT EXISTS(SELECT 1 FROM dbo.CompraAutomaticaEquivalencias WHERE IdEquivalencia=@IdEquivalencia) THROW 52004,N'Equivalencia no existe.',1;\n UPDATE dbo.CompraAutomaticaEquivalencias SET Activo=@Activo,FechaModificacion=GETDATE() WHERE IdEquivalencia=@IdEquivalencia;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Equivalencia_Listar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProveedor",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@SoloActivos",
+        "Tipo": "bit",
+        "LongitudBytes": 1,
+        "Precision": 1,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Equivalencia_Listar @IdProveedor int,@SoloActivos bit=1 AS\nBEGIN\n SET NOCOUNT ON;\n SELECT e.*,p.Nombre AS NombreProducto,pp.Descripcion AS NombrePresentacion FROM dbo.CompraAutomaticaEquivalencias e\n JOIN dbo.Productos p ON p.IdProducto=e.IdProducto LEFT JOIN dbo.PresentacionesProducto pp ON pp.IdPresentacionProducto=e.IdPresentacionProducto\n WHERE e.IdProveedor=@IdProveedor AND (@SoloActivos=0 OR e.Activo=1) ORDER BY e.IdEquivalencia;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Importacion_ListarPorDocumento",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdDocumento",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Importacion_ListarPorDocumento @IdDocumento bigint AS\nBEGIN\n SET NOCOUNT ON;\n SELECT * FROM dbo.ImportacionesDocumento WHERE IdDocumento=@IdDocumento ORDER BY FechaImportacion DESC,IdImportacionDocumento DESC;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Importacion_Registrar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdDocumento",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@VersionLector",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 100,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@Metodo",
+        "Tipo": "varchar",
+        "LongitudBytes": 20,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@Estado",
+        "Tipo": "varchar",
+        "LongitudBytes": 30,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 5,
+        "Nombre": "@DatosExtraidosJson",
+        "Tipo": "nvarchar",
+        "LongitudBytes": -1,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 6,
+        "Nombre": "@AdvertenciasJson",
+        "Tipo": "nvarchar",
+        "LongitudBytes": -1,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 7,
+        "Nombre": "@IdImportacionDocumento",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": true
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Importacion_Registrar\n @IdDocumento bigint,@VersionLector nvarchar(50),@Metodo varchar(20),@Estado varchar(30),\n @DatosExtraidosJson nvarchar(max)=NULL,@AdvertenciasJson nvarchar(max)=NULL,@IdImportacionDocumento bigint OUTPUT\nAS\nBEGIN\n SET NOCOUNT ON;\n IF NOT EXISTS(SELECT 1 FROM dbo.Documentos WHERE IdDocumento=@IdDocumento AND Origen='Recibido')\n THROW 52000,N'La importacion requiere un PDF recibido registrado.',1;\n IF NULLIF(LTRIM(RTRIM(@VersionLector)),N'') IS NULL THROW 52000,N'Version del lector obligatoria.',1;\n IF @DatosExtraidosJson IS NOT NULL AND ISJSON(@DatosExtraidosJson)<>1 THROW 52000,N'Datos de extraccion JSON invalidos.',1;\n IF @AdvertenciasJson IS NOT NULL AND ISJSON(@AdvertenciasJson)<>1 THROW 52000,N'Advertencias JSON invalidas.',1;\n INSERT dbo.ImportacionesDocumento(IdDocumento,VersionLector,Metodo,Estado,DatosExtraidosJson,AdvertenciasJson)\n VALUES(@IdDocumento,@VersionLector,@Metodo,@Estado,@DatosExtraidosJson,@AdvertenciasJson);\n SET @IdImportacionDocumento=CONVERT(bigint,SCOPE_IDENTITY());\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Marca_Actualizar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdMarca",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@Nombre",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 300,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Marca_Actualizar\n @IdMarca int,@Nombre nvarchar(150)\nAS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION OperacionCatalogo;\n BEGIN TRY\nIF NULLIF(LTRIM(RTRIM(@Nombre)),N'') IS NULL THROW 52000,N'Nombre es obligatorio.',1;\nIF NOT EXISTS(SELECT 1 FROM dbo.Marcas WITH(UPDLOCK,HOLDLOCK) WHERE IdMarca=@IdMarca) THROW 52004,N'Marca no existe.',1;\nUPDATE dbo.Marcas SET Nombre=LTRIM(RTRIM(@Nombre)),FechaModificacion=SYSUTCDATETIME() WHERE IdMarca=@IdMarca;\nSELECT @IdMarca AS IdMarca;\n  IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK;\n  ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION OperacionCatalogo;\n  THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Marca_CambiarActivo",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdMarca",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@Activo",
+        "Tipo": "bit",
+        "LongitudBytes": 1,
+        "Precision": 1,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Marca_CambiarActivo\n @IdMarca int,@Activo bit\nAS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION OperacionCatalogo;\n BEGIN TRY\nIF @Activo IS NULL THROW 52000,N'Activo es obligatorio.',1;\nIF NOT EXISTS(SELECT 1 FROM dbo.Marcas WITH(UPDLOCK,HOLDLOCK) WHERE IdMarca=@IdMarca) THROW 52004,N'Marca no existe.',1;\nUPDATE dbo.Marcas SET Activo=@Activo,FechaModificacion=SYSUTCDATETIME() WHERE IdMarca=@IdMarca; SELECT @IdMarca AS IdMarca;\n  IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK;\n  ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION OperacionCatalogo;\n  THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Marca_Insertar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@Nombre",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 300,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Marca_Insertar\n @Nombre nvarchar(150)\nAS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION OperacionCatalogo;\n BEGIN TRY\nIF NULLIF(LTRIM(RTRIM(@Nombre)),N'') IS NULL THROW 52000,N'Nombre es obligatorio.',1;\nINSERT dbo.Marcas(Nombre) VALUES(LTRIM(RTRIM(@Nombre)));\nSELECT CONVERT(int,SCOPE_IDENTITY()) AS IdMarca;\n  IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK;\n  ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION OperacionCatalogo;\n  THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Marca_Listar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@SoloActivos",
+        "Tipo": "bit",
+        "LongitudBytes": 1,
+        "Precision": 1,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@Buscar",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 300,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Marca_Listar\n @SoloActivos bit=0,@Buscar nvarchar(150)=NULL\nAS\nBEGIN\n SET NOCOUNT ON;\nSELECT IdMarca,Nombre,Activo,FechaCreacion,FechaModificacion FROM dbo.Marcas WHERE (@SoloActivos=0 OR Activo=1) AND (@Buscar IS NULL OR Nombre LIKE N'%'+@Buscar+N'%') ORDER BY Nombre,IdMarca;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Marca_ObtenerPorId",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdMarca",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Marca_ObtenerPorId\n @IdMarca int\nAS\nBEGIN\n SET NOCOUNT ON;\nIF NOT EXISTS(SELECT 1 FROM dbo.Marcas WHERE IdMarca=@IdMarca) THROW 52004,N'Marca no existe.',1;\nSELECT IdMarca,Nombre,Activo,FechaCreacion,FechaModificacion FROM dbo.Marcas WHERE IdMarca=@IdMarca;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Producto_BuscarCandidatos",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@Descripcion",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 1000,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@IdProductoBase",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@IdMarca",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Producto_BuscarCandidatos\n @Descripcion nvarchar(500),@IdProductoBase int=NULL,@IdMarca int=NULL\nAS\nBEGIN\n SET NOCOUNT ON;\n DECLARE @Texto nvarchar(1000)=dbo.ufn_NormalizarTextoCatalogo(@Descripcion);\n IF NULLIF(@Texto,N'') IS NULL THROW 52000,N'Descripcion vacia; requiere seleccion manual.',1;\n SELECT p.IdProducto,p.CodigoInterno,p.Nombre AS NombreProducto,p.IdProductoBase,p.IdMarca,m.Nombre AS Marca,b.FormulaDeclarada,\n CONVERT(bit,CASE WHEN dbo.ufn_NormalizarTextoCatalogo(p.Nombre)=@Texto THEN 1 ELSE 0 END) AS CoincidenciaExacta,\n COUNT(*) OVER() AS CantidadCandidatos\n FROM dbo.Productos p JOIN dbo.ProductosBase b ON b.IdProductoBase=p.IdProductoBase LEFT JOIN dbo.Marcas m ON m.IdMarca=p.IdMarca\n WHERE p.Activo=1 AND b.Activo=1 AND (p.IdMarca IS NULL OR m.Activo=1)\n AND (@IdProductoBase IS NULL OR p.IdProductoBase=@IdProductoBase) AND (@IdMarca IS NULL OR p.IdMarca=@IdMarca)\n AND (p.CodigoInterno=@Descripcion OR CHARINDEX(N' '+dbo.ufn_NormalizarTextoCatalogo(p.Nombre)+N' ',N' '+@Texto+N' ')>0)\n ORDER BY CoincidenciaExacta DESC,p.IdProducto;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_ProductoBase_Actualizar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProductoBase",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@Codigo",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 80,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@Nombre",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 300,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@FormulaDeclarada",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 200,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 5,
+        "Nombre": "@Descripcion",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 1000,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 6,
+        "Nombre": "@ComparabilidadRevisada",
+        "Tipo": "bit",
+        "LongitudBytes": 1,
+        "Precision": 1,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_ProductoBase_Actualizar\n @IdProductoBase int,@Codigo nvarchar(40),@Nombre nvarchar(150),@FormulaDeclarada nvarchar(100)=NULL,@Descripcion nvarchar(500)=NULL,@ComparabilidadRevisada bit=0\nAS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION OperacionCatalogo;\n BEGIN TRY\nIF NULLIF(LTRIM(RTRIM(@Nombre)),N'') IS NULL THROW 52000,N'Nombre es obligatorio.',1;\nIF NULLIF(LTRIM(RTRIM(@Codigo)),N'') IS NULL THROW 52000,N'Codigo es obligatorio.',1;\nIF @ComparabilidadRevisada IS NULL THROW 52000,N'Indique si la agrupacion fue revisada.',1;\nIF NOT EXISTS(SELECT 1 FROM dbo.ProductosBase WITH(UPDLOCK,HOLDLOCK) WHERE IdProductoBase=@IdProductoBase) THROW 52004,N'ProductoBase no existe.',1;\nUPDATE dbo.ProductosBase SET Codigo=LTRIM(RTRIM(@Codigo)),Nombre=LTRIM(RTRIM(@Nombre)),FormulaDeclarada=NULLIF(LTRIM(RTRIM(@FormulaDeclarada)),N''),Descripcion=NULLIF(LTRIM(RTRIM(@Descripcion)),N''),ComparabilidadRevisada=@ComparabilidadRevisada,FechaModificacion=SYSUTCDATETIME() WHERE IdProductoBase=@IdProductoBase;\nSELECT @IdProductoBase AS IdProductoBase;\n  IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK;\n  ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION OperacionCatalogo;\n  THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_ProductoBase_CambiarActivo",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProductoBase",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@Activo",
+        "Tipo": "bit",
+        "LongitudBytes": 1,
+        "Precision": 1,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_ProductoBase_CambiarActivo\n @IdProductoBase int,@Activo bit\nAS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION OperacionCatalogo;\n BEGIN TRY\nIF @Activo IS NULL THROW 52000,N'Activo es obligatorio.',1;\nIF NOT EXISTS(SELECT 1 FROM dbo.ProductosBase WITH(UPDLOCK,HOLDLOCK) WHERE IdProductoBase=@IdProductoBase) THROW 52004,N'ProductoBase no existe.',1;\nUPDATE dbo.ProductosBase SET Activo=@Activo,FechaModificacion=SYSUTCDATETIME() WHERE IdProductoBase=@IdProductoBase; SELECT @IdProductoBase AS IdProductoBase;\n  IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK;\n  ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION OperacionCatalogo;\n  THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_ProductoBase_Insertar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@Codigo",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 80,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@Nombre",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 300,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@FormulaDeclarada",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 200,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@Descripcion",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 1000,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 5,
+        "Nombre": "@ComparabilidadRevisada",
+        "Tipo": "bit",
+        "LongitudBytes": 1,
+        "Precision": 1,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_ProductoBase_Insertar\n @Codigo nvarchar(40),@Nombre nvarchar(150),@FormulaDeclarada nvarchar(100)=NULL,@Descripcion nvarchar(500)=NULL,@ComparabilidadRevisada bit=0\nAS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION OperacionCatalogo;\n BEGIN TRY\nIF NULLIF(LTRIM(RTRIM(@Nombre)),N'') IS NULL THROW 52000,N'Nombre es obligatorio.',1;\nIF NULLIF(LTRIM(RTRIM(@Codigo)),N'') IS NULL THROW 52000,N'Codigo es obligatorio.',1;\nIF @ComparabilidadRevisada IS NULL THROW 52000,N'Indique si la agrupacion fue revisada.',1;\nINSERT dbo.ProductosBase(Codigo,Nombre,FormulaDeclarada,Descripcion,ComparabilidadRevisada) VALUES(LTRIM(RTRIM(@Codigo)),LTRIM(RTRIM(@Nombre)),NULLIF(LTRIM(RTRIM(@FormulaDeclarada)),N''),NULLIF(LTRIM(RTRIM(@Descripcion)),N''),@ComparabilidadRevisada);\nSELECT CONVERT(int,SCOPE_IDENTITY()) AS IdProductoBase;\n  IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK;\n  ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION OperacionCatalogo;\n  THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_ProductoBase_Listar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@SoloActivos",
+        "Tipo": "bit",
+        "LongitudBytes": 1,
+        "Precision": 1,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@Buscar",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 300,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_ProductoBase_Listar\n @SoloActivos bit=0,@Buscar nvarchar(150)=NULL\nAS\nBEGIN\n SET NOCOUNT ON;\nSELECT IdProductoBase,Codigo,Nombre,FormulaDeclarada,Descripcion,ComparabilidadRevisada,Activo,FechaCreacion,FechaModificacion FROM dbo.ProductosBase WHERE (@SoloActivos=0 OR Activo=1) AND (@Buscar IS NULL OR Nombre LIKE N'%'+@Buscar+N'%') ORDER BY Nombre,IdProductoBase;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_ProductoBase_ObtenerPorId",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProductoBase",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_ProductoBase_ObtenerPorId\n @IdProductoBase int\nAS\nBEGIN\n SET NOCOUNT ON;\nIF NOT EXISTS(SELECT 1 FROM dbo.ProductosBase WHERE IdProductoBase=@IdProductoBase) THROW 52004,N'ProductoBase no existe.',1;\nSELECT IdProductoBase,Codigo,Nombre,FormulaDeclarada,Descripcion,ComparabilidadRevisada,Activo,FechaCreacion,FechaModificacion FROM dbo.ProductosBase WHERE IdProductoBase=@IdProductoBase;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Proforma_ActualizarCabecera",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProformaProveedor",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@CabeceraJson",
+        "Tipo": "nvarchar",
+        "LongitudBytes": -1,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@Motivo",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 2000,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Proforma_ActualizarCabecera\n @IdProformaProveedor int,@CabeceraJson nvarchar(max),@Motivo nvarchar(1000)\nAS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON; DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION OperacionCotizacion;\n BEGIN TRY\n DECLARE @MotivoPrevio sql_variant=SESSION_CONTEXT(N'MotivoCambio');\n EXEC sys.sp_set_session_context @key=N'MotivoCambio',@value=@Motivo;\n BEGIN TRY\n\n IF ISNULL(ISJSON(@CabeceraJson,OBJECT),0)<>1 THROW 52000,N'Cabecera debe ser un objeto JSON.',1;\n EXEC dbo.usp_Proforma_ComprobarJson @CabeceraJson,NULL;\n IF NULLIF(LTRIM(RTRIM(@Motivo)),N'') IS NULL THROW 52000,N'El motivo del ajuste es obligatorio.',1;\n IF JSON_VALUE(@CabeceraJson,'$.moneda') IS NOT NULL AND\n (LEN(JSON_VALUE(@CabeceraJson,'$.moneda'))<>3 OR JSON_VALUE(@CabeceraJson,'$.moneda') COLLATE Latin1_General_100_BIN2 LIKE '%[^A-Z]%') THROW 52000,N'Moneda invalida.',1;\n IF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WITH(UPDLOCK,HOLDLOCK) WHERE IdProformaProveedor=@IdProformaProveedor AND Estado IN('Borrador','EnRevision')) THROW 52010,N'La respuesta no existe o esta finalizada.',1;\n UPDATE p SET NumeroProforma=j.NumeroProforma,FechaProforma=j.FechaProforma,FechaVencimiento=j.FechaVencimiento,DiasCredito=j.DiasCredito,TipoDocumento=j.TipoDocumento,Moneda=j.Moneda,NombreProveedorPdf=j.NombreProveedorPdf,NombreNegocio=j.NombreNegocio,RazonSocial=j.RazonSocial,Cedula=j.Cedula,Telefono=j.Telefono,Vendedor=j.Vendedor,Subtotal=j.Subtotal,Descuento=j.Descuento,IVA=j.IVA,Total=j.Total,OtrosCargos=j.OtrosCargos,DatosProveedorOriginalJson=j.DatosProveedorOriginalJson,DatosClienteOriginalJson=j.DatosClienteOriginalJson,CondicionesPago=j.CondicionesPago,CondicionesEntrega=j.CondicionesEntrega,Observaciones=j.Observaciones,EstadoConciliacion='Pendiente',JustificacionConciliacion=NULL,FechaModificacion=SYSUTCDATETIME()\n FROM dbo.ProformasProveedor p CROSS APPLY OPENJSON(@CabeceraJson) WITH(NumeroProforma nvarchar(50) '$.numeroProforma' ,FechaProforma date '$.fechaProforma' ,FechaVencimiento date '$.fechaVencimiento' ,DiasCredito int '$.diasCredito' ,TipoDocumento nvarchar(50) '$.tipoDocumento' ,Moneda char(3) '$.moneda' ,NombreProveedorPdf nvarchar(200) '$.nombreProveedorPdf' ,NombreNegocio nvarchar(250) '$.nombreNegocio' ,RazonSocial nvarchar(250) '$.razonSocial' ,Cedula nvarchar(50) '$.cedula' ,Telefono nvarchar(50) '$.telefono' ,Vendedor nvarchar(150) '$.vendedor' ,Subtotal decimal(18,4) '$.subtotal' ,Descuento decimal(18,4) '$.descuento' ,IVA decimal(18,4) '$.iva' ,Total decimal(18,4) '$.total' ,OtrosCargos decimal(18,4) '$.otrosCargos' ,DatosProveedorOriginalJson nvarchar(max) '$.datosProveedorOriginal' AS JSON,DatosClienteOriginalJson nvarchar(max) '$.datosClienteOriginal' AS JSON,CondicionesPago nvarchar(1000) '$.condicionesPago' ,CondicionesEntrega nvarchar(1000) '$.condicionesEntrega' ,Observaciones nvarchar(2000) '$.observaciones' )j\n WHERE p.IdProformaProveedor=@IdProformaProveedor;\n\n EXEC sys.sp_set_session_context @key=N'MotivoCambio',@value=@MotivoPrevio;\n END TRY BEGIN CATCH\n EXEC sys.sp_set_session_context @key=N'MotivoCambio',@value=@MotivoPrevio; THROW;\n END CATCH;\n IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK; ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION OperacionCotizacion;\n THROW; END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Proforma_ActualizarLinea",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProformaProveedorDetalle",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@LineaJson",
+        "Tipo": "nvarchar",
+        "LongitudBytes": -1,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@Motivo",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 2000,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Proforma_ActualizarLinea\n @IdProformaProveedorDetalle int,@LineaJson nvarchar(max),@Motivo nvarchar(1000)\nAS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON; DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION OperacionCotizacion;\n BEGIN TRY\n DECLARE @MotivoPrevio sql_variant=SESSION_CONTEXT(N'MotivoCambio');\n EXEC sys.sp_set_session_context @key=N'MotivoCambio',@value=@Motivo;\n BEGIN TRY\n\n IF ISNULL(ISJSON(@LineaJson,OBJECT),0)<>1 THROW 52000,N'Linea debe ser un objeto JSON.',1;\n DECLARE @ArrayLinea nvarchar(max)=N'['+@LineaJson+N']'; EXEC dbo.usp_Proforma_ComprobarJson NULL,@ArrayLinea;\n IF NULLIF(LTRIM(RTRIM(@Motivo)),N'') IS NULL THROW 52000,N'El motivo del ajuste es obligatorio.',1;\n DECLARE @IdProformaProveedor int=(SELECT IdProformaProveedor FROM dbo.ProformasProveedorDetalle WHERE IdProformaProveedorDetalle=@IdProformaProveedorDetalle);\n IF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WITH(UPDLOCK,HOLDLOCK) WHERE IdProformaProveedor=@IdProformaProveedor AND Estado IN('Borrador','EnRevision')) THROW 52010,N'La respuesta no existe o esta finalizada.',1;\n UPDATE d SET IdSolicitudCotizacionDetalle=j.IdSolicitudCotizacionDetalle,NumeroLineaDocumento=j.NumeroLineaDocumento,CodigoProveedor=j.CodigoProveedor,DescripcionProveedor=j.DescripcionProveedor,IdProducto=j.IdProducto,IdPresentacionProducto=j.IdPresentacionProducto,Cantidad=j.Cantidad,PrecioUnitario=j.PrecioUnitario,DescuentoPorcentaje=j.DescuentoPorcentaje,TotalLinea=j.TotalLinea,TipoOferta=COALESCE(j.TipoOferta,'Solicitada'),EstadoOferta=COALESCE(j.EstadoOferta,'Cotizada'),NombreProductoOriginal=j.NombreProductoOriginal,MarcaOriginal=j.MarcaOriginal,PresentacionOriginal=j.PresentacionOriginal,ContenidoEmpaqueOriginal=j.ContenidoEmpaqueOriginal,IdUnidadMedidaOriginal=j.IdUnidadMedidaOriginal,CodigoUnidadOriginal=j.CodigoUnidadOriginal,TipoBaseOriginal=j.TipoBaseOriginal,FactorConversionOriginal=j.FactorConversionOriginal,ContenidoNormalizadoOriginal=j.ContenidoNormalizadoOriginal,DescuentoMonto=j.DescuentoMonto,ImpuestoMonto=j.ImpuestoMonto,BaseTotalLinea=COALESCE(j.BaseTotalLinea,'SinDefinir'),MotivoAlternativa=j.MotivoAlternativa,ObservacionValidacion=j.ObservacionValidacion,EstadoRevision='Pendiente',ProductoEncontrado=0,PresentacionEncontrada=0,SePuedeRegistrar=0,FechaModificacion=SYSUTCDATETIME()\n FROM dbo.ProformasProveedorDetalle d CROSS APPLY OPENJSON(@LineaJson) WITH(IdSolicitudCotizacionDetalle bigint '$.idSolicitudDetalle',\nNumeroLineaDocumento int '$.numeroLinea',\nCodigoProveedor nvarchar(100) '$.codigo',\nDescripcionProveedor nvarchar(500) '$.descripcion',\nIdProducto int '$.idProducto',\nIdPresentacionProducto int '$.idPresentacionProducto',\nCantidad decimal(18,4) '$.cantidadEmpaques',\nPrecioUnitario decimal(18,6) '$.precioUnitario',\nDescuentoPorcentaje decimal(5,2) '$.descuentoPorcentaje',\nTotalLinea decimal(18,4) '$.totalLinea',\nTipoOferta varchar(20) '$.tipoOferta',\nEstadoOferta varchar(20) '$.estadoOferta',\nNombreProductoOriginal nvarchar(150) '$.nombreProductoOriginal',\nMarcaOriginal nvarchar(150) '$.marcaOriginal',\nPresentacionOriginal nvarchar(150) '$.presentacionOriginal',\nContenidoEmpaqueOriginal decimal(18,6) '$.contenidoEmpaqueOriginal',\nIdUnidadMedidaOriginal int '$.idUnidadMedidaOriginal',\nCodigoUnidadOriginal nvarchar(20) '$.codigoUnidadOriginal',\nTipoBaseOriginal nvarchar(20) '$.tipoBaseOriginal',\nFactorConversionOriginal decimal(18,6) '$.factorConversionOriginal',\nContenidoNormalizadoOriginal decimal(18,6) '$.contenidoNormalizadoOriginal',\nDescuentoMonto decimal(18,4) '$.descuentoMonto',\nImpuestoMonto decimal(18,4) '$.impuestoMonto',\nBaseTotalLinea varchar(30) '$.baseTotalLinea',\nMotivoAlternativa nvarchar(1000) '$.motivoAlternativa',\nObservacionValidacion nvarchar(1000) '$.observacion')j\n WHERE d.IdProformaProveedorDetalle=@IdProformaProveedorDetalle;\n UPDATE dbo.ProformasProveedor SET EstadoConciliacion='Pendiente',JustificacionConciliacion=NULL,FechaModificacion=SYSUTCDATETIME() WHERE IdProformaProveedor=@IdProformaProveedor;\n\n EXEC sys.sp_set_session_context @key=N'MotivoCambio',@value=@MotivoPrevio;\n END TRY BEGIN CATCH\n EXEC sys.sp_set_session_context @key=N'MotivoCambio',@value=@MotivoPrevio; THROW;\n END CATCH;\n IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK; ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION OperacionCotizacion;\n THROW; END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Proforma_AgregarLinea",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProformaProveedor",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@LineaJson",
+        "Tipo": "nvarchar",
+        "LongitudBytes": -1,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@Motivo",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 2000,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@IdProformaProveedorDetalle",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": true
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Proforma_AgregarLinea\n @IdProformaProveedor int,@LineaJson nvarchar(max),@Motivo nvarchar(1000),@IdProformaProveedorDetalle int OUTPUT\nAS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON; DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION OperacionCotizacion;\n BEGIN TRY\n DECLARE @MotivoPrevio sql_variant=SESSION_CONTEXT(N'MotivoCambio');\n EXEC sys.sp_set_session_context @key=N'MotivoCambio',@value=@Motivo;\n BEGIN TRY\n\n IF ISNULL(ISJSON(@LineaJson,OBJECT),0)<>1 THROW 52000,N'Linea debe ser un objeto JSON.',1;\n DECLARE @ArrayLinea nvarchar(max)=N'['+@LineaJson+N']'; EXEC dbo.usp_Proforma_ComprobarJson NULL,@ArrayLinea;\n IF NULLIF(LTRIM(RTRIM(@Motivo)),N'') IS NULL THROW 52000,N'Explique por que se agrega la linea.',1;\n IF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WITH(UPDLOCK,HOLDLOCK) WHERE IdProformaProveedor=@IdProformaProveedor AND Estado IN('Borrador','EnRevision')) THROW 52010,N'La respuesta no existe o esta finalizada.',1;\n DECLARE @Solicitud bigint=(SELECT IdSolicitudCotizacion FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@IdProformaProveedor);\n INSERT dbo.ProformasProveedorDetalle(IdProformaProveedor,IdSolicitudCotizacion,IdSolicitudCotizacionDetalle,NumeroLineaDocumento,CodigoProveedor,DescripcionProveedor,IdProducto,IdPresentacionProducto,Cantidad,PrecioUnitario,DescuentoPorcentaje,TotalLinea,TipoOferta,EstadoOferta,NombreProductoOriginal,MarcaOriginal,PresentacionOriginal,ContenidoEmpaqueOriginal,IdUnidadMedidaOriginal,CodigoUnidadOriginal,TipoBaseOriginal,FactorConversionOriginal,ContenidoNormalizadoOriginal,DescuentoMonto,ImpuestoMonto,BaseTotalLinea,MotivoAlternativa,ObservacionValidacion)\n SELECT @IdProformaProveedor,@Solicitud,j.IdSolicitudCotizacionDetalle,j.NumeroLineaDocumento,j.CodigoProveedor,j.DescripcionProveedor,j.IdProducto,j.IdPresentacionProducto,j.Cantidad,j.PrecioUnitario,j.DescuentoPorcentaje,j.TotalLinea,COALESCE(j.TipoOferta,'Solicitada'),COALESCE(j.EstadoOferta,'Cotizada'),j.NombreProductoOriginal,j.MarcaOriginal,j.PresentacionOriginal,j.ContenidoEmpaqueOriginal,j.IdUnidadMedidaOriginal,j.CodigoUnidadOriginal,j.TipoBaseOriginal,j.FactorConversionOriginal,j.ContenidoNormalizadoOriginal,j.DescuentoMonto,j.ImpuestoMonto,COALESCE(j.BaseTotalLinea,'SinDefinir'),j.MotivoAlternativa,j.ObservacionValidacion FROM OPENJSON(@LineaJson) WITH(IdSolicitudCotizacionDetalle bigint '$.idSolicitudDetalle',\nNumeroLineaDocumento int '$.numeroLinea',\nCodigoProveedor nvarchar(100) '$.codigo',\nDescripcionProveedor nvarchar(500) '$.descripcion',\nIdProducto int '$.idProducto',\nIdPresentacionProducto int '$.idPresentacionProducto',\nCantidad decimal(18,4) '$.cantidadEmpaques',\nPrecioUnitario decimal(18,6) '$.precioUnitario',\nDescuentoPorcentaje decimal(5,2) '$.descuentoPorcentaje',\nTotalLinea decimal(18,4) '$.totalLinea',\nTipoOferta varchar(20) '$.tipoOferta',\nEstadoOferta varchar(20) '$.estadoOferta',\nNombreProductoOriginal nvarchar(150) '$.nombreProductoOriginal',\nMarcaOriginal nvarchar(150) '$.marcaOriginal',\nPresentacionOriginal nvarchar(150) '$.presentacionOriginal',\nContenidoEmpaqueOriginal decimal(18,6) '$.contenidoEmpaqueOriginal',\nIdUnidadMedidaOriginal int '$.idUnidadMedidaOriginal',\nCodigoUnidadOriginal nvarchar(20) '$.codigoUnidadOriginal',\nTipoBaseOriginal nvarchar(20) '$.tipoBaseOriginal',\nFactorConversionOriginal decimal(18,6) '$.factorConversionOriginal',\nContenidoNormalizadoOriginal decimal(18,6) '$.contenidoNormalizadoOriginal',\nDescuentoMonto decimal(18,4) '$.descuentoMonto',\nImpuestoMonto decimal(18,4) '$.impuestoMonto',\nBaseTotalLinea varchar(30) '$.baseTotalLinea',\nMotivoAlternativa nvarchar(1000) '$.motivoAlternativa',\nObservacionValidacion nvarchar(1000) '$.observacion')j;\n SET @IdProformaProveedorDetalle=CONVERT(int,SCOPE_IDENTITY());\n INSERT dbo.CambiosCotizacion(IdProformaProveedor,IdProformaProveedorDetalle,Origen,CambiosJson,Motivo)\n SELECT @IdProformaProveedor,@IdProformaProveedorDetalle,'Manual',\n (SELECT CAST(NULL AS nvarchar(1)) AS antes,JSON_QUERY((SELECT d.* FOR JSON PATH,INCLUDE_NULL_VALUES,WITHOUT_ARRAY_WRAPPER)) AS despues\n FOR JSON PATH,INCLUDE_NULL_VALUES,WITHOUT_ARRAY_WRAPPER),@Motivo FROM dbo.ProformasProveedorDetalle d WHERE d.IdProformaProveedorDetalle=@IdProformaProveedorDetalle;\n UPDATE dbo.ProformasProveedor SET EstadoConciliacion='Pendiente',JustificacionConciliacion=NULL,FechaModificacion=SYSUTCDATETIME() WHERE IdProformaProveedor=@IdProformaProveedor;\n\n EXEC sys.sp_set_session_context @key=N'MotivoCambio',@value=@MotivoPrevio;\n END TRY BEGIN CATCH\n EXEC sys.sp_set_session_context @key=N'MotivoCambio',@value=@MotivoPrevio; THROW;\n END CATCH;\n IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK; ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION OperacionCotizacion;\n THROW; END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Proforma_CancelarBorrador",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProformaProveedor",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@Motivo",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 2000,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Proforma_CancelarBorrador\n @IdProformaProveedor int,@Motivo nvarchar(1000)\nAS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON; DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION OperacionCotizacion;\n BEGIN TRY\n DECLARE @MotivoPrevio sql_variant=SESSION_CONTEXT(N'MotivoCambio');\n EXEC sys.sp_set_session_context @key=N'MotivoCambio',@value=@Motivo;\n BEGIN TRY\n\n IF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WITH(UPDLOCK,HOLDLOCK) WHERE IdProformaProveedor=@IdProformaProveedor AND Estado IN('Borrador','EnRevision')) THROW 52010,N'La respuesta no existe o esta finalizada.',1;\n IF NULLIF(LTRIM(RTRIM(@Motivo)),N'') IS NULL THROW 52000,N'El motivo de cancelacion es obligatorio.',1;\n UPDATE dbo.ProformasProveedor SET Estado='Cancelada',FechaModificacion=SYSUTCDATETIME() WHERE IdProformaProveedor=@IdProformaProveedor;\n\n EXEC sys.sp_set_session_context @key=N'MotivoCambio',@value=@MotivoPrevio;\n END TRY BEGIN CATCH\n EXEC sys.sp_set_session_context @key=N'MotivoCambio',@value=@MotivoPrevio; THROW;\n END CATCH;\n IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK; ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION OperacionCotizacion;\n THROW; END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Proforma_ComprobarJson",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@CabeceraJson",
+        "Tipo": "nvarchar",
+        "LongitudBytes": -1,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@LineasJson",
+        "Tipo": "nvarchar",
+        "LongitudBytes": -1,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Proforma_ComprobarJson @CabeceraJson nvarchar(max)=NULL,@LineasJson nvarchar(max)=NULL AS\nBEGIN\n SET NOCOUNT ON;\n DECLARE @H table(Clave nvarchar(4000) COLLATE Latin1_General_100_BIN2,Valor nvarchar(max),Tipo int);\n DECLARE @L table(Linea int,Clave nvarchar(4000) COLLATE Latin1_General_100_BIN2,Valor nvarchar(max),Tipo int);\n IF @CabeceraJson IS NOT NULL BEGIN\n  IF ISJSON(@CabeceraJson,OBJECT)<>1 THROW 52000,N'Cabecera JSON debe ser objeto.',1;\n  INSERT @H SELECT [key],[value],[type] FROM OPENJSON(@CabeceraJson);\n END;\n IF @LineasJson IS NOT NULL BEGIN\n  IF ISJSON(@LineasJson,ARRAY)<>1 THROW 52000,N'Lineas JSON debe ser arreglo.',1;\n  IF EXISTS(SELECT 1 FROM OPENJSON(@LineasJson) WHERE [type]<>5) THROW 52000,N'Cada linea debe ser un objeto JSON.',1;\n  INSERT @L SELECT CONVERT(int,j.[key]),v.[key],v.[value],v.[type] FROM OPENJSON(@LineasJson)j CROSS APPLY OPENJSON(j.[value])v;\n END;\n IF EXISTS(SELECT Clave FROM @H GROUP BY Clave HAVING COUNT(*)>1) OR EXISTS(SELECT Linea,Clave FROM @L GROUP BY Linea,Clave HAVING COUNT(*)>1)\n THROW 52000,N'El JSON contiene propiedades duplicadas.',1;\n IF EXISTS(SELECT 1 FROM @H WHERE Clave NOT IN(N'numeroProforma',N'tipoDocumento',N'nombreProveedorPdf',N'nombreNegocio',N'razonSocial',N'cedula',N'telefono',N'vendedor',N'condicionesPago',N'condicionesEntrega',N'observaciones',N'moneda',N'subtotal',N'descuento',N'iva',N'total',N'otrosCargos',N'fechaProforma',N'fechaVencimiento',N'diasCredito',N'datosProveedorOriginal',N'datosClienteOriginal'))\n OR EXISTS(SELECT 1 FROM @L WHERE Clave NOT IN(N'codigo',N'descripcion',N'tipoOferta',N'estadoOferta',N'nombreProductoOriginal',N'marcaOriginal',N'presentacionOriginal',N'codigoUnidadOriginal',N'tipoBaseOriginal',N'baseTotalLinea',N'motivoAlternativa',N'observacion',N'cantidadEmpaques',N'precioUnitario',N'descuentoPorcentaje',N'totalLinea',N'contenidoEmpaqueOriginal',N'factorConversionOriginal',N'contenidoNormalizadoOriginal',N'descuentoMonto',N'impuestoMonto',N'idSolicitudDetalle',N'numeroLinea',N'idProducto',N'idPresentacionProducto',N'idUnidadMedidaOriginal')) THROW 52000,N'Propiedad JSON desconocida; respete nombres camelCase del contrato.',1;\n IF EXISTS(SELECT 1 FROM @H WHERE Clave=N'numeroProforma' AND Tipo<>0 AND (Tipo<>1 OR DATALENGTH(Valor)>100)) THROW 52000,N'numeroProforma: texto o longitud invalida.',1;\n IF EXISTS(SELECT 1 FROM @H WHERE Clave=N'tipoDocumento' AND Tipo<>0 AND (Tipo<>1 OR DATALENGTH(Valor)>100)) THROW 52000,N'tipoDocumento: texto o longitud invalida.',1;\n IF EXISTS(SELECT 1 FROM @H WHERE Clave=N'nombreProveedorPdf' AND Tipo<>0 AND (Tipo<>1 OR DATALENGTH(Valor)>400)) THROW 52000,N'nombreProveedorPdf: texto o longitud invalida.',1;\n IF EXISTS(SELECT 1 FROM @H WHERE Clave=N'nombreNegocio' AND Tipo<>0 AND (Tipo<>1 OR DATALENGTH(Valor)>500)) THROW 52000,N'nombreNegocio: texto o longitud invalida.',1;\n IF EXISTS(SELECT 1 FROM @H WHERE Clave=N'razonSocial' AND Tipo<>0 AND (Tipo<>1 OR DATALENGTH(Valor)>500)) THROW 52000,N'razonSocial: texto o longitud invalida.',1;\n IF EXISTS(SELECT 1 FROM @H WHERE Clave=N'cedula' AND Tipo<>0 AND (Tipo<>1 OR DATALENGTH(Valor)>100)) THROW 52000,N'cedula: texto o longitud invalida.',1;\n IF EXISTS(SELECT 1 FROM @H WHERE Clave=N'telefono' AND Tipo<>0 AND (Tipo<>1 OR DATALENGTH(Valor)>100)) THROW 52000,N'telefono: texto o longitud invalida.',1;\n IF EXISTS(SELECT 1 FROM @H WHERE Clave=N'vendedor' AND Tipo<>0 AND (Tipo<>1 OR DATALENGTH(Valor)>300)) THROW 52000,N'vendedor: texto o longitud invalida.',1;\n IF EXISTS(SELECT 1 FROM @H WHERE Clave=N'condicionesPago' AND Tipo<>0 AND (Tipo<>1 OR DATALENGTH(Valor)>2000)) THROW 52000,N'condicionesPago: texto o longitud invalida.',1;\n IF EXISTS(SELECT 1 FROM @H WHERE Clave=N'condicionesEntrega' AND Tipo<>0 AND (Tipo<>1 OR DATALENGTH(Valor)>2000)) THROW 52000,N'condicionesEntrega: texto o longitud invalida.',1;\n IF EXISTS(SELECT 1 FROM @H WHERE Clave=N'observaciones' AND Tipo<>0 AND (Tipo<>1 OR DATALENGTH(Valor)>4000)) THROW 52000,N'observaciones: texto o longitud invalida.',1;\n IF EXISTS(SELECT 1 FROM @H WHERE Clave=N'moneda' AND Tipo<>0 AND (Tipo<>1 OR DATALENGTH(Valor)>6)) THROW 52000,N'moneda: texto o longitud invalida.',1;\n IF EXISTS(SELECT 1 FROM @L WHERE Clave=N'codigo' AND Tipo<>0 AND (Tipo<>1 OR DATALENGTH(Valor)>200)) THROW 52000,N'codigo: texto o longitud invalida.',1;\n IF EXISTS(SELECT 1 FROM @L WHERE Clave=N'descripcion' AND Tipo<>0 AND (Tipo<>1 OR DATALENGTH(Valor)>1000)) THROW 52000,N'descripcion: texto o longitud invalida.',1;\n IF EXISTS(SELECT 1 FROM @L WHERE Clave=N'tipoOferta' AND Tipo<>0 AND (Tipo<>1 OR DATALENGTH(Valor)>40)) THROW 52000,N'tipoOferta: texto o longitud invalida.',1;\n IF EXISTS(SELECT 1 FROM @L WHERE Clave=N'estadoOferta' AND Tipo<>0 AND (Tipo<>1 OR DATALENGTH(Valor)>40)) THROW 52000,N'estadoOferta: texto o longitud invalida.',1;\n IF EXISTS(SELECT 1 FROM @L WHERE Clave=N'nombreProductoOriginal' AND Tipo<>0 AND (Tipo<>1 OR DATALENGTH(Valor)>300)) THROW 52000,N'nombreProductoOriginal: texto o longitud invalida.',1;\n IF EXISTS(SELECT 1 FROM @L WHERE Clave=N'marcaOriginal' AND Tipo<>0 AND (Tipo<>1 OR DATALENGTH(Valor)>300)) THROW 52000,N'marcaOriginal: texto o longitud invalida.',1;\n IF EXISTS(SELECT 1 FROM @L WHERE Clave=N'presentacionOriginal' AND Tipo<>0 AND (Tipo<>1 OR DATALENGTH(Valor)>300)) THROW 52000,N'presentacionOriginal: texto o longitud invalida.',1;\n IF EXISTS(SELECT 1 FROM @L WHERE Clave=N'codigoUnidadOriginal' AND Tipo<>0 AND (Tipo<>1 OR DATALENGTH(Valor)>40)) THROW 52000,N'codigoUnidadOriginal: texto o longitud invalida.',1;\n IF EXISTS(SELECT 1 FROM @L WHERE Clave=N'tipoBaseOriginal' AND Tipo<>0 AND (Tipo<>1 OR DATALENGTH(Valor)>40)) THROW 52000,N'tipoBaseOriginal: texto o longitud invalida.',1;\n IF EXISTS(SELECT 1 FROM @L WHERE Clave=N'baseTotalLinea' AND Tipo<>0 AND (Tipo<>1 OR DATALENGTH(Valor)>60)) THROW 52000,N'baseTotalLinea: texto o longitud invalida.',1;\n IF EXISTS(SELECT 1 FROM @L WHERE Clave=N'motivoAlternativa' AND Tipo<>0 AND (Tipo<>1 OR DATALENGTH(Valor)>2000)) THROW 52000,N'motivoAlternativa: texto o longitud invalida.',1;\n IF EXISTS(SELECT 1 FROM @L WHERE Clave=N'observacion' AND Tipo<>0 AND (Tipo<>1 OR DATALENGTH(Valor)>2000)) THROW 52000,N'observacion: texto o longitud invalida.',1;\n IF EXISTS(SELECT 1 FROM @H WHERE Clave=N'subtotal' AND Tipo<>0 AND (Tipo NOT IN(1,2) OR TRY_CONVERT(decimal(18,4),Valor) IS NULL OR TRY_CONVERT(decimal(38,18),Valor)<>TRY_CONVERT(decimal(18,4),Valor) OR (CHARINDEX(N'.',Valor)>0 AND SUBSTRING(Valor,CHARINDEX(N'.',Valor)+5,4000) LIKE N'%[^0]%'))) THROW 52000,N'subtotal: importe fuera de precision decimal(18,4).',1;\n IF EXISTS(SELECT 1 FROM @H WHERE Clave=N'descuento' AND Tipo<>0 AND (Tipo NOT IN(1,2) OR TRY_CONVERT(decimal(18,4),Valor) IS NULL OR TRY_CONVERT(decimal(38,18),Valor)<>TRY_CONVERT(decimal(18,4),Valor) OR (CHARINDEX(N'.',Valor)>0 AND SUBSTRING(Valor,CHARINDEX(N'.',Valor)+5,4000) LIKE N'%[^0]%'))) THROW 52000,N'descuento: importe fuera de precision decimal(18,4).',1;\n IF EXISTS(SELECT 1 FROM @H WHERE Clave=N'iva' AND Tipo<>0 AND (Tipo NOT IN(1,2) OR TRY_CONVERT(decimal(18,4),Valor) IS NULL OR TRY_CONVERT(decimal(38,18),Valor)<>TRY_CONVERT(decimal(18,4),Valor) OR (CHARINDEX(N'.',Valor)>0 AND SUBSTRING(Valor,CHARINDEX(N'.',Valor)+5,4000) LIKE N'%[^0]%'))) THROW 52000,N'iva: importe fuera de precision decimal(18,4).',1;\n IF EXISTS(SELECT 1 FROM @H WHERE Clave=N'total' AND Tipo<>0 AND (Tipo NOT IN(1,2) OR TRY_CONVERT(decimal(18,4),Valor) IS NULL OR TRY_CONVERT(decimal(38,18),Valor)<>TRY_CONVERT(decimal(18,4),Valor) OR (CHARINDEX(N'.',Valor)>0 AND SUBSTRING(Valor,CHARINDEX(N'.',Valor)+5,4000) LIKE N'%[^0]%'))) THROW 52000,N'total: importe fuera de precision decimal(18,4).',1;\n IF EXISTS(SELECT 1 FROM @H WHERE Clave=N'otrosCargos' AND Tipo<>0 AND (Tipo NOT IN(1,2) OR TRY_CONVERT(decimal(18,4),Valor) IS NULL OR TRY_CONVERT(decimal(38,18),Valor)<>TRY_CONVERT(decimal(18,4),Valor) OR (CHARINDEX(N'.',Valor)>0 AND SUBSTRING(Valor,CHARINDEX(N'.',Valor)+5,4000) LIKE N'%[^0]%'))) THROW 52000,N'otrosCargos: importe fuera de precision decimal(18,4).',1;\n IF EXISTS(SELECT 1 FROM @L WHERE Clave=N'cantidadEmpaques' AND Tipo<>0 AND (Tipo NOT IN(1,2) OR TRY_CONVERT(decimal(18,4),Valor) IS NULL OR TRY_CONVERT(decimal(38,18),Valor)<>TRY_CONVERT(decimal(18,4),Valor) OR (CHARINDEX(N'.',Valor)>0 AND SUBSTRING(Valor,CHARINDEX(N'.',Valor)+5,4000) LIKE N'%[^0]%'))) THROW 52000,N'cantidadEmpaques: numero fuera de precision admitida.',1;\n IF EXISTS(SELECT 1 FROM @L WHERE Clave=N'precioUnitario' AND Tipo<>0 AND (Tipo NOT IN(1,2) OR TRY_CONVERT(decimal(18,6),Valor) IS NULL OR TRY_CONVERT(decimal(38,18),Valor)<>TRY_CONVERT(decimal(18,6),Valor) OR (CHARINDEX(N'.',Valor)>0 AND SUBSTRING(Valor,CHARINDEX(N'.',Valor)+7,4000) LIKE N'%[^0]%'))) THROW 52000,N'precioUnitario: numero fuera de precision admitida.',1;\n IF EXISTS(SELECT 1 FROM @L WHERE Clave=N'descuentoPorcentaje' AND Tipo<>0 AND (Tipo NOT IN(1,2) OR TRY_CONVERT(decimal(18,2),Valor) IS NULL OR TRY_CONVERT(decimal(38,18),Valor)<>TRY_CONVERT(decimal(18,2),Valor) OR (CHARINDEX(N'.',Valor)>0 AND SUBSTRING(Valor,CHARINDEX(N'.',Valor)+3,4000) LIKE N'%[^0]%'))) THROW 52000,N'descuentoPorcentaje: numero fuera de precision admitida.',1;\n IF EXISTS(SELECT 1 FROM @L WHERE Clave=N'totalLinea' AND Tipo<>0 AND (Tipo NOT IN(1,2) OR TRY_CONVERT(decimal(18,4),Valor) IS NULL OR TRY_CONVERT(decimal(38,18),Valor)<>TRY_CONVERT(decimal(18,4),Valor) OR (CHARINDEX(N'.',Valor)>0 AND SUBSTRING(Valor,CHARINDEX(N'.',Valor)+5,4000) LIKE N'%[^0]%'))) THROW 52000,N'totalLinea: numero fuera de precision admitida.',1;\n IF EXISTS(SELECT 1 FROM @L WHERE Clave=N'contenidoEmpaqueOriginal' AND Tipo<>0 AND (Tipo NOT IN(1,2) OR TRY_CONVERT(decimal(18,6),Valor) IS NULL OR TRY_CONVERT(decimal(38,18),Valor)<>TRY_CONVERT(decimal(18,6),Valor) OR (CHARINDEX(N'.',Valor)>0 AND SUBSTRING(Valor,CHARINDEX(N'.',Valor)+7,4000) LIKE N'%[^0]%'))) THROW 52000,N'contenidoEmpaqueOriginal: numero fuera de precision admitida.',1;\n IF EXISTS(SELECT 1 FROM @L WHERE Clave=N'factorConversionOriginal' AND Tipo<>0 AND (Tipo NOT IN(1,2) OR TRY_CONVERT(decimal(18,6),Valor) IS NULL OR TRY_CONVERT(decimal(38,18),Valor)<>TRY_CONVERT(decimal(18,6),Valor) OR (CHARINDEX(N'.',Valor)>0 AND SUBSTRING(Valor,CHARINDEX(N'.',Valor)+7,4000) LIKE N'%[^0]%'))) THROW 52000,N'factorConversionOriginal: numero fuera de precision admitida.',1;\n IF EXISTS(SELECT 1 FROM @L WHERE Clave=N'contenidoNormalizadoOriginal' AND Tipo<>0 AND (Tipo NOT IN(1,2) OR TRY_CONVERT(decimal(18,6),Valor) IS NULL OR TRY_CONVERT(decimal(38,18),Valor)<>TRY_CONVERT(decimal(18,6),Valor) OR (CHARINDEX(N'.',Valor)>0 AND SUBSTRING(Valor,CHARINDEX(N'.',Valor)+7,4000) LIKE N'%[^0]%'))) THROW 52000,N'contenidoNormalizadoOriginal: numero fuera de precision admitida.',1;\n IF EXISTS(SELECT 1 FROM @L WHERE Clave=N'descuentoMonto' AND Tipo<>0 AND (Tipo NOT IN(1,2) OR TRY_CONVERT(decimal(18,4),Valor) IS NULL OR TRY_CONVERT(decimal(38,18),Valor)<>TRY_CONVERT(decimal(18,4),Valor) OR (CHARINDEX(N'.',Valor)>0 AND SUBSTRING(Valor,CHARINDEX(N'.',Valor)+5,4000) LIKE N'%[^0]%'))) THROW 52000,N'descuentoMonto: numero fuera de precision admitida.',1;\n IF EXISTS(SELECT 1 FROM @L WHERE Clave=N'impuestoMonto' AND Tipo<>0 AND (Tipo NOT IN(1,2) OR TRY_CONVERT(decimal(18,4),Valor) IS NULL OR TRY_CONVERT(decimal(38,18),Valor)<>TRY_CONVERT(decimal(18,4),Valor) OR (CHARINDEX(N'.',Valor)>0 AND SUBSTRING(Valor,CHARINDEX(N'.',Valor)+5,4000) LIKE N'%[^0]%'))) THROW 52000,N'impuestoMonto: numero fuera de precision admitida.',1;\n IF EXISTS(SELECT 1 FROM @L WHERE Clave IN(N'idSolicitudDetalle',N'numeroLinea',N'idProducto',N'idPresentacionProducto',N'idUnidadMedidaOriginal') AND Tipo<>0\n AND (Tipo NOT IN(1,2) OR TRY_CONVERT(bigint,Valor) IS NULL OR TRY_CONVERT(bigint,Valor)<=0)) THROW 52000,N'Identificador o numero de linea invalido.',1;\n IF EXISTS(SELECT 1 FROM @H WHERE Clave IN(N'fechaProforma',N'fechaVencimiento') AND Tipo<>0 AND (Tipo<>1 OR LEN(Valor)<>10 OR TRY_CONVERT(date,Valor,23) IS NULL)) THROW 52000,N'Fecha debe tener formato yyyy-MM-dd.',1;\n IF EXISTS(SELECT 1 FROM @H WHERE Clave=N'diasCredito' AND Tipo<>0 AND (TRY_CONVERT(int,Valor) IS NULL OR TRY_CONVERT(int,Valor)<0)) THROW 52000,N'Dias de credito invalidos.',1;\n IF EXISTS(SELECT 1 FROM @H WHERE Clave IN(N'datosProveedorOriginal',N'datosClienteOriginal') AND Tipo NOT IN(0,5)) THROW 52000,N'Los datos originales de las partes deben ser objetos JSON.',1;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Proforma_Conciliar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProformaProveedor",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@EstadoConciliacion",
+        "Tipo": "varchar",
+        "LongitudBytes": 20,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@Motivo",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 2000,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@Tolerancia",
+        "Tipo": "decimal",
+        "LongitudBytes": 9,
+        "Precision": 18,
+        "Escala": 4,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Proforma_Conciliar\n @IdProformaProveedor int,@EstadoConciliacion varchar(20),@Motivo nvarchar(1000),@Tolerancia decimal(18,4)=0.01\nAS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON; DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION OperacionCotizacion;\n BEGIN TRY\n DECLARE @MotivoPrevio sql_variant=SESSION_CONTEXT(N'MotivoCambio');\n EXEC sys.sp_set_session_context @key=N'MotivoCambio',@value=@Motivo;\n BEGIN TRY\n\n IF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WITH(UPDLOCK,HOLDLOCK) WHERE IdProformaProveedor=@IdProformaProveedor AND Estado IN('Borrador','EnRevision')) THROW 52010,N'La respuesta no existe o esta finalizada.',1;\n IF @EstadoConciliacion IS NULL OR @EstadoConciliacion NOT IN('Conciliada','ConDiferencias') THROW 52000,N'Estado de conciliacion invalido.',1;\n IF NULLIF(LTRIM(RTRIM(@Motivo)),N'') IS NULL THROW 52000,N'Documente la revision de importes.',1;\n IF @Tolerancia IS NULL OR @Tolerancia<0 OR @Tolerancia>1 THROW 52000,N'Tolerancia fuera del rango 0 a 1.',1;\n IF EXISTS(SELECT 1 FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@IdProformaProveedor AND\n (Subtotal IS NULL OR Descuento IS NULL OR IVA IS NULL OR Total IS NULL OR OtrosCargos IS NULL)) THROW 52000,N'Complete los importes de cabecera; no se asumen ceros.',1;\n IF @EstadoConciliacion='Conciliada' AND EXISTS(SELECT 1 FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@IdProformaProveedor\n AND ABS(Total-(Subtotal-Descuento+IVA+OtrosCargos))>@Tolerancia)\n THROW 52000,N'La cabecera no cuadra dentro de la tolerancia. Revise los importes o justifique las diferencias.',1;\n DECLARE @MotivoRegistro nvarchar(1000)=LEFT(CONCAT(N'Tolerancia=',CONVERT(nvarchar(40),@Tolerancia),N'; ',@Motivo),1000);\n EXEC sys.sp_set_session_context @key=N'MotivoCambio',@value=@MotivoRegistro;\n UPDATE dbo.ProformasProveedor SET EstadoConciliacion=@EstadoConciliacion,JustificacionConciliacion=@MotivoRegistro,FechaModificacion=SYSUTCDATETIME() WHERE IdProformaProveedor=@IdProformaProveedor;\n\n EXEC sys.sp_set_session_context @key=N'MotivoCambio',@value=@MotivoPrevio;\n END TRY BEGIN CATCH\n EXEC sys.sp_set_session_context @key=N'MotivoCambio',@value=@MotivoPrevio; THROW;\n END CATCH;\n IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK; ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION OperacionCotizacion;\n THROW; END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Proforma_CrearRevision",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProformaProveedor",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@IdNuevaProforma",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": true
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Proforma_CrearRevision @IdProformaProveedor int,@IdNuevaProforma int OUTPUT AS\nBEGIN\n SET NOCOUNT ON; SET XACT_ABORT ON;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION RevisionProforma;\n BEGIN TRY\n  DECLARE @Destinatario bigint,@Documento bigint,@Importacion bigint,@Version int;\n  SELECT @Destinatario=IdSolicitudCotizacionProveedor FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@IdProformaProveedor;\n  IF @Destinatario IS NULL THROW 52004,N'Cotizacion no existe.',1;\n  SELECT @Destinatario=IdSolicitudCotizacionProveedor FROM dbo.SolicitudesCotizacionProveedor WITH(UPDLOCK,HOLDLOCK) WHERE IdSolicitudCotizacionProveedor=@Destinatario;\n  SELECT @Documento=IdDocumentoOrigen,@Importacion=IdImportacionDocumento,@Version=VersionRespuesta FROM dbo.ProformasProveedor WITH(UPDLOCK,HOLDLOCK)\n  WHERE IdProformaProveedor=@IdProformaProveedor AND Estado IN('Validada','Reemplazada','Cancelada');\n  IF @Version IS NULL THROW 52010,N'Solo se revisa una respuesta finalizada.',1;\n  IF EXISTS(SELECT 1 FROM dbo.ProformasProveedor WHERE IdSolicitudCotizacionProveedor=@Destinatario AND VersionRespuesta>@Version) THROW 52009,N'Ya existe una revision posterior.',1;\n  DECLARE @Cabecera nvarchar(max)=(SELECT NumeroProforma AS numeroProforma,FechaProforma AS fechaProforma,FechaVencimiento AS fechaVencimiento,DiasCredito AS diasCredito,\n  TipoDocumento AS tipoDocumento,Moneda AS moneda,NombreProveedorPdf AS nombreProveedorPdf,NombreNegocio AS nombreNegocio,RazonSocial AS razonSocial,Cedula AS cedula,\n  Telefono AS telefono,Vendedor AS vendedor,Subtotal AS subtotal,Descuento AS descuento,IVA AS iva,Total AS total,OtrosCargos AS otrosCargos,\n  JSON_QUERY(DatosProveedorOriginalJson) AS datosProveedorOriginal,JSON_QUERY(DatosClienteOriginalJson) AS datosClienteOriginal,\n  CondicionesPago AS condicionesPago,CondicionesEntrega AS condicionesEntrega,Observaciones AS observaciones FROM dbo.ProformasProveedor\n  WHERE IdProformaProveedor=@IdProformaProveedor FOR JSON PATH,INCLUDE_NULL_VALUES,WITHOUT_ARRAY_WRAPPER);\n  DECLARE @Lineas nvarchar(max)=(SELECT IdSolicitudCotizacionDetalle AS idSolicitudDetalle,NumeroLineaDocumento AS numeroLinea,CodigoProveedor AS codigo,DescripcionProveedor AS descripcion,\n  IdProducto AS idProducto,IdPresentacionProducto AS idPresentacionProducto,Cantidad AS cantidadEmpaques,PrecioUnitario AS precioUnitario,DescuentoPorcentaje AS descuentoPorcentaje,\n  TotalLinea AS totalLinea,TipoOferta AS tipoOferta,EstadoOferta AS estadoOferta,NombreProductoOriginal AS nombreProductoOriginal,MarcaOriginal AS marcaOriginal,\n  PresentacionOriginal AS presentacionOriginal,ContenidoEmpaqueOriginal AS contenidoEmpaqueOriginal,IdUnidadMedidaOriginal AS idUnidadMedidaOriginal,\n  CodigoUnidadOriginal AS codigoUnidadOriginal,TipoBaseOriginal AS tipoBaseOriginal,FactorConversionOriginal AS factorConversionOriginal,\n  ContenidoNormalizadoOriginal AS contenidoNormalizadoOriginal,DescuentoMonto AS descuentoMonto,ImpuestoMonto AS impuestoMonto,BaseTotalLinea AS baseTotalLinea,\n  MotivoAlternativa AS motivoAlternativa,ObservacionValidacion AS observacion FROM dbo.ProformasProveedorDetalle WHERE IdProformaProveedor=@IdProformaProveedor\n  ORDER BY IdProformaProveedorDetalle FOR JSON PATH,INCLUDE_NULL_VALUES);\n  EXEC dbo.usp_Proforma_GuardarBorrador @Destinatario,@Documento,@Importacion,@Cabecera,@Lineas,@IdNuevaProforma OUTPUT;\n  IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK; ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION RevisionProforma;\n  THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Proforma_GuardarBorrador",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdSolicitudCotizacionProveedor",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@IdDocumentoOrigen",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@IdImportacionDocumento",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@CabeceraJson",
+        "Tipo": "nvarchar",
+        "LongitudBytes": -1,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 5,
+        "Nombre": "@LineasJson",
+        "Tipo": "nvarchar",
+        "LongitudBytes": -1,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 6,
+        "Nombre": "@IdProformaProveedor",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": true
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Proforma_GuardarBorrador\n @IdSolicitudCotizacionProveedor bigint,\n @IdDocumentoOrigen bigint,\n @IdImportacionDocumento bigint=NULL,\n @CabeceraJson nvarchar(max),\n @LineasJson nvarchar(max),\n @IdProformaProveedor int OUTPUT\nAS\nBEGIN\n SET NOCOUNT ON; SET XACT_ABORT ON;\n IF ISNULL(ISJSON(@CabeceraJson,OBJECT),0)<>1 OR ISNULL(ISJSON(@LineasJson,ARRAY),0)<>1\n THROW 51201,N'La cabecera debe ser un objeto JSON y las lineas un arreglo JSON.',1;\n IF NOT EXISTS(SELECT 1 FROM OPENJSON(@LineasJson)) THROW 51202,N'Debe proporcionar al menos una linea.',1;\n IF EXISTS(SELECT 1 FROM OPENJSON(@LineasJson) WHERE [type]<>5) THROW 51202,N'Cada linea debe ser un objeto JSON.',1;\n IF JSON_VALUE(@CabeceraJson,'$.moneda') IS NOT NULL AND\n (LEN(JSON_VALUE(@CabeceraJson,'$.moneda'))<>3 OR JSON_VALUE(@CabeceraJson,'$.moneda') COLLATE Latin1_General_100_BIN2 LIKE '%[^A-Z]%')\n THROW 51203,N'La moneda debe ser un codigo de tres letras mayusculas.',1;\n EXEC dbo.usp_Proforma_ComprobarJson @CabeceraJson,@LineasJson;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION GuardarProforma;\n BEGIN TRY\n  DECLARE @IdSolicitud bigint,@IdProveedor int,@Version int=1,@Anterior int=NULL;\n  SELECT @IdSolicitud=IdSolicitudCotizacion,@IdProveedor=IdProveedor FROM dbo.SolicitudesCotizacionProveedor WITH(UPDLOCK,HOLDLOCK)\n  WHERE IdSolicitudCotizacionProveedor=@IdSolicitudCotizacionProveedor;\n  IF NOT EXISTS(SELECT 1 FROM dbo.Proveedores WHERE IdProveedor=@IdProveedor AND Activo=1) THROW 52000,N'Proveedor inexistente o inactivo.',1;\n  IF @IdSolicitud IS NULL THROW 51204,N'El destinatario de la solicitud no existe.',1;\n  SELECT TOP(1) @Version=VersionRespuesta+1,@Anterior=IdProformaProveedor FROM dbo.ProformasProveedor WITH(UPDLOCK,HOLDLOCK)\n  WHERE IdSolicitudCotizacionProveedor=@IdSolicitudCotizacionProveedor ORDER BY VersionRespuesta DESC;\n  IF EXISTS(SELECT 1 FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@Anterior AND Estado NOT IN('Validada','Reemplazada','Cancelada'))\n  THROW 51205,N'Ya hay una respuesta en borrador o revision. Complete o cancele esa version.',1;\n  INSERT dbo.ProformasProveedor(IdSolicitudCotizacionProveedor,IdSolicitudCotizacion,IdProveedor,VersionRespuesta,IdProformaAnterior,\n   IdDocumentoOrigen,IdImportacionDocumento,NumeroProforma,FechaProforma,FechaVencimiento,DiasCredito,TipoDocumento,Moneda,\n   NombreProveedorPdf,NombreNegocio,RazonSocial,Cedula,Telefono,Vendedor,Subtotal,Descuento,IVA,Total,OtrosCargos,\n   DatosProveedorOriginalJson,DatosClienteOriginalJson,CondicionesPago,CondicionesEntrega,Observaciones)\n  SELECT @IdSolicitudCotizacionProveedor,@IdSolicitud,@IdProveedor,@Version,@Anterior,@IdDocumentoOrigen,@IdImportacionDocumento,\n   NumeroProforma,FechaProforma,FechaVencimiento,DiasCredito,TipoDocumento,Moneda,\n   NombreProveedorPdf,NombreNegocio,RazonSocial,Cedula,Telefono,Vendedor,Subtotal,Descuento,IVA,Total,OtrosCargos,\n   DatosProveedorOriginalJson,DatosClienteOriginalJson,CondicionesPago,CondicionesEntrega,Observaciones\n  FROM OPENJSON(@CabeceraJson) WITH(\n   NumeroProforma nvarchar(50) '$.numeroProforma',FechaProforma date '$.fechaProforma',FechaVencimiento date '$.fechaVencimiento',\n   DiasCredito int '$.diasCredito',TipoDocumento nvarchar(50) '$.tipoDocumento',Moneda char(3) '$.moneda',\n   NombreProveedorPdf nvarchar(200) '$.nombreProveedorPdf',NombreNegocio nvarchar(250) '$.nombreNegocio',\n   RazonSocial nvarchar(250) '$.razonSocial',Cedula nvarchar(50) '$.cedula',Telefono nvarchar(50) '$.telefono',Vendedor nvarchar(150) '$.vendedor',\n   Subtotal decimal(18,4) '$.subtotal',Descuento decimal(18,4) '$.descuento',IVA decimal(18,4) '$.iva',Total decimal(18,4) '$.total',OtrosCargos decimal(18,4) '$.otrosCargos',\n   DatosProveedorOriginalJson nvarchar(max) '$.datosProveedorOriginal' AS JSON,DatosClienteOriginalJson nvarchar(max) '$.datosClienteOriginal' AS JSON,\n   CondicionesPago nvarchar(1000) '$.condicionesPago',CondicionesEntrega nvarchar(1000) '$.condicionesEntrega',Observaciones nvarchar(2000) '$.observaciones');\n  SET @IdProformaProveedor=CONVERT(int,SCOPE_IDENTITY());\n  INSERT dbo.ProformasProveedorDetalle(IdProformaProveedor,IdSolicitudCotizacion,IdSolicitudCotizacionDetalle,NumeroLineaDocumento,\n   CodigoProveedor,DescripcionProveedor,IdProducto,IdPresentacionProducto,Cantidad,PrecioUnitario,DescuentoPorcentaje,TotalLinea,\n   TipoOferta,EstadoOferta,EstadoRevision,NombreProductoOriginal,MarcaOriginal,PresentacionOriginal,ContenidoEmpaqueOriginal,\n   IdUnidadMedidaOriginal,CodigoUnidadOriginal,TipoBaseOriginal,FactorConversionOriginal,ContenidoNormalizadoOriginal,\n   DescuentoMonto,ImpuestoMonto,BaseTotalLinea,MotivoAlternativa,ObservacionValidacion)\n  SELECT @IdProformaProveedor,@IdSolicitud,IdSolicitudDetalle,NumeroLinea,Codigo,Descripcion,IdProducto,IdPresentacion,Cantidad,Precio,DescuentoPorcentaje,Total,\n   COALESCE(TipoOferta,'Solicitada'),COALESCE(EstadoOferta,'Cotizada'),'Pendiente',NombreProducto,Marca,Presentacion,ContenidoEmpaque,\n   IdUnidad,CodigoUnidad,TipoBase,Factor,ContenidoNormalizado,DescuentoMonto,ImpuestoMonto,COALESCE(BaseTotal,'SinDefinir'),MotivoAlternativa,Observacion\n  FROM OPENJSON(@LineasJson) WITH(\n   IdSolicitudDetalle bigint '$.idSolicitudDetalle',NumeroLinea int '$.numeroLinea',Codigo nvarchar(100) '$.codigo',Descripcion nvarchar(500) '$.descripcion',\n   IdProducto int '$.idProducto',IdPresentacion int '$.idPresentacionProducto',Cantidad decimal(18,4) '$.cantidadEmpaques',Precio decimal(18,6) '$.precioUnitario',\n   DescuentoPorcentaje decimal(5,2) '$.descuentoPorcentaje',Total decimal(18,4) '$.totalLinea',TipoOferta varchar(20) '$.tipoOferta',EstadoOferta varchar(20) '$.estadoOferta',\n   NombreProducto nvarchar(150) '$.nombreProductoOriginal',Marca nvarchar(150) '$.marcaOriginal',Presentacion nvarchar(150) '$.presentacionOriginal',\n   ContenidoEmpaque decimal(18,6) '$.contenidoEmpaqueOriginal',IdUnidad int '$.idUnidadMedidaOriginal',CodigoUnidad nvarchar(20) '$.codigoUnidadOriginal',\n   TipoBase nvarchar(20) '$.tipoBaseOriginal',Factor decimal(18,6) '$.factorConversionOriginal',ContenidoNormalizado decimal(18,6) '$.contenidoNormalizadoOriginal',\n   DescuentoMonto decimal(18,4) '$.descuentoMonto',ImpuestoMonto decimal(18,4) '$.impuestoMonto',BaseTotal varchar(30) '$.baseTotalLinea',\n   MotivoAlternativa nvarchar(1000) '$.motivoAlternativa',Observacion nvarchar(1000) '$.observacion');\n  UPDATE dbo.SolicitudesCotizacionProveedor SET Estado='Respondida',FechaRespuesta=COALESCE(FechaRespuesta,SYSUTCDATETIME())\n  WHERE IdSolicitudCotizacionProveedor=@IdSolicitudCotizacionProveedor AND FechaEnvio IS NOT NULL AND Estado IN('Enviada','Respondida','Declinada');\n  IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK;\n  ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION GuardarProforma;\n  THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Proforma_HistorialCambios",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProformaProveedor",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Proforma_HistorialCambios\n @IdProformaProveedor int\nAS\nBEGIN\n SET NOCOUNT ON;\nIF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@IdProformaProveedor) THROW 52004,N'Cotizacion no existe.',1;\n SELECT * FROM dbo.CambiosCotizacion WHERE IdProformaProveedor=@IdProformaProveedor ORDER BY FechaCambio,IdCambioCotizacion;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Proforma_ObtenerCompleta",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProformaProveedor",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Proforma_ObtenerCompleta\n @IdProformaProveedor int\nAS\nBEGIN\n SET NOCOUNT ON;\n\n EXEC dbo.SP_ProformaProveedor_ObtenerPorId @IdProformaProveedor;\n EXEC dbo.SP_ProformaProveedorDetalle_ListarPorProforma @IdProformaProveedor;\n EXEC dbo.usp_Proforma_HistorialCambios @IdProformaProveedor;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Proforma_RevisarLinea",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProformaProveedorDetalle",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@Motivo",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 2000,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Proforma_RevisarLinea\n @IdProformaProveedorDetalle int,@Motivo nvarchar(1000)=NULL\nAS\nBEGIN\n SET NOCOUNT ON;\n SET XACT_ABORT ON; DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION OperacionCotizacion;\n BEGIN TRY\n DECLARE @MotivoPrevio sql_variant=SESSION_CONTEXT(N'MotivoCambio');\n EXEC sys.sp_set_session_context @key=N'MotivoCambio',@value=@Motivo;\n BEGIN TRY\n\n DECLARE @IdProformaProveedor int=(SELECT IdProformaProveedor FROM dbo.ProformasProveedorDetalle WHERE IdProformaProveedorDetalle=@IdProformaProveedorDetalle);\n IF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WITH(UPDLOCK,HOLDLOCK) WHERE IdProformaProveedor=@IdProformaProveedor AND Estado IN('Borrador','EnRevision')) THROW 52010,N'La respuesta no existe o esta finalizada.',1;\n IF EXISTS(SELECT 1 FROM dbo.ProformasProveedorDetalle d LEFT JOIN dbo.Productos p ON p.IdProducto=d.IdProducto\n LEFT JOIN dbo.ProductosBase b ON b.IdProductoBase=p.IdProductoBase LEFT JOIN dbo.Marcas m ON m.IdMarca=p.IdMarca\n LEFT JOIN dbo.PresentacionesProducto pp ON pp.IdPresentacionProducto=d.IdPresentacionProducto LEFT JOIN dbo.UnidadesMedida u ON u.IdUnidadMedida=d.IdUnidadMedidaOriginal\n WHERE d.IdProformaProveedorDetalle=@IdProformaProveedorDetalle AND d.EstadoOferta='Cotizada' AND\n (p.IdProducto IS NULL OR p.Activo<>1 OR b.Activo<>1 OR (p.IdMarca IS NOT NULL AND m.Activo<>1) OR pp.IdPresentacionProducto IS NULL OR pp.Activo<>1 OR u.IdUnidadMedida IS NULL OR u.Activo<>1))\n THROW 52000,N'La oferta cotizada requiere un catalogo activo completo.',1;\n UPDATE dbo.ProformasProveedorDetalle SET EstadoRevision='Revisada',ProductoEncontrado=CASE WHEN IdProducto IS NULL THEN 0 ELSE 1 END,\n PresentacionEncontrada=CASE WHEN IdPresentacionProducto IS NULL THEN 0 ELSE 1 END,\n SePuedeRegistrar=CASE WHEN EstadoOferta='Cotizada' AND IdProducto IS NOT NULL AND IdPresentacionProducto IS NOT NULL THEN 1 ELSE 0 END,\n FechaModificacion=SYSUTCDATETIME() WHERE IdProformaProveedorDetalle=@IdProformaProveedorDetalle;\n\n EXEC sys.sp_set_session_context @key=N'MotivoCambio',@value=@MotivoPrevio;\n END TRY BEGIN CATCH\n EXEC sys.sp_set_session_context @key=N'MotivoCambio',@value=@MotivoPrevio; THROW;\n END CATCH;\n IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK; ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION OperacionCotizacion;\n THROW; END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Proforma_Validar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdProformaProveedor",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Proforma_Validar @IdProformaProveedor int AS\nBEGIN\n SET NOCOUNT ON; SET XACT_ABORT ON;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION ValidarProforma;\n BEGIN TRY\n  IF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WITH(UPDLOCK,HOLDLOCK)\n  WHERE IdProformaProveedor=@IdProformaProveedor AND Estado IN('Borrador','EnRevision'))\n  THROW 51206,N'La respuesta no existe o no se puede validar en su estado actual.',1;\n  IF EXISTS(SELECT 1 FROM dbo.ProformasProveedor q JOIN dbo.Proveedores p ON p.IdProveedor=q.IdProveedor WHERE q.IdProformaProveedor=@IdProformaProveedor AND p.Activo=0)\n  THROW 52000,N'El proveedor de la respuesta esta inactivo.',1;\n  UPDATE dbo.ProformasProveedor SET Estado='Validada',FechaValidacion=SYSUTCDATETIME(),FechaModificacion=SYSUTCDATETIME()\n  WHERE IdProformaProveedor=@IdProformaProveedor;\n  IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK;\n  ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION ValidarProforma;\n  THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Solicitud_CambiarEstado",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdSolicitudCotizacion",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@Estado",
+        "Tipo": "varchar",
+        "LongitudBytes": 20,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Solicitud_CambiarEstado @IdSolicitudCotizacion bigint,@Estado varchar(20) AS\nBEGIN\n SET NOCOUNT ON;\n IF @Estado IS NULL OR @Estado NOT IN('Cerrada','Cancelada') THROW 52000,N'Use Emitir para emitir; aqui solo cerrar o cancelar.',1;\n IF NOT EXISTS(SELECT 1 FROM dbo.SolicitudesCotizacion WHERE IdSolicitudCotizacion=@IdSolicitudCotizacion) THROW 52004,N'Solicitud no existe.',1;\n UPDATE dbo.SolicitudesCotizacion SET Estado=@Estado,FechaModificacion=SYSUTCDATETIME() WHERE IdSolicitudCotizacion=@IdSolicitudCotizacion;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Solicitud_CrearRevision",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdSolicitudCotizacion",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@IdNuevaSolicitud",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": true
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Solicitud_CrearRevision @IdSolicitudCotizacion bigint,@IdNuevaSolicitud bigint OUTPUT AS\nBEGIN\n SET NOCOUNT ON; SET XACT_ABORT ON;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION RevisionSolicitud;\n BEGIN TRY\n  DECLARE @Numero nvarchar(50),@Version int;\n  SELECT @Numero=NumeroSolicitud,@Version=VersionSolicitud FROM dbo.SolicitudesCotizacion WITH(UPDLOCK,HOLDLOCK)\n  WHERE IdSolicitudCotizacion=@IdSolicitudCotizacion AND Estado<>'Borrador';\n  IF @Numero IS NULL THROW 52010,N'La revision requiere una solicitud ya emitida o finalizada.',1;\n  IF EXISTS(SELECT 1 FROM dbo.SolicitudesCotizacion WITH(UPDLOCK,HOLDLOCK) WHERE NumeroSolicitud=@Numero AND VersionSolicitud>@Version)\n  THROW 52009,N'Ya hay una version posterior; use la ultima revision.',1;\n  INSERT dbo.SolicitudesCotizacion(NumeroSolicitud,VersionSolicitud,IdSolicitudAnterior,FechaSolicitud,FechaLimiteRespuesta,DatosClienteOriginalJson,Observaciones)\n  SELECT NumeroSolicitud,VersionSolicitud+1,IdSolicitudCotizacion,FechaSolicitud,FechaLimiteRespuesta,DatosClienteOriginalJson,Observaciones FROM dbo.SolicitudesCotizacion WHERE IdSolicitudCotizacion=@IdSolicitudCotizacion;\n  SET @IdNuevaSolicitud=CONVERT(bigint,SCOPE_IDENTITY());\n  INSERT dbo.SolicitudesCotizacionDetalle(IdSolicitudCotizacion,NumeroLinea,IdProducto,IdPresentacionProducto,CantidadEmpaquesSolicitada,\n   NombreProductoOriginal,MarcaOriginal,PresentacionOriginal,ContenidoEmpaqueOriginal,IdUnidadMedidaOriginal,CodigoUnidadOriginal,TipoBaseOriginal,\n   FactorConversionOriginal,ContenidoNormalizadoOriginal,PermiteAlternativas,Observaciones)\n  SELECT @IdNuevaSolicitud,NumeroLinea,IdProducto,IdPresentacionProducto,CantidadEmpaquesSolicitada,NombreProductoOriginal,MarcaOriginal,PresentacionOriginal,\n   ContenidoEmpaqueOriginal,IdUnidadMedidaOriginal,CodigoUnidadOriginal,TipoBaseOriginal,FactorConversionOriginal,ContenidoNormalizadoOriginal,PermiteAlternativas,Observaciones\n  FROM dbo.SolicitudesCotizacionDetalle WHERE IdSolicitudCotizacion=@IdSolicitudCotizacion;\n  INSERT dbo.SolicitudesCotizacionProveedor(IdSolicitudCotizacion,IdProveedor)SELECT @IdNuevaSolicitud,IdProveedor FROM dbo.SolicitudesCotizacionProveedor WHERE IdSolicitudCotizacion=@IdSolicitudCotizacion;\n  IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK; ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION RevisionSolicitud;\n  THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Solicitud_Emitir",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdSolicitudCotizacion",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\n/* Operaciones transaccionales del nuevo contrato. La API debe adoptarlas. */\nCREATE   PROCEDURE dbo.usp_Solicitud_Emitir @IdSolicitudCotizacion bigint AS\nBEGIN\n SET NOCOUNT ON; SET XACT_ABORT ON;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION EmitirSolicitud;\n BEGIN TRY\n  IF NOT EXISTS(SELECT 1 FROM dbo.SolicitudesCotizacion WITH(UPDLOCK,HOLDLOCK)\n  WHERE IdSolicitudCotizacion=@IdSolicitudCotizacion AND Estado='Borrador')\n  THROW 51200,N'La solicitud no existe o ya no es borrador.',1;\n  IF EXISTS(SELECT 1 FROM dbo.SolicitudesCotizacionDetalle d JOIN dbo.Productos p ON p.IdProducto=d.IdProducto\n  JOIN dbo.ProductosBase b ON b.IdProductoBase=p.IdProductoBase LEFT JOIN dbo.Marcas m ON m.IdMarca=p.IdMarca\n  JOIN dbo.PresentacionesProducto pp ON pp.IdPresentacionProducto=d.IdPresentacionProducto JOIN dbo.UnidadesMedida u ON u.IdUnidadMedida=pp.IdUnidadMedida\n  WHERE d.IdSolicitudCotizacion=@IdSolicitudCotizacion AND (p.Activo=0 OR b.Activo=0 OR pp.Activo=0 OR u.Activo=0 OR (p.IdMarca IS NOT NULL AND m.Activo=0)))\n  THROW 52000,N'La solicitud utiliza catalogos inactivos.',1;\n  IF EXISTS(SELECT 1 FROM dbo.SolicitudesCotizacionProveedor sp JOIN dbo.Proveedores p ON p.IdProveedor=sp.IdProveedor WHERE sp.IdSolicitudCotizacion=@IdSolicitudCotizacion AND p.Activo=0)\n  THROW 52000,N'La solicitud contiene destinatarios inactivos.',1;\n  UPDATE dbo.SolicitudesCotizacion SET Estado='Emitida',FechaEmision=SYSUTCDATETIME(),FechaModificacion=SYSUTCDATETIME()\n  WHERE IdSolicitudCotizacion=@IdSolicitudCotizacion;\n  IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK;\n  ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION EmitirSolicitud;\n  THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Solicitud_GuardarBorrador",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@NumeroSolicitud",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 100,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@FechaSolicitud",
+        "Tipo": "date",
+        "LongitudBytes": 3,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@FechaLimiteRespuesta",
+        "Tipo": "date",
+        "LongitudBytes": 3,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@DatosClienteOriginalJson",
+        "Tipo": "nvarchar",
+        "LongitudBytes": -1,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 5,
+        "Nombre": "@Observaciones",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 4000,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 6,
+        "Nombre": "@LineasJson",
+        "Tipo": "nvarchar",
+        "LongitudBytes": -1,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 7,
+        "Nombre": "@ProveedoresJson",
+        "Tipo": "nvarchar",
+        "LongitudBytes": -1,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 8,
+        "Nombre": "@IdSolicitudCotizacion",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": true
+      }
+    ],
+    "Definicion": "\n/* Guardado completo del borrador. Los IDs de linea quedan definitivos al emitir.\n   Guardar otra vez un borrador reemplaza sus lineas/destinatarios atomicamente. */\nCREATE   PROCEDURE dbo.usp_Solicitud_GuardarBorrador\n @NumeroSolicitud nvarchar(50),@FechaSolicitud date,@FechaLimiteRespuesta date=NULL,\n @DatosClienteOriginalJson nvarchar(max)=NULL,@Observaciones nvarchar(2000)=NULL,\n @LineasJson nvarchar(max),@ProveedoresJson nvarchar(max),@IdSolicitudCotizacion bigint OUTPUT\nAS\nBEGIN\n SET NOCOUNT ON; SET XACT_ABORT ON;\n IF NULLIF(LTRIM(RTRIM(@NumeroSolicitud)),N'') IS NULL OR @FechaSolicitud IS NULL THROW 52000,N'Numero y fecha de solicitud obligatorios.',1;\n IF ISNULL(ISJSON(@LineasJson,ARRAY),0)<>1 OR ISNULL(ISJSON(@ProveedoresJson,ARRAY),0)<>1 THROW 52000,N'Lineas y proveedores deben ser arreglos JSON.',1;\n IF EXISTS(SELECT 1 FROM OPENJSON(@LineasJson) WHERE [type]<>5) THROW 52000,N'Cada linea debe ser un objeto.',1;\n IF EXISTS(SELECT 1 FROM OPENJSON(@ProveedoresJson) WHERE [type]<>2 OR TRY_CONVERT(int,[value]) IS NULL) THROW 52000,N'Proveedores debe contener IDs enteros.',1;\n DECLARE @Propiedades table(Linea int,Clave nvarchar(4000) COLLATE Latin1_General_100_BIN2,Valor nvarchar(max),Tipo int);\n INSERT @Propiedades SELECT CONVERT(int,j.[key]),v.[key],v.[value],v.[type] FROM OPENJSON(@LineasJson)j CROSS APPLY OPENJSON(j.[value])v;\n IF EXISTS(SELECT Linea,Clave FROM @Propiedades GROUP BY Linea,Clave HAVING COUNT(*)>1)\n OR EXISTS(SELECT 1 FROM @Propiedades WHERE Clave NOT IN(N'numeroLinea',N'idProducto',N'idPresentacionProducto',N'cantidadEmpaques',N'permiteAlternativas',N'observaciones'))\n THROW 52000,N'Propiedad duplicada o desconocida en lineas de solicitud.',1;\n IF EXISTS(SELECT 1 FROM @Propiedades WHERE Clave=N'cantidadEmpaques' AND (Tipo NOT IN(1,2) OR TRY_CONVERT(decimal(18,4),Valor) IS NULL\n OR TRY_CONVERT(decimal(38,18),Valor)<>TRY_CONVERT(decimal(18,4),Valor)\n OR (CHARINDEX(N'.',Valor)>0 AND SUBSTRING(Valor,CHARINDEX(N'.',Valor)+5,4000) LIKE N'%[^0]%')))\n THROW 52000,N'Cantidad de empaques fuera de la precision decimal(18,4).',1;\n IF EXISTS(SELECT 1 FROM @Propiedades WHERE Clave IN(N'numeroLinea',N'idProducto',N'idPresentacionProducto') AND (Tipo NOT IN(1,2) OR TRY_CONVERT(int,Valor) IS NULL OR TRY_CONVERT(int,Valor)<=0))\n OR EXISTS(SELECT 1 FROM @Propiedades WHERE Clave=N'permiteAlternativas' AND Tipo NOT IN(0,3))\n OR EXISTS(SELECT 1 FROM @Propiedades WHERE Clave=N'observaciones' AND Tipo<>0 AND (Tipo<>1 OR DATALENGTH(Valor)>2000))\n THROW 52000,N'Tipos, identificadores o longitud invalidos en lineas de solicitud.',1;\n DECLARE @L table(NumeroLinea int,IdProducto int,IdPresentacion int,Cantidad decimal(18,4),PermiteAlternativas bit,Observaciones nvarchar(1000));\n INSERT @L SELECT NumeroLinea,IdProducto,IdPresentacion,Cantidad,COALESCE(PermiteAlternativas,1),Observaciones\n FROM OPENJSON(@LineasJson) WITH(NumeroLinea int '$.numeroLinea',IdProducto int '$.idProducto',IdPresentacion int '$.idPresentacionProducto',\n Cantidad decimal(18,4) '$.cantidadEmpaques',PermiteAlternativas bit '$.permiteAlternativas',Observaciones nvarchar(1000) '$.observaciones');\n IF EXISTS(SELECT 1 FROM @L WHERE NumeroLinea IS NULL OR NumeroLinea<=0 OR IdProducto IS NULL OR IdPresentacion IS NULL OR Cantidad IS NULL OR Cantidad<=0)\n THROW 52000,N'Lineas con identificacion o cantidades incompletas.',1;\n IF EXISTS(SELECT NumeroLinea FROM @L GROUP BY NumeroLinea HAVING COUNT(*)>1) THROW 52009,N'Numero de linea repetido.',1;\n IF EXISTS(SELECT [value] FROM OPENJSON(@ProveedoresJson) GROUP BY [value] HAVING COUNT(*)>1) THROW 52009,N'Proveedor repetido.',1;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION GuardarSolicitud;\n BEGIN TRY\n  IF EXISTS(SELECT 1 FROM @L l LEFT JOIN dbo.PresentacionesProducto pp WITH(HOLDLOCK) ON pp.IdPresentacionProducto=l.IdPresentacion AND pp.IdProducto=l.IdProducto\n  LEFT JOIN dbo.Productos p WITH(HOLDLOCK) ON p.IdProducto=l.IdProducto LEFT JOIN dbo.ProductosBase b WITH(HOLDLOCK) ON b.IdProductoBase=p.IdProductoBase\n  LEFT JOIN dbo.Marcas m WITH(HOLDLOCK) ON m.IdMarca=p.IdMarca LEFT JOIN dbo.UnidadesMedida u WITH(HOLDLOCK) ON u.IdUnidadMedida=pp.IdUnidadMedida\n  WHERE pp.IdPresentacionProducto IS NULL OR p.Activo<>1 OR b.Activo<>1 OR pp.Activo<>1 OR u.Activo<>1 OR (p.IdMarca IS NOT NULL AND m.Activo<>1))\n  THROW 52000,N'Las lineas deben usar productos, presentaciones y unidades activos y relacionados.',1;\n  IF EXISTS(SELECT 1 FROM OPENJSON(@ProveedoresJson) j LEFT JOIN dbo.Proveedores p WITH(HOLDLOCK) ON p.IdProveedor=TRY_CONVERT(int,j.[value]) WHERE p.IdProveedor IS NULL OR p.Activo<>1)\n  THROW 52000,N'Proveedor inexistente o inactivo.',1;\n  IF @IdSolicitudCotizacion IS NULL\n  BEGIN\n   INSERT dbo.SolicitudesCotizacion(NumeroSolicitud,FechaSolicitud,FechaLimiteRespuesta,DatosClienteOriginalJson,Observaciones)\n   VALUES(LTRIM(RTRIM(@NumeroSolicitud)),@FechaSolicitud,@FechaLimiteRespuesta,@DatosClienteOriginalJson,@Observaciones);\n   SET @IdSolicitudCotizacion=CONVERT(bigint,SCOPE_IDENTITY());\n  END ELSE BEGIN\n   IF NOT EXISTS(SELECT 1 FROM dbo.SolicitudesCotizacion WITH(UPDLOCK,HOLDLOCK) WHERE IdSolicitudCotizacion=@IdSolicitudCotizacion AND Estado='Borrador')\n   THROW 52010,N'La solicitud no existe o ya no admite cambios de borrador.',1;\n   IF EXISTS(SELECT 1 FROM dbo.SolicitudesCotizacion WHERE IdSolicitudCotizacion=@IdSolicitudCotizacion AND VersionSolicitud>1 AND NumeroSolicitud<>@NumeroSolicitud)\n   THROW 52010,N'Una revision conserva el numero de su cadena.',1;\n   UPDATE dbo.SolicitudesCotizacion SET NumeroSolicitud=LTRIM(RTRIM(@NumeroSolicitud)),FechaSolicitud=@FechaSolicitud,FechaLimiteRespuesta=@FechaLimiteRespuesta,\n   DatosClienteOriginalJson=@DatosClienteOriginalJson,Observaciones=@Observaciones,FechaModificacion=SYSUTCDATETIME() WHERE IdSolicitudCotizacion=@IdSolicitudCotizacion;\n   DELETE dbo.SolicitudesCotizacionDetalle WHERE IdSolicitudCotizacion=@IdSolicitudCotizacion;\n   DELETE dbo.SolicitudesCotizacionProveedor WHERE IdSolicitudCotizacion=@IdSolicitudCotizacion;\n  END;\n  INSERT dbo.SolicitudesCotizacionDetalle(IdSolicitudCotizacion,NumeroLinea,IdProducto,IdPresentacionProducto,CantidadEmpaquesSolicitada,\n   NombreProductoOriginal,MarcaOriginal,PresentacionOriginal,ContenidoEmpaqueOriginal,IdUnidadMedidaOriginal,CodigoUnidadOriginal,TipoBaseOriginal,\n   FactorConversionOriginal,ContenidoNormalizadoOriginal,PermiteAlternativas,Observaciones)\n  SELECT @IdSolicitudCotizacion,l.NumeroLinea,p.IdProducto,pp.IdPresentacionProducto,l.Cantidad,p.Nombre,m.Nombre,pp.Descripcion,pp.Cantidad,\n   u.IdUnidadMedida,u.Codigo,u.TipoBase,u.FactorConversion,pp.CantidadNormalizada,l.PermiteAlternativas,l.Observaciones\n  FROM @L l JOIN dbo.Productos p ON p.IdProducto=l.IdProducto LEFT JOIN dbo.Marcas m ON m.IdMarca=p.IdMarca\n  JOIN dbo.PresentacionesProducto pp ON pp.IdPresentacionProducto=l.IdPresentacion JOIN dbo.UnidadesMedida u ON u.IdUnidadMedida=pp.IdUnidadMedida;\n  INSERT dbo.SolicitudesCotizacionProveedor(IdSolicitudCotizacion,IdProveedor)SELECT @IdSolicitudCotizacion,CONVERT(int,[value]) FROM OPENJSON(@ProveedoresJson);\n  IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK; ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION GuardarSolicitud;\n  THROW;\n END CATCH;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Solicitud_Listar",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@Estado",
+        "Tipo": "varchar",
+        "LongitudBytes": 20,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@Buscar",
+        "Tipo": "nvarchar",
+        "LongitudBytes": 100,
+        "Precision": 0,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@Pagina",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 4,
+        "Nombre": "@TamanoPagina",
+        "Tipo": "int",
+        "LongitudBytes": 4,
+        "Precision": 10,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Solicitud_Listar\n @Estado varchar(20)=NULL,@Buscar nvarchar(50)=NULL,@Pagina int=1,@TamanoPagina int=50\nAS\nBEGIN\n SET NOCOUNT ON;\n IF @Pagina IS NULL OR @Pagina<1 OR @TamanoPagina IS NULL OR @TamanoPagina NOT BETWEEN 1 AND 200 THROW 52000,N'Paginacion invalida.',1;\n SELECT s.*,COUNT_BIG(*) OVER() AS TotalRegistros,\n (SELECT COUNT(*) FROM dbo.SolicitudesCotizacionDetalle d WHERE d.IdSolicitudCotizacion=s.IdSolicitudCotizacion) AS CantidadLineas,\n (SELECT COUNT(*) FROM dbo.SolicitudesCotizacionProveedor p WHERE p.IdSolicitudCotizacion=s.IdSolicitudCotizacion) AS CantidadProveedores\n FROM dbo.SolicitudesCotizacion s WHERE (@Estado IS NULL OR s.Estado=@Estado) AND (@Buscar IS NULL OR s.NumeroSolicitud LIKE N'%'+@Buscar+N'%')\n ORDER BY s.FechaCreacion DESC,s.IdSolicitudCotizacion DESC OFFSET CONVERT(bigint,@Pagina-1)*@TamanoPagina ROWS FETCH NEXT @TamanoPagina ROWS ONLY;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Solicitud_ObtenerPorId",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdSolicitudCotizacion",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Solicitud_ObtenerPorId @IdSolicitudCotizacion bigint AS\nBEGIN\n SET NOCOUNT ON;\n IF NOT EXISTS(SELECT 1 FROM dbo.SolicitudesCotizacion WHERE IdSolicitudCotizacion=@IdSolicitudCotizacion) THROW 52004,N'Solicitud no existe.',1;\n SELECT * FROM dbo.SolicitudesCotizacion WHERE IdSolicitudCotizacion=@IdSolicitudCotizacion;\n SELECT * FROM dbo.SolicitudesCotizacionDetalle WHERE IdSolicitudCotizacion=@IdSolicitudCotizacion ORDER BY NumeroLinea;\n SELECT sp.*,p.Nombre AS NombreProveedor,(SELECT COUNT(*) FROM dbo.ProformasProveedor q WHERE q.IdSolicitudCotizacionProveedor=sp.IdSolicitudCotizacionProveedor) AS CantidadRespuestas\n FROM dbo.SolicitudesCotizacionProveedor sp JOIN dbo.Proveedores p ON p.IdProveedor=sp.IdProveedor WHERE sp.IdSolicitudCotizacion=@IdSolicitudCotizacion ORDER BY sp.IdSolicitudCotizacionProveedor;\nEND;\n"
+  },
+  {
+    "Esquema": "dbo",
+    "Procedimiento": "usp_Solicitud_RegistrarEnvio",
+    "Parametros": [
+      {
+        "Orden": 1,
+        "Nombre": "@IdSolicitudCotizacionProveedor",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 2,
+        "Nombre": "@IdDocumentoEnviado",
+        "Tipo": "bigint",
+        "LongitudBytes": 8,
+        "Precision": 19,
+        "Escala": 0,
+        "EsSalida": false
+      },
+      {
+        "Orden": 3,
+        "Nombre": "@FechaEnvio",
+        "Tipo": "datetime2",
+        "LongitudBytes": 7,
+        "Precision": 23,
+        "Escala": 3,
+        "EsSalida": false
+      }
+    ],
+    "Definicion": "\nCREATE   PROCEDURE dbo.usp_Solicitud_RegistrarEnvio\n @IdSolicitudCotizacionProveedor bigint,@IdDocumentoEnviado bigint,@FechaEnvio datetime2(3)=NULL\nAS\nBEGIN\n SET NOCOUNT ON; SET XACT_ABORT ON;\n DECLARE @TranInicial int=@@TRANCOUNT;\n IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION RegistrarEnvio;\n BEGIN TRY\n  DECLARE @DocAnterior bigint,@FechaAnterior datetime2(3);\n  IF NOT EXISTS(SELECT 1 FROM dbo.SolicitudesCotizacionProveedor sp WITH(UPDLOCK,HOLDLOCK)\n   JOIN dbo.SolicitudesCotizacion s ON s.IdSolicitudCotizacion=sp.IdSolicitudCotizacion AND s.Estado='Emitida'\n   JOIN dbo.Proveedores p ON p.IdProveedor=sp.IdProveedor AND p.Activo=1 WHERE sp.IdSolicitudCotizacionProveedor=@IdSolicitudCotizacionProveedor)\n  THROW 52010,N'El destinatario requiere una solicitud emitida y un proveedor activo.',1;\n  SELECT @DocAnterior=IdDocumentoEnviado,@FechaAnterior=FechaEnvio FROM dbo.SolicitudesCotizacionProveedor WHERE IdSolicitudCotizacionProveedor=@IdSolicitudCotizacionProveedor;\n  IF @FechaAnterior IS NOT NULL AND @DocAnterior<>@IdDocumentoEnviado THROW 52009,N'El envio original ya esta registrado con otro documento.',1;\n  IF NOT EXISTS(SELECT 1 FROM dbo.Documentos WHERE IdDocumento=@IdDocumentoEnviado AND Origen='Generado') THROW 52000,N'PDF de salida inexistente o no generado.',1;\n  IF @FechaAnterior IS NULL\n   UPDATE dbo.SolicitudesCotizacionProveedor SET IdDocumentoEnviado=@IdDocumentoEnviado,FechaEnvio=COALESCE(@FechaEnvio,SYSUTCDATETIME()),Estado='Enviada'\n   WHERE IdSolicitudCotizacionProveedor=@IdSolicitudCotizacionProveedor;\n  IF @TranInicial=0 COMMIT;\n END TRY BEGIN CATCH\n  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK; ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION RegistrarEnvio;\n  THROW;\n END CATCH;\nEND;\n"
+  }
+]
