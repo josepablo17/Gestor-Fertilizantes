@@ -15,6 +15,37 @@ Directory.CreateDirectory(artifacts);
 var baseConnection = Environment.GetEnvironmentVariable("GF_SQL_CONNECTION_STRING");
 if (string.IsNullOrWhiteSpace(baseConnection))
     throw new InvalidOperationException("Falta GF_SQL_CONNECTION_STRING.");
+if (args.Length == 1 && args[0] is "--seed-persistence" or "--verify-persistence")
+{
+    // This mode is only for the independently generated Compose test database.
+    // A normal local database can never be populated by the persistence test.
+    var settings = new SqlConnectionStringBuilder(baseConnection);
+    Assert(Regex.IsMatch(settings.InitialCatalog, "^GF_DB_COMPOSE_[a-f0-9]{32}$", RegexOptions.CultureInvariant), "La prueba de persistencia exige una base Compose desechable.");
+    await using var persistenceConnection = new SqlConnection(settings.ConnectionString);
+    await persistenceConnection.OpenAsync();
+    await VerifySchema(persistenceConnection);
+    var baselinePath = Path.Combine(artifacts, "persistence-baseline.json");
+    if (args[0] == "--seed-persistence")
+    {
+        await VerifyEmptyBusinessData(persistenceConnection);
+        await CreateHistory(persistenceConnection, await LoadFixture(root));
+        var baseline = new PersistenceBaseline(settings.InitialCatalog, await SequenceValue(persistenceConnection), await Snapshot(persistenceConnection));
+        await File.WriteAllTextAsync(baselinePath, JsonSerializer.Serialize(baseline, new JsonSerializerOptions { WriteIndented = true }));
+        Console.WriteLine("Historia de prueba guardada para verificar persistencia del volumen.");
+    }
+    else
+    {
+        var baseline = JsonSerializer.Deserialize<PersistenceBaseline>(await File.ReadAllTextAsync(baselinePath))
+                       ?? throw new InvalidOperationException("Falta baseline de persistencia.");
+        Assert(baseline.Database == settings.InitialCatalog, "La baseline pertenece a otra base de prueba.");
+        Assert(JsonSerializer.Serialize(baseline.Tables) == JsonSerializer.Serialize(await Snapshot(persistenceConnection)), "La recreacion/redespliegue modifico datos persistidos.");
+        Assert(baseline.Sequence == await SequenceValue(persistenceConnection), "Se reinicio la secuencia persistida.");
+        await File.WriteAllTextAsync(Path.Combine(artifacts, "persistence-verified.json"), JsonSerializer.Serialize(new { Database = settings.InitialCatalog, AllRowsPreserved = true, SequencePreserved = true }));
+        Console.WriteLine("OK: todas las filas y la secuencia sobrevivieron a recrear SQL Server y reaplicar el DACPAC.");
+    }
+    return;
+}
+Assert(args.Length == 0, "Modo de prueba no reconocido.");
 var masterSettings = new SqlConnectionStringBuilder(baseConnection) { InitialCatalog = "master" };
 var database = "GF_DB_TEST_" + Guid.NewGuid().ToString("N");
 var targetSettings = new SqlConnectionStringBuilder(baseConnection) { InitialCatalog = database };
@@ -42,8 +73,7 @@ try
     await VerifySchema(connection);
     await VerifyEmptyBusinessData(connection);
 
-    var fixture = await File.ReadAllTextAsync(Path.Combine(root, "tests", "catalogo-pruebas.sql")) + "\n" +
-                  await File.ReadAllTextAsync(Path.Combine(root, "tests", "fixture-pruebas.sql"));
+    var fixture = await LoadFixture(root);
     var cases = JsonSerializer.Deserialize<TestCase[]>(await File.ReadAllTextAsync(Path.Combine(root, "tests", "casos-integracion.json")))
                 ?? throw new InvalidOperationException("No hay casos de prueba.");
     foreach (var test in cases)
@@ -85,18 +115,7 @@ try
     // Persist a realistic request, original files, extraction, reviewed response
     // and audit, then prove that republishing preserves EVERY row byte-for-byte.
     Console.WriteLine("Actualizacion sobre datos historicos de prueba...");
-    await using (var transaction = (SqlTransaction)await connection.BeginTransactionAsync())
-    {
-        var body = fixture.Replace("-- TEST_BEFORE_EMIT", "", StringComparison.Ordinal) + """
-
-        EXEC dbo.usp_Proforma_RevisarLinea @QD;
-        EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada',N'Historia conservada durante despliegue';
-        EXEC dbo.usp_Proforma_Validar @Q;
-        """;
-        await using var command = new SqlCommand(body, connection, transaction) { CommandTimeout = 60 };
-        await command.ExecuteNonQueryAsync();
-        await transaction.CommitAsync();
-    }
+    await CreateHistory(connection, fixture);
     var before = await Snapshot(connection);
     var sequenceBefore = await SequenceValue(connection);
     await connection.CloseAsync();
@@ -168,6 +187,24 @@ static async Task WaitForServer(SqlConnection connection)
     }
 }
 
+static async Task<string> LoadFixture(string root) =>
+    await File.ReadAllTextAsync(Path.Combine(root, "tests", "catalogo-pruebas.sql")) + "\n" +
+    await File.ReadAllTextAsync(Path.Combine(root, "tests", "fixture-pruebas.sql"));
+
+static async Task CreateHistory(SqlConnection connection, string fixture)
+{
+    await using var transaction = (SqlTransaction)await connection.BeginTransactionAsync();
+    var body = fixture.Replace("-- TEST_BEFORE_EMIT", "", StringComparison.Ordinal) + """
+
+    EXEC dbo.usp_Proforma_RevisarLinea @QD;
+    EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada',N'Historia conservada durante despliegue';
+    EXEC dbo.usp_Proforma_Validar @Q;
+    """;
+    await using var command = new SqlCommand(body, connection, transaction) { CommandTimeout = 60 };
+    await command.ExecuteNonQueryAsync();
+    await transaction.CommitAsync();
+}
+
 static async Task VerifySchema(SqlConnection connection)
 {
     var expected = new Dictionary<string, int> { ["U"] = 16, ["P"] = 83, ["TR"] = 14, ["V"] = 2, ["FN"] = 1, ["SO"] = 1, ["PK"] = 16, ["F"] = 36, ["C"] = 79 };
@@ -235,3 +272,4 @@ static void Assert(bool condition, string message)
 record TestCase(string Name, string Sql, string? Setup, string? BeforeEmit, int[]? Errors);
 record TestResult(string Name, bool Passed, string? Detail);
 record TableSnapshot(long Rows, string Sha256);
+record PersistenceBaseline(string Database, string Sequence, SortedDictionary<string, TableSnapshot> Tables);

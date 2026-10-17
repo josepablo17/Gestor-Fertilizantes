@@ -74,11 +74,11 @@ Comprueba creación desde cero, objetos/collation/restricciones, cinco unidades 
 
 Evidencia: `artifacts/verification`. No ejecutar las fixtures SQL directamente. Las pruebas verifican SQL, no PDFs físicos, API o interfaz.
 
-## CI preparado
+## CI
 
-`.github/workflows/database.yml` compila y prueba cambios de `database` en Ubuntu, usando las mismas herramientas y un SQL Server 2022 CU27 desechable fijado por digest. La contraseña se genera/enmascara en el job; no requiere acceso a una base del usuario. Las acciones están fijadas por SHA.
+`.github/workflows/database.yml` compila y prueba cambios de `database` en Ubuntu, usando las mismas herramientas y un SQL Server 2022 CU27 desechable fijado por digest. Incluye además el ciclo Compose de inicialización, recreación del contenedor y conservación del volumen. Las contraseñas se generan durante las pruebas; no requiere acceso a una base del usuario. Las acciones están fijadas por SHA.
 
-El artefacto queda asociado al commit e incluye DACPAC, perfil, manifiesto y resultados. El flujo no despliega en bases externas. Está preparado localmente y se ejecutará al publicar el código; todavía no se ha ejecutado en GitHub.
+El artefacto queda asociado al commit e incluye DACPAC, perfil, manifiesto y resultados de ambos recorridos. El flujo no despliega en bases externas. La baseline ya pasó su primer CI real en GitHub; las ejecuciones del PR documentan el resultado correspondiente a cada revisión.
 
 ## Cambios posteriores
 
@@ -90,16 +90,24 @@ El artefacto queda asociado al commit e incluye DACPAC, perfil, manifiesto y res
 
 `SchemaVersion` y `ProceduresVersion` conservan los identificadores de las migraciones históricas. La nueva baseline de código/artefacto se identifica mediante `DacVersion`, manifiesto, commit y etiqueta; no se presenta esos dos identificadores antiguos como un journal de despliegues futuros.
 
-## Preparación para Docker
+## Docker Compose
 
 El proyecto no incluye rutas MDF/LDF de Windows, usuarios ligados al equipo ni catálogos exportados. El mismo DACPAC/perfil permite desplegar en SQL Server 2022 sobre Linux indicando conexión y autenticación del entorno.
 
-La siguiente etapa podrá agregar Compose con volumen persistente y un inicializador que espere al servidor y publique el DACPAC. SQL Server y ese inicializador deben ser procesos separados. Esta etapa prepara el contrato de despliegue y el contenedor de pruebas de CI; todavía no ejecuta Docker local ni empaqueta backend/frontend.
+Ya hay servicios separados para SQL Server con volumen persistente, inicializador del DACPAC e imagen de pruebas. Desde esta carpeta:
+
+```powershell
+./scripts/Invoke-DockerDatabase.ps1 -Action Up
+./scripts/Invoke-DockerDatabase.ps1 -Action Status
+./scripts/Invoke-DockerDatabase.ps1 -Action Test
+```
+
+Ver [docker/README.md](docker/README.md) para conexión local, persistencia, reaplicación y evidencias. La parada habitual conserva el volumen. Backend y frontend no forman parte de estos servicios todavía.
 
 ## Resultado verificado
 
 Compilación sin advertencias ni errores; base nueva de SQL Server 2022, **89 pruebas correctas**, datos/secuencia conservados al redesplegar, cero operaciones pendientes y base temporal eliminada. El plan contra `BDComprasFertilizantes` dio **cero operaciones de cambio en los objetos gestionados**: no se publicó ni se alteraron sus catálogos.
 
-La prueba local usó SQL Server sobre Windows. La ejecución Linux/contenedor y el workflow remoto quedan pendientes de ejecución.
+Las pruebas de baseline pasaron tanto sobre la instancia Windows como sobre SQL Server en Linux en el primer CI real. Las evidencias posteriores del PR y `artifacts/docker` documentan el recorrido Compose de cada ejecución.
 
 Referencias: [Microsoft.Build.Sql](https://www.nuget.org/packages/Microsoft.Build.Sql/2.3.0), [referencias de sistema en proyectos SQL](https://learn.microsoft.com/en-us/sql/tools/sql-database-projects/concepts/system-objects?view=sql-server-ver17), [acciones de SqlPackage](https://learn.microsoft.com/en-us/sql/tools/sqlpackage/cli-reference?view=sql-server-ver17).

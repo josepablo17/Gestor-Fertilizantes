@@ -1,5 +1,13 @@
 # Historial de la base de datos
 
+## Infraestructura Docker y CI — 2026-10-16
+
+- Rama de trabajo y PR para revisar la baseline antes de integrar a main.
+- Primer CI real en GitHub completado correctamente con las 89 pruebas sobre SQL Server Linux.
+- Compose con volumen persistente, healthcheck autenticado e inicializador separado sin SDK en la imagen final.
+- Herramienta de arranque/parada y pruebas de recreación de contenedor, conservación de todas las filas y reaplicación del DACPAC.
+- El CI incorpora ese mismo ciclo Compose y sus evidencias. El esquema y DacVersion 1.0.0.0 no cambian en esta etapa de infraestructura.
+
 ## 1.0.0 — 2026-10-16
 
 - Primera baseline declarativa del modelo de cotizaciones v1 y procedimientos v2.

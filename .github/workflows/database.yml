@@ -2,10 +2,10 @@ name: Database DACPAC
 
 on:
   pull_request:
-    paths: ['database/**', '.github/workflows/database.yml', '.gitignore']
+    paths: ['database/**', '.github/workflows/database.yml', '.gitignore', '.gitattributes']
   push:
     branches: [main]
-    paths: ['database/**', '.github/workflows/database.yml', '.gitignore']
+    paths: ['database/**', '.github/workflows/database.yml', '.gitignore', '.gitattributes']
   workflow_dispatch:
 
 permissions:
@@ -45,6 +45,8 @@ jobs:
       - name: Stop disposable SQL Server
         if: always()
         run: docker rm --force gf-sql-tests
+      - name: Verify Compose initialization, Linux tests and persistent volume
+        run: ./scripts/Invoke-DockerDatabase.ps1 -Action Test
       - name: Upload versioned artifact and verification
         if: success()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
@@ -53,12 +55,15 @@ jobs:
           path: |
             database/artifacts/package/
             database/artifacts/verification/
+            database/artifacts/docker/
           retention-days: 14
       - name: Upload failed test evidence
         if: failure()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: database-test-failure-${{ github.sha }}
-          path: database/artifacts/verification/
+          path: |
+            database/artifacts/verification/
+            database/artifacts/docker/
           if-no-files-found: ignore
           retention-days: 7
