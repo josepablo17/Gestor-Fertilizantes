@@ -1,6 +1,6 @@
 # Gestor de fertilizantes
 
-Sistema local para solicitudes de cotización, recepción de proformas y comparación de precios. La base contiene el modelo nuevo y los seis catálogos del backend ya están adaptados. Continúan pendientes los demás flujos del backend y la adaptación del frontend.
+Sistema local para solicitudes de cotización, recepción de proformas y comparación de precios. El backend incluye los seis catálogos y el flujo de solicitudes con PDF rellenable por proveedor. Continúan pendientes la recepción y revisión de proformas con el modelo nuevo, la comparación y la adaptación del frontend.
 
 ## Plataforma
 
@@ -19,12 +19,14 @@ Up prepara el usuario SQL limitado y la conexión del backend en appsettings.loc
 
 Productos base, marcas, productos, presentaciones, unidades y proveedores usan los contratos SQL nuevos. Los cuerpos antiguos de productos/presentaciones y las pantallas anteriores requieren migración. Consultar los [contratos](database/contracts/Contratos-backend.md).
 
+El flujo de [solicitudes y PDF](docs/Solicitudes-y-PDF.md) se puede probar desde Swagger en Development. El original se guarda en disco; respaldar la carpeta de documentos junto con la base.
+
 ## Verificación
 
     ./scripts/Probar-Backend.ps1
     ./database/scripts/Invoke-DockerDatabase.ps1 -Action Test -VerifyBackend
 
-La primera orden restaura en modo bloqueado, compila sin advertencias, ejecuta 98 pruebas unitarias y cinco comprobaciones HTTP sin SQL. La segunda verifica el DACPAC, 89 casos SQL, persistencia en Docker y la API con permisos reales de su usuario limitado. Usa recursos temporales propios que elimina al terminar.
+La primera orden restaura en modo bloqueado, compila sin advertencias, ejecuta las pruebas unitarias y cinco comprobaciones HTTP sin SQL. La segunda verifica el DACPAC, 89 casos SQL, persistencia en Docker y la API con permisos reales de su usuario limitado. Usa una base, un usuario y un volumen temporales propios; deja la evidencia de pruebas en `artifacts`.
 
 Las 14 advertencias previas de nulabilidad se corrigieron sin supresiones. Todas las advertencias se tratan como errores. Los archivos generados bin/obj están fuera de Git. Los cambios deliberados de paquetes requieren actualizar su packages.lock.json y comprobar la restauración --locked-mode.
 
@@ -32,7 +34,7 @@ La API y las pruebas fijan System.Security.Cryptography.Pkcs 10.0.14 para correg
 
 ## Base de datos
 
-El DACPAC 1.0.1.0 agrega el rol rol_gestor_api y permisos EXECUTE sobre 82 procedimientos públicos. No concede acceso directo a tablas ni administración. Usuarios, contraseñas y SIDs se preparan fuera del DACPAC. Se conserva SQL Server 2022 y el modelo de negocio.
+El DACPAC 1.0.2.0 permite asociar el PDF original a un destinatario antes de registrar el envío. El rol `rol_gestor_api` tiene permisos EXECUTE sobre 83 procedimientos públicos. No concede acceso directo a tablas ni administración. Usuarios, contraseñas y SIDs se preparan fuera del DACPAC.
 
 Docker usa SDK 10.0.403 y runtime 10.0.14 sobre Ubuntu Noble, fijados por digest. SqlPackage 170.5.96, distribuido para net8.0, se ejecuta sobre runtime 10 mediante DOTNET_ROLL_FORWARD=Major. No es necesario instalar runtime 8 o 9 en las imágenes.
 

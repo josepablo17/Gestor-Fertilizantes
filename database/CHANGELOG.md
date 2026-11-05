@@ -1,5 +1,11 @@
 # Historial de la base de datos
 
+## 1.0.2 — 2026-11-05
+
+- `usp_Solicitud_AsignarDocumento` vincula el PDF generado a un destinatario de una solicitud emitida sin registrar un envío.
+- Se protege la referencia al PDF original desde la asignación. `usp_Solicitud_RegistrarEnvio` conserva el original y la fecha del primer envío.
+- El rol de API recibe permiso de ejecución del nuevo procedimiento. Se conservan las tablas y sus columnas.
+
 ## 1.0.1 — 2026-11-05
 
 - Rol versionado de ejecución con permisos sobre 82 procedimientos públicos.

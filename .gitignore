@@ -9,6 +9,7 @@
 *.bak
 *.log
 node_modules/
+**/datos/
 
 # Local configuration and credentials
 .env

@@ -157,6 +157,14 @@
         "resolved": "0.1.14",
         "contentHash": "V2Anq0Yvyn3bGGG8WCQxqEAshG0KHIehB0QOotCz14vTkEk1PR3ErPOSmbnEsyOewhdF3G5XpQHywK2L50Xu+A=="
       },
+      "PDFsharp": {
+        "type": "Transitive",
+        "resolved": "6.2.4",
+        "contentHash": "GhTr9F1uOYXHCIEOB5PXIgqn5a8WLsJL2m0eewTA0IvY1j6N4HGXHKKmEyB90/N6vrjmYamf41V9zbmdW2HY3g==",
+        "dependencies": {
+          "System.Security.Cryptography.Pkcs": "8.0.1"
+        }
+      },
       "Swashbuckle.AspNetCore": {
         "type": "Transitive",
         "resolved": "6.6.2",
@@ -261,6 +269,7 @@
         "dependencies": {
           "Dapper": "[2.1.72, )",
           "Microsoft.Data.SqlClient": "[7.0.0, )",
+          "PDFsharp": "[6.2.4, )",
           "PdfPig": "[0.1.14, )",
           "Swashbuckle.AspNetCore": "[6.6.2, )",
           "System.Security.Cryptography.Pkcs": "[10.0.14, )"

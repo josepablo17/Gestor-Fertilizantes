@@ -13,7 +13,7 @@ BEGIN
    JOIN dbo.Proveedores p ON p.IdProveedor=sp.IdProveedor AND p.Activo=1 WHERE sp.IdSolicitudCotizacionProveedor=@IdSolicitudCotizacionProveedor)
   THROW 52010,N'El destinatario requiere una solicitud emitida y un proveedor activo.',1;
   SELECT @DocAnterior=IdDocumentoEnviado,@FechaAnterior=FechaEnvio FROM dbo.SolicitudesCotizacionProveedor WHERE IdSolicitudCotizacionProveedor=@IdSolicitudCotizacionProveedor;
-  IF @FechaAnterior IS NOT NULL AND @DocAnterior<>@IdDocumentoEnviado THROW 52009,N'El envio original ya esta registrado con otro documento.',1;
+  IF @DocAnterior IS NOT NULL AND @DocAnterior<>@IdDocumentoEnviado THROW 52009,N'El documento original del destinatario no se sobrescribe.',1;
   IF NOT EXISTS(SELECT 1 FROM dbo.Documentos WHERE IdDocumento=@IdDocumentoEnviado AND Origen='Generado') THROW 52000,N'PDF de salida inexistente o no generado.',1;
   IF @FechaAnterior IS NULL
    UPDATE dbo.SolicitudesCotizacionProveedor SET IdDocumentoEnviado=@IdDocumentoEnviado,FechaEnvio=COALESCE(@FechaEnvio,SYSUTCDATETIME()),Estado='Enviada'

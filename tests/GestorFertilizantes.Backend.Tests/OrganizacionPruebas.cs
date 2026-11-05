@@ -3,6 +3,8 @@ using Control_Fertilizantes_Backend.Modulos.Catalogos.Productos.Controladores;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.FileProviders;
 
 namespace GestorFertilizantes.Backend.Tests;
 
@@ -19,6 +21,7 @@ public class OrganizacionPruebas
             }).Build();
         var servicios = new ServiceCollection();
         servicios.AddSingleton<IConfiguration>(configuracion);
+        servicios.AddSingleton<IHostEnvironment>(new EntornoPrueba());
         servicios.AddLogging();
         servicios.AgregarBackend();
         using var proveedor = servicios.BuildServiceProvider(new ServiceProviderOptions
@@ -37,4 +40,12 @@ public class OrganizacionPruebas
             Assert.IsAssignableFrom<ControllerBase>(controlador);
         }
     }
+}
+
+public class EntornoPrueba : IHostEnvironment
+{
+    public string EnvironmentName { get; set; } = "Testing";
+    public string ApplicationName { get; set; } = "Pruebas";
+    public string ContentRootPath { get; set; } = Path.GetFullPath(AppContext.BaseDirectory);
+    public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
 }
