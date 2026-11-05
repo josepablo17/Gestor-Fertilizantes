@@ -8,6 +8,8 @@ Entorno de desarrollo/pruebas con tres servicios separados:
 
 Las imágenes oficiales de SQL Server, SDK y runtime están fijadas por digest. El backend y frontend se adaptarán posteriormente.
 
+La construcción utiliza SDK .NET 10.0.403 y el inicializador runtime 10.0.14 sobre Ubuntu Noble. El ejecutor de pruebas usa `net10.0`. SqlPackage conserva su versión 170.5.96 y se ejecuta con .NET 10 mediante roll-forward; no se incluye el runtime .NET 8 ni 9 en estas imágenes. Este cambio de plataforma no modifica el motor SQL Server, el esquema ni los volúmenes existentes.
+
 ## Inicio local
 
 Requisitos: Docker con contenedores Linux, Docker Compose y PowerShell 7. La compilación ocurre dentro de Docker; no hace falta instalar .NET en el equipo para este recorrido.

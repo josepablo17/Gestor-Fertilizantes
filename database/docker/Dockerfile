@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:9.0.319-bookworm-slim@sha256:2f5eb32870b4c0074a3d5b5191a03553bcab7b74463a76a7c0a5f3ef65c90fe5 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0.403-noble@sha256:de4fe90a98845d75910b9769662465c84de1a934665c431279d1382b2bddc02b AS build
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1 \
     DOTNET_ROLL_FORWARD=Major \
     DACFX_TELEMETRY_OPTOUT=1 \
@@ -19,10 +19,10 @@ RUN dotnet build GestorFertilizantes.Database/GestorFertilizantes.Database.sqlpr
 
 # Test-only image; never used as the SQL Server or application runtime.
 FROM build AS verify
-ENTRYPOINT ["dotnet", "tests/GestorFertilizantes.Database.Tests/bin/Release/net9.0/GestorFertilizantes.Database.Tests.dll"]
+ENTRYPOINT ["dotnet", "tests/GestorFertilizantes.Database.Tests/bin/Release/net10.0/GestorFertilizantes.Database.Tests.dll"]
 
 # One-shot deployer. No SDK, source catalogues or database files in this image.
-FROM mcr.microsoft.com/dotnet/runtime:9.0.21-bookworm-slim@sha256:f0498f092ee240bb91f802b157054dc42c98d6fd6a853ba17e76965c555a9262 AS deploy
+FROM mcr.microsoft.com/dotnet/runtime:10.0.14-noble@sha256:a3f9f81954b9c810af2ed18849716c8dc74a4707bd0907fdbd69be81554c0f30 AS deploy
 ENV DOTNET_ROLL_FORWARD=Major \
     DOTNET_CLI_TELEMETRY_OPTOUT=1 \
     DACFX_TELEMETRY_OPTOUT=1
