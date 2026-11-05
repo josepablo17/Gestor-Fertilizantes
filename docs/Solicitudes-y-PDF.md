@@ -1,6 +1,6 @@
 # Solicitudes de cotización y PDF rellenable
 
-El cliente elige productos y presentaciones del catálogo e indica cuántos empaques desea cotizar. Crea un borrador, elige proveedores y emite la solicitud. Después descarga un PDF por proveedor para compartirlo por su canal habitual. Si el proveedor devuelve el mismo formulario, los campos permiten leer sus valores directamente en una próxima etapa.
+El cliente elige productos y presentaciones del catálogo e indica cuántos empaques desea cotizar. Crea un borrador, elige proveedores y emite la solicitud. Después descarga un PDF por proveedor para compartirlo por su canal habitual. El módulo de [recepción y revisión](Recepcion-y-revision-de-proformas.md) lee los campos cuando el proveedor devuelve el mismo formulario.
 
 ## Probar desde Swagger
 
@@ -47,7 +47,7 @@ El máximo es de 100 renglones y 50 proveedores por solicitud. La cantidad expre
 
 - Campos AcroForm ocultos de solo lectura: `gf_plantilla`, `gf_solicitud_id`, `gf_solicitud_version`, `gf_destinatario_id` y `gf_proveedor_id`. Cada renglón tiene `linea_{id}_id`. Los IDs se guardan como texto. En recepción deben verificarse contra SQL: los campos ocultos se pueden modificar fuera de un lector habitual.
 - Los campos editables llevan el prefijo `cabecera_` o `linea_{id}_`. El proveedor indica número y vigencia de proforma, moneda, cantidad ofrecida, precio por empaque, descuento, impuesto, total y base del total por renglón, ajustes globales y condiciones. Los importes comienzan vacíos. Una alternativa se describe en la observación de su renglón.
-- El PDF no calcula importes. En la futura comparación, usar la misma moneda y base de precio por kg o litro, con ajustes globales aparte. No convertir peso a volumen. Si el proveedor devuelve una proforma propia, el siguiente paso deberá preservar ese archivo y ofrecer revisión manual.
+- El PDF no calcula importes. En la futura comparación, usar la misma moneda y base de precio por kg o litro, con ajustes globales aparte. No convertir peso a volumen. Si el proveedor devuelve una proforma propia, el módulo de recepción la conserva para revisión manual.
 
 ## Almacenamiento local
 
