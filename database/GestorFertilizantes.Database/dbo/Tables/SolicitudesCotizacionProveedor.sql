@@ -38,6 +38,9 @@ GO
 CREATE   TRIGGER dbo.TR_SolicitudesProveedor_Proteccion ON dbo.SolicitudesCotizacionProveedor AFTER INSERT,UPDATE,DELETE AS
 BEGIN
  SET NOCOUNT ON;
+ IF EXISTS(SELECT 1 FROM inserted i JOIN deleted d ON i.IdSolicitudCotizacionProveedor=d.IdSolicitudCotizacionProveedor
+ WHERE d.IdDocumentoEnviado IS NOT NULL AND (i.IdDocumentoEnviado IS NULL OR i.IdDocumentoEnviado<>d.IdDocumentoEnviado))
+ THROW 51115,N'El PDF original asignado al destinatario es inmutable. Cree una revision.',1;
  IF EXISTS(SELECT 1 FROM inserted i JOIN deleted d ON d.IdSolicitudCotizacionProveedor=i.IdSolicitudCotizacionProveedor
  JOIN dbo.SolicitudesCotizacion s ON s.IdSolicitudCotizacion=d.IdSolicitudCotizacion
  WHERE s.Estado<>'Borrador' AND (i.IdSolicitudCotizacion<>d.IdSolicitudCotizacion OR i.IdProveedor<>d.IdProveedor))

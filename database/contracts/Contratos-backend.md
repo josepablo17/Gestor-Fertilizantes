@@ -7,7 +7,7 @@ El backend debe llamar a los procedimientos con parámetros tipados y `CommandTy
 1. Cargar los catálogos y seleccionar productos comerciales y sus presentaciones. Un producto comercial pertenece a un producto base y opcionalmente a una marca por ID. La etiqueta de marca en `Productos.Marca` se mantiene como compatibilidad mediante los triggers.
 2. Llamar a `usp_Solicitud_GuardarBorrador`, con `@IdSolicitudCotizacion = NULL` para crear o con su ID para reemplazar el borrador. La solicitud captura desde el catálogo nombre, marca, presentación, unidad, factor y contenido. Los proveedores se pasan como un arreglo JSON de IDs enteros.
 3. Llamar a `usp_Solicitud_Emitir`. La emisión congela la identidad de los renglones. Generar el PDF con esos IDs y el número/versión de solicitud. El procedimiento no genera archivos.
-4. Guardar el PDF generado en almacenamiento sin sobrescribir otros archivos; calcular el SHA-256 real y llamar a `usp_Documento_Registrar` con origen `Generado`. Registrar el envío real por destinatario con `usp_Solicitud_RegistrarEnvio`. Este último solo registra evidencia; no envía correos.
+4. Guardar el PDF generado sin sobrescribir otros archivos; calcular el SHA-256 y ejecutar `usp_Documento_Registrar` con origen `Generado` y `usp_Solicitud_AsignarDocumento` en la misma transacción SQL. El destinatario sigue en `PendienteEnvio`, con `FechaEnvio = NULL`. Después de compartir el PDF, registrar la evidencia por destinatario con `usp_Solicitud_RegistrarEnvio`.
 5. Al recibir un PDF, almacenarlo como un nuevo documento con origen `Recibido`. Si se ejecuta el lector determinista, guardar su salida intacta en `usp_Importacion_Registrar`, incluyendo versión del lector, método, advertencias y resultado. El método `Manual` también está disponible; una respuesta puede tener documento sin importación.
 6. Llamar a `usp_Proforma_GuardarBorrador` con el destinatario de la solicitud, documento, importación opcional, cabecera y líneas. La cabecera y todas sus líneas se guardan juntas. Devuelve el ID mediante parámetro `OUTPUT`. Siempre empieza como borrador con revisión pendiente. No crea compras.
 7. Mostrar el documento y los datos extraídos al usuario. Usar `usp_Proforma_ActualizarCabecera`, `usp_Proforma_ActualizarLinea` y `usp_Proforma_AgregarLinea` con un motivo. La actualización de una línea reinicia su revisión; cualquier ajuste de datos reinicia la conciliación. Las modificaciones conservan antes/después y el motivo, sin alterar documento o extracción originales.
@@ -663,6 +663,15 @@ CREATE   PROCEDURE dbo.usp_Proforma_RevisarLinea
 ```sql
 CREATE   PROCEDURE dbo.usp_Proforma_Validar @IdProformaProveedor int
 ```
+
+### usp_Solicitud_AsignarDocumento
+
+```sql
+CREATE PROCEDURE dbo.usp_Solicitud_AsignarDocumento
+ @IdSolicitudCotizacion bigint,@IdSolicitudCotizacionProveedor bigint,@IdDocumento bigint
+```
+
+Verifica la pertenencia del destinatario, la emisión y un documento generado con versión de plantilla. Asigna la referencia de salida en la columna histórica `IdDocumentoEnviado`. Es idempotente para el mismo documento; un segundo original produce conflicto. La fecha y el estado de envío se registran en otra operación.
 
 ### usp_Solicitud_CambiarEstado
 

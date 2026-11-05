@@ -220,7 +220,7 @@ static async Task CreateHistory(SqlConnection connection, string fixture)
 
 static async Task VerifySchema(SqlConnection connection)
 {
-    var expected = new Dictionary<string, int> { ["U"] = 16, ["P"] = 83, ["TR"] = 14, ["V"] = 2, ["FN"] = 1, ["SO"] = 1, ["PK"] = 16, ["F"] = 36, ["C"] = 79 };
+    var expected = new Dictionary<string, int> { ["U"] = 16, ["P"] = 84, ["TR"] = 14, ["V"] = 2, ["FN"] = 1, ["SO"] = 1, ["PK"] = 16, ["F"] = 36, ["C"] = 79 };
     await using var command = new SqlCommand("SELECT RTRIM(type),COUNT(*) FROM sys.objects WHERE schema_id=SCHEMA_ID(N'dbo') AND is_ms_shipped=0 GROUP BY type", connection);
     await using (var reader = await command.ExecuteReaderAsync())
         while (await reader.ReadAsync())
