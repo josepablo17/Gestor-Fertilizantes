@@ -77,6 +77,18 @@ try{
     $checks=[Collections.Generic.List[object]]::new()
     $checks.Add([ordered]@{Caso='Arranque y OpenAPI bajo .NET 10';Estado='Aprobado'})
 
+    # Referencia capturada de main antes de reorganizar los modulos.
+    # Una futura migracion funcional debe revisar sus cambios de contrato deliberadamente.
+    $contractPath=Join-Path $repositoryRoot 'tests/GestorFertilizantes.Backend.Tests/Contratos/openapi-v1.json'
+    $expectedContract=Get-Content $contractPath -Raw | ConvertFrom-Json
+    $expectedJson=$expectedContract | ConvertTo-Json -Depth 100 -Compress
+    $actualJson=$openApi | ConvertTo-Json -Depth 100 -Compress
+    if($actualJson -cne $expectedJson){
+        $openApi | ConvertTo-Json -Depth 100 | Set-Content (Join-Path $artifactDirectory 'openapi-actual.json') -Encoding utf8
+        throw 'OpenAPI cambio frente al contrato versionado. Revisar rutas, parametros y esquemas antes de actualizar la referencia.'
+    }
+    $checks.Add([ordered]@{Caso='Contrato OpenAPI conservado (39 rutas y 14 esquemas)';Estado='Aprobado'})
+
     $content=[Net.Http.StringContent]::new('{}',[Text.Encoding]::UTF8,'application/json')
     try{
         $response=$client.PostAsync("$address/api/Producto/InsertarProducto",$content).GetAwaiter().GetResult()

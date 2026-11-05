@@ -1,8 +1,7 @@
+using Control_Fertilizantes_Backend.Comun.Errores;
+using Control_Fertilizantes_Backend.Infraestructura.Persistencia;
 using System.Net;
 using System.Text.Json;
-using Control_Fertilizantes_Backend.DataAccess;
-using Control_Fertilizantes_Backend.Exceptions;
-using Control_Fertilizantes_Backend.Middlewares;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
