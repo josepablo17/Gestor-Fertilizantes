@@ -77,8 +77,8 @@ try{
     $checks=[Collections.Generic.List[object]]::new()
     $checks.Add([ordered]@{Caso='Arranque y OpenAPI bajo .NET 10';Estado='Aprobado'})
 
-    # Referencia capturada de main antes de reorganizar los modulos.
-    # Una futura migracion funcional debe revisar sus cambios de contrato deliberadamente.
+    # Referencia revisada al adaptar catalogos: rutas antiguas conservadas,
+    # diez rutas nuevas y contratos de entradas/salidas alineados con SQL.
     $contractPath=Join-Path $repositoryRoot 'tests/GestorFertilizantes.Backend.Tests/Contratos/openapi-v1.json'
     $expectedContract=Get-Content $contractPath -Raw | ConvertFrom-Json
     $expectedJson=$expectedContract | ConvertTo-Json -Depth 100 -Compress
@@ -87,7 +87,7 @@ try{
         $openApi | ConvertTo-Json -Depth 100 | Set-Content (Join-Path $artifactDirectory 'openapi-actual.json') -Encoding utf8
         throw 'OpenAPI cambio frente al contrato versionado. Revisar rutas, parametros y esquemas antes de actualizar la referencia.'
     }
-    $checks.Add([ordered]@{Caso='Contrato OpenAPI conservado (39 rutas y 14 esquemas)';Estado='Aprobado'})
+    $checks.Add([ordered]@{Caso='Contrato OpenAPI revisado (49 rutas y 42 esquemas)';Estado='Aprobado'})
 
     $content=[Net.Http.StringContent]::new('{}',[Text.Encoding]::UTF8,'application/json')
     try{
@@ -128,6 +128,9 @@ try{
             if([int]$response.StatusCode -ne 200 -or @($body.data).Count -ne 5){throw 'El usuario de API no pudo consultar las unidades.'}
             $checks.Add([ordered]@{Caso='API consulta SQL con usuario limitado';Estado='Aprobado'})
         }finally{if($response){$response.Dispose();$response=$null}}
+        foreach($caso in (& (Join-Path $PSScriptRoot 'Probar-CatalogosHttp.ps1') -Cliente $client -Direccion $address)){
+            $checks.Add($caso)
+        }
     }
     New-Item -ItemType Directory -Path $artifactDirectory -Force | Out-Null
     [ordered]@{Sdk=$sdk.sdk.version;TargetFramework=$runtime.runtimeOptions.tfm;Pruebas=$checks;ConexionBaseUtilizada=[bool]$ConSql} |

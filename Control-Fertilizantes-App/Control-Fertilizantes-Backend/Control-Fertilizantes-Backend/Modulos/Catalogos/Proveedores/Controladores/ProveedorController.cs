@@ -1,82 +1,49 @@
+using Microsoft.AspNetCore.Mvc;
 using Control_Fertilizantes_Backend.Comun.Respuestas;
 using Control_Fertilizantes_Backend.Modulos.Catalogos.Proveedores.Contratos;
 using Control_Fertilizantes_Backend.Modulos.Catalogos.Proveedores.DTOs.Entradas;
 using Control_Fertilizantes_Backend.Modulos.Catalogos.Proveedores.DTOs.Salidas;
-using Microsoft.AspNetCore.Mvc;
 
-namespace Control_Fertilizantes_Backend.Modulos.Catalogos.Proveedores.Controladores
+
+
+namespace Control_Fertilizantes_Backend.Modulos.Catalogos.Proveedores.Controladores;
+
+[ApiController]
+[Route("api/[controller]")]
+public class ProveedorController(IProveedorServicio servicio) : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ProveedorController : ControllerBase
+    [HttpGet("ListarProveedor")]
+    public async Task<ActionResult<ApiRespuesta<IEnumerable<ProveedorListarDTO>>>> Listar([FromQuery] bool soloActivos = false, [FromQuery] string? buscar = null) =>
+        Ok(ApiRespuesta<IEnumerable<ProveedorListarDTO>>.CrearExito("Registros obtenidos correctamente.", await servicio.ListarAsync(soloActivos, buscar)));
+
+    [HttpGet("ObtenerProveedor/{idProveedor}")]
+    public async Task<ActionResult<ApiRespuesta<ProveedorListarDTO>>> ObtenerPorId(int idProveedor)
     {
-        private readonly IProveedorServicio _proveedorServicio;
-
-        public ProveedorController(IProveedorServicio proveedorServicio)
-        {
-            _proveedorServicio = proveedorServicio;
-        }
-
-        [HttpGet("ListarProveedor")]
-        public async Task<IActionResult> Listar()
-        {
-            var proveedores = await _proveedorServicio.ListarAsync();
-
-            return Ok(ApiRespuesta<IEnumerable<ProveedorListarDTO>>.CrearExito(
-                "Proveedores obtenidos correctamente.",
-                proveedores
-            ));
-        }
-
-        [HttpGet("ObtenerProveedor/{idProveedor}")]
-        public async Task<IActionResult> ObtenerPorId(int idProveedor)
-        {
-            var proveedor = await _proveedorServicio.ObtenerPorIdAsync(idProveedor);
-
-            if (proveedor == null)
-            {
-                return NotFound(ApiRespuesta<object>.CrearError("Proveedor no encontrado."));
-            }
-
-            return Ok(ApiRespuesta<ProveedorListarDTO>.CrearExito(
-                "Proveedor obtenido correctamente.",
-                proveedor
-            ));
-        }
-
-        [HttpPost("InsertarProveedor")]
-        public async Task<IActionResult> Insertar([FromBody] ProveedorCrearDTO proveedorCrearDTO)
-        {
-            var idProveedor = await _proveedorServicio.InsertarAsync(proveedorCrearDTO);
-
-            return CreatedAtAction(
-                nameof(ObtenerPorId),
-                new { idProveedor },
-                ApiRespuesta<object>.CrearExito(
-                    "Proveedor insertado correctamente.",
-                    new { idProveedor }
-                )
-            );
-        }
-
-        [HttpPut("ActualizarProveedor")]
-        public async Task<IActionResult> Actualizar([FromBody] ProveedorActualizarDTO proveedorActualizarDTO)
-        {
-            await _proveedorServicio.ActualizarAsync(proveedorActualizarDTO);
-
-            return Ok(ApiRespuesta<object>.CrearExito(
-                "Proveedor actualizado correctamente."
-            ));
-        }
-
-        [HttpDelete("Desactivar/{idProveedor}")]
-        public async Task<IActionResult> Desactivar(int idProveedor)
-        {
-            await _proveedorServicio.DesactivarAsync(idProveedor);
-
-            return Ok(ApiRespuesta<object>.CrearExito(
-                "Proveedor desactivado correctamente."
-            ));
-        }
+        var datos = await servicio.ObtenerPorIdAsync(idProveedor);
+        if (datos is null) return NotFound(ApiRespuesta<object>.CrearError("El recurso solicitado no existe."));
+        return Ok(ApiRespuesta<ProveedorListarDTO>.CrearExito("Registro obtenido correctamente.", datos));
     }
+
+    [HttpPost("InsertarProveedor")]
+    public async Task<ActionResult<ApiRespuesta<object>>> Insertar([FromBody] ProveedorCrearDTO dto)
+    {
+        var idProveedor = await servicio.InsertarAsync(dto);
+        return CreatedAtAction(nameof(ObtenerPorId), new { idProveedor },
+            ApiRespuesta<object>.CrearExito("Registro creado correctamente.", new { idProveedor }));
+    }
+
+    [HttpPut("ActualizarProveedor")]
+    public async Task<ActionResult<ApiRespuesta<object>>> Actualizar([FromBody] ProveedorActualizarDTO dto)
+    {
+        await servicio.ActualizarAsync(dto);
+        return Ok(ApiRespuesta<object>.CrearExito("Registro actualizado correctamente."));
+    }
+
+    [HttpDelete("Desactivar/{idProveedor}")]
+    public async Task<ActionResult<ApiRespuesta<object>>> Desactivar(int idProveedor)
+    {
+        await servicio.DesactivarAsync(idProveedor);
+        return Ok(ApiRespuesta<object>.CrearExito("Registro desactivado correctamente."));
+    }
+
 }

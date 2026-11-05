@@ -437,14 +437,290 @@
         }
       }
     },
+    "/api/Marca/ListarMarca": {
+      "get": {
+        "tags": [
+          "Marca"
+        ],
+        "parameters": [
+          {
+            "name": "soloActivos",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "buscar",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarcaListarDTOIEnumerableApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarcaListarDTOIEnumerableApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarcaListarDTOIEnumerableApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Marca/ObtenerMarca/{idMarca}": {
+      "get": {
+        "tags": [
+          "Marca"
+        ],
+        "parameters": [
+          {
+            "name": "idMarca",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarcaListarDTOApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarcaListarDTOApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarcaListarDTOApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Marca/InsertarMarca": {
+      "post": {
+        "tags": [
+          "Marca"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarcaCrearDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarcaCrearDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarcaCrearDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Marca/ActualizarMarca": {
+      "put": {
+        "tags": [
+          "Marca"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarcaActualizarDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarcaActualizarDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarcaActualizarDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Marca/CambiarActivo/{idMarca}": {
+      "put": {
+        "tags": [
+          "Marca"
+        ],
+        "parameters": [
+          {
+            "name": "idMarca",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CambiarEstadoCatalogoDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CambiarEstadoCatalogoDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CambiarEstadoCatalogoDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/PresentacionProducto/ListarPresentacionesProducto": {
       "get": {
         "tags": [
           "PresentacionProducto"
         ],
+        "parameters": [
+          {
+            "name": "idProducto",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "soloActivos",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresentacionProductoListarDTOIEnumerableApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresentacionProductoListarDTOIEnumerableApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresentacionProductoListarDTOIEnumerableApiRespuesta"
+                }
+              }
+            }
           }
         }
       }
@@ -467,7 +743,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresentacionProductoListarDTOApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresentacionProductoListarDTOApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresentacionProductoListarDTOApiRespuesta"
+                }
+              }
+            }
           }
         }
       }
@@ -498,7 +791,24 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              }
+            }
           }
         }
       }
@@ -529,7 +839,24 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              }
+            }
           }
         }
       }
@@ -552,7 +879,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              }
+            }
           }
         }
       }
@@ -564,7 +908,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductoDropdownDTOIEnumerableApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductoDropdownDTOIEnumerableApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductoDropdownDTOIEnumerableApiRespuesta"
+                }
+              }
+            }
           }
         }
       }
@@ -576,7 +937,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnidadMedidaDropdownDTOIEnumerableApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnidadMedidaDropdownDTOIEnumerableApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnidadMedidaDropdownDTOIEnumerableApiRespuesta"
+                }
+              }
+            }
           }
         }
       }
@@ -586,9 +964,59 @@
         "tags": [
           "Producto"
         ],
+        "parameters": [
+          {
+            "name": "soloActivos",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "buscar",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "idProductoBase",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "idMarca",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductoListarDTOIEnumerableApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductoListarDTOIEnumerableApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductoListarDTOIEnumerableApiRespuesta"
+                }
+              }
+            }
           }
         }
       }
@@ -611,7 +1039,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductoListarDTOApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductoListarDTOApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductoListarDTOApiRespuesta"
+                }
+              }
+            }
           }
         }
       }
@@ -642,7 +1087,24 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              }
+            }
           }
         }
       }
@@ -673,7 +1135,24 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              }
+            }
           }
         }
       }
@@ -696,7 +1175,265 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ProductoBase/ListarProductoBase": {
+      "get": {
+        "tags": [
+          "ProductoBase"
+        ],
+        "parameters": [
+          {
+            "name": "soloActivos",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "buscar",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductoBaseListarDTOIEnumerableApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductoBaseListarDTOIEnumerableApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductoBaseListarDTOIEnumerableApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ProductoBase/ObtenerProductoBase/{idProductoBase}": {
+      "get": {
+        "tags": [
+          "ProductoBase"
+        ],
+        "parameters": [
+          {
+            "name": "idProductoBase",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductoBaseListarDTOApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductoBaseListarDTOApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductoBaseListarDTOApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ProductoBase/InsertarProductoBase": {
+      "post": {
+        "tags": [
+          "ProductoBase"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductoBaseCrearDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductoBaseCrearDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductoBaseCrearDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ProductoBase/ActualizarProductoBase": {
+      "put": {
+        "tags": [
+          "ProductoBase"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductoBaseActualizarDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductoBaseActualizarDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductoBaseActualizarDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ProductoBase/CambiarActivo/{idProductoBase}": {
+      "put": {
+        "tags": [
+          "ProductoBase"
+        ],
+        "parameters": [
+          {
+            "name": "idProductoBase",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CambiarEstadoCatalogoDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CambiarEstadoCatalogoDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CambiarEstadoCatalogoDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              }
+            }
           }
         }
       }
@@ -772,9 +1509,43 @@
         "tags": [
           "Proveedor"
         ],
+        "parameters": [
+          {
+            "name": "soloActivos",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "buscar",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProveedorListarDTOIEnumerableApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProveedorListarDTOIEnumerableApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProveedorListarDTOIEnumerableApiRespuesta"
+                }
+              }
+            }
           }
         }
       }
@@ -797,7 +1568,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProveedorListarDTOApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProveedorListarDTOApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProveedorListarDTOApiRespuesta"
+                }
+              }
+            }
           }
         }
       }
@@ -828,7 +1616,24 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              }
+            }
           }
         }
       }
@@ -859,7 +1664,24 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              }
+            }
           }
         }
       }
@@ -882,7 +1704,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              }
+            }
           }
         }
       }
@@ -892,9 +1731,36 @@
         "tags": [
           "UnidadMedida"
         ],
+        "parameters": [
+          {
+            "name": "soloActivos",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnidadMedidaListarDTOIEnumerableApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnidadMedidaListarDTOIEnumerableApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnidadMedidaListarDTOIEnumerableApiRespuesta"
+                }
+              }
+            }
           }
         }
       }
@@ -917,7 +1783,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnidadMedidaListarDTOApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnidadMedidaListarDTOApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnidadMedidaListarDTOApiRespuesta"
+                }
+              }
+            }
           }
         }
       }
@@ -948,7 +1831,24 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              }
+            }
           }
         }
       }
@@ -979,7 +1879,24 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              }
+            }
           }
         }
       }
@@ -1002,7 +1919,24 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              }
+            }
           }
         }
       }
@@ -1010,6 +1944,18 @@
   },
   "components": {
     "schemas": {
+      "CambiarEstadoCatalogoDTO": {
+        "required": [
+          "activo"
+        ],
+        "type": "object",
+        "properties": {
+          "activo": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
       "CompraActualizarDTO": {
         "required": [
           "fechaCompra",
@@ -1301,14 +2247,124 @@
         },
         "additionalProperties": false
       },
+      "MarcaActualizarDTO": {
+        "required": [
+          "nombre"
+        ],
+        "type": "object",
+        "properties": {
+          "idMarca": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "nombre": {
+            "maxLength": 150,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MarcaCrearDTO": {
+        "required": [
+          "nombre"
+        ],
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "maxLength": 150,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MarcaListarDTO": {
+        "required": [
+          "nombre"
+        ],
+        "type": "object",
+        "properties": {
+          "idMarca": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nombre": {
+            "type": "string",
+            "nullable": true
+          },
+          "activo": {
+            "type": "boolean"
+          },
+          "fechaCreacion": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fechaModificacion": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "MarcaListarDTOApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/MarcaListarDTO"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MarcaListarDTOIEnumerableApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MarcaListarDTO"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ObjectApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "PresentacionProductoActualizarDTO": {
         "required": [
-          "cantidad",
-          "cantidadNormalizada",
-          "descripcion",
-          "idPresentacionProducto",
-          "idProducto",
-          "idUnidadMedida"
+          "descripcion"
         ],
         "type": "object",
         "properties": {
@@ -1330,7 +2386,6 @@
             "type": "string"
           },
           "cantidad": {
-            "minimum": 0.0001,
             "type": "number",
             "format": "double"
           },
@@ -1339,21 +2394,13 @@
             "minimum": 1,
             "type": "integer",
             "format": "int32"
-          },
-          "cantidadNormalizada": {
-            "type": "number",
-            "format": "double"
           }
         },
         "additionalProperties": false
       },
       "PresentacionProductoCrearDTO": {
         "required": [
-          "cantidad",
-          "cantidadNormalizada",
-          "descripcion",
-          "idProducto",
-          "idUnidadMedida"
+          "descripcion"
         ],
         "type": "object",
         "properties": {
@@ -1369,7 +2416,6 @@
             "type": "string"
           },
           "cantidad": {
-            "minimum": 0.0001,
             "type": "number",
             "format": "double"
           },
@@ -1378,19 +2424,130 @@
             "minimum": 1,
             "type": "integer",
             "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PresentacionProductoListarDTO": {
+        "required": [
+          "codigoUnidadMedida",
+          "descripcion",
+          "nombreProducto",
+          "nombreUnidadMedida",
+          "tipoBase"
+        ],
+        "type": "object",
+        "properties": {
+          "idPresentacionProducto": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "idProducto": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "descripcion": {
+            "type": "string",
+            "nullable": true
+          },
+          "cantidad": {
+            "type": "number",
+            "format": "double"
+          },
+          "idUnidadMedida": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nombreProducto": {
+            "type": "string",
+            "nullable": true
+          },
+          "idProductoBase": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "idMarca": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "marca": {
+            "type": "string",
+            "nullable": true
+          },
+          "codigoUnidadMedida": {
+            "type": "string",
+            "nullable": true
+          },
+          "nombreUnidadMedida": {
+            "type": "string",
+            "nullable": true
+          },
+          "tipoBase": {
+            "type": "string",
+            "nullable": true
+          },
+          "factorConversion": {
+            "type": "number",
+            "format": "double"
           },
           "cantidadNormalizada": {
             "type": "number",
             "format": "double"
+          },
+          "activo": {
+            "type": "boolean"
+          },
+          "fechaCreacion": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fechaModificacion": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PresentacionProductoListarDTOApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/PresentacionProductoListarDTO"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PresentacionProductoListarDTOIEnumerableApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PresentacionProductoListarDTO"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false
       },
       "ProductoActualizarDTO": {
         "required": [
-          "categoria",
-          "idProducto",
-          "marca",
           "nombre"
         ],
         "type": "object",
@@ -1403,21 +2560,36 @@
           },
           "nombre": {
             "maxLength": 150,
-            "minLength": 3,
+            "minLength": 0,
             "type": "string"
+          },
+          "idProductoBase": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "idMarca": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           },
           "categoria": {
             "maxLength": 100,
-            "minLength": 3,
-            "type": "string"
-          },
-          "marca": {
-            "maxLength": 100,
-            "minLength": 2,
-            "type": "string"
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
           },
           "descripcion": {
-            "maxLength": 300,
+            "maxLength": 250,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "codigoInterno": {
+            "maxLength": 40,
             "minLength": 0,
             "type": "string",
             "nullable": true
@@ -1425,33 +2597,370 @@
         },
         "additionalProperties": false
       },
+      "ProductoBaseActualizarDTO": {
+        "required": [
+          "codigo",
+          "nombre"
+        ],
+        "type": "object",
+        "properties": {
+          "idProductoBase": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "codigo": {
+            "maxLength": 40,
+            "minLength": 0,
+            "type": "string"
+          },
+          "nombre": {
+            "maxLength": 150,
+            "minLength": 0,
+            "type": "string"
+          },
+          "formulaDeclarada": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "descripcion": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "comparabilidadRevisada": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProductoBaseCrearDTO": {
+        "required": [
+          "codigo",
+          "nombre"
+        ],
+        "type": "object",
+        "properties": {
+          "codigo": {
+            "maxLength": 40,
+            "minLength": 0,
+            "type": "string"
+          },
+          "nombre": {
+            "maxLength": 150,
+            "minLength": 0,
+            "type": "string"
+          },
+          "formulaDeclarada": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "descripcion": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "comparabilidadRevisada": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProductoBaseListarDTO": {
+        "required": [
+          "codigo",
+          "nombre"
+        ],
+        "type": "object",
+        "properties": {
+          "idProductoBase": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "codigo": {
+            "type": "string",
+            "nullable": true
+          },
+          "nombre": {
+            "type": "string",
+            "nullable": true
+          },
+          "formulaDeclarada": {
+            "type": "string",
+            "nullable": true
+          },
+          "descripcion": {
+            "type": "string",
+            "nullable": true
+          },
+          "comparabilidadRevisada": {
+            "type": "boolean"
+          },
+          "activo": {
+            "type": "boolean"
+          },
+          "fechaCreacion": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fechaModificacion": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProductoBaseListarDTOApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/ProductoBaseListarDTO"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProductoBaseListarDTOIEnumerableApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductoBaseListarDTO"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "ProductoCrearDTO": {
         "required": [
-          "categoria",
-          "marca",
           "nombre"
         ],
         "type": "object",
         "properties": {
           "nombre": {
             "maxLength": 150,
-            "minLength": 3,
+            "minLength": 0,
             "type": "string"
+          },
+          "idProductoBase": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "idMarca": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           },
           "categoria": {
             "maxLength": 100,
-            "minLength": 3,
-            "type": "string"
-          },
-          "marca": {
-            "maxLength": 100,
-            "minLength": 2,
-            "type": "string"
-          },
-          "descripcion": {
-            "maxLength": 300,
             "minLength": 0,
             "type": "string",
+            "nullable": true
+          },
+          "descripcion": {
+            "maxLength": 250,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "codigoInterno": {
+            "maxLength": 40,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProductoDropdownDTO": {
+        "required": [
+          "codigoInterno",
+          "nombreProductoBase"
+        ],
+        "type": "object",
+        "properties": {
+          "idProducto": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nombre": {
+            "type": "string",
+            "nullable": true
+          },
+          "codigoInterno": {
+            "type": "string",
+            "nullable": true
+          },
+          "idProductoBase": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nombreProductoBase": {
+            "type": "string",
+            "nullable": true
+          },
+          "idMarca": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "marca": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProductoDropdownDTOIEnumerableApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductoDropdownDTO"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProductoListarDTO": {
+        "required": [
+          "codigoInterno",
+          "codigoProductoBase",
+          "nombre",
+          "nombreProductoBase"
+        ],
+        "type": "object",
+        "properties": {
+          "idProducto": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nombre": {
+            "type": "string",
+            "nullable": true
+          },
+          "idProductoBase": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "idMarca": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "categoria": {
+            "type": "string",
+            "nullable": true
+          },
+          "descripcion": {
+            "type": "string",
+            "nullable": true
+          },
+          "codigoInterno": {
+            "type": "string",
+            "nullable": true
+          },
+          "codigoProductoBase": {
+            "type": "string",
+            "nullable": true
+          },
+          "nombreProductoBase": {
+            "type": "string",
+            "nullable": true
+          },
+          "formulaDeclarada": {
+            "type": "string",
+            "nullable": true
+          },
+          "comparabilidadRevisada": {
+            "type": "boolean"
+          },
+          "marca": {
+            "type": "string",
+            "nullable": true
+          },
+          "activo": {
+            "type": "boolean"
+          },
+          "fechaCreacion": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fechaModificacion": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProductoListarDTOApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/ProductoListarDTO"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProductoListarDTOIEnumerableApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductoListarDTO"
+            },
             "nullable": true
           }
         },
@@ -1524,11 +3033,7 @@
       },
       "ProveedorActualizarDTO": {
         "required": [
-          "contacto",
-          "correo",
-          "idProveedor",
-          "nombre",
-          "telefono"
+          "nombre"
         ],
         "type": "object",
         "properties": {
@@ -1540,61 +3045,303 @@
           },
           "nombre": {
             "maxLength": 150,
-            "minLength": 3,
+            "minLength": 0,
             "type": "string"
           },
           "contacto": {
             "maxLength": 150,
-            "minLength": 3,
-            "type": "string"
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
           },
           "telefono": {
             "maxLength": 50,
-            "minLength": 8,
-            "type": "string"
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
           },
           "correo": {
             "maxLength": 150,
-            "minLength": 3,
-            "type": "string"
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "direccion": {
+            "maxLength": 250,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "provincia": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "canton": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "distrito": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "fuenteExterna": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "idExterno": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "tipoIdentificacion": {
+            "maxLength": 30,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "identificacionFiscal": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "paisIdentificacion": {
+            "maxLength": 2,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
           },
           "esProveedorAutorizado": {
             "type": "boolean"
+          },
+          "fechaUltimaSincronizacion": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         },
         "additionalProperties": false
       },
       "ProveedorCrearDTO": {
         "required": [
-          "contacto",
-          "correo",
-          "nombre",
-          "telefono"
+          "nombre"
         ],
         "type": "object",
         "properties": {
           "nombre": {
             "maxLength": 150,
-            "minLength": 3,
+            "minLength": 0,
             "type": "string"
           },
           "contacto": {
             "maxLength": 150,
-            "minLength": 3,
-            "type": "string"
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
           },
           "telefono": {
             "maxLength": 50,
-            "minLength": 8,
-            "type": "string"
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
           },
           "correo": {
             "maxLength": 150,
-            "minLength": 3,
-            "type": "string"
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "direccion": {
+            "maxLength": 250,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "provincia": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "canton": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "distrito": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "fuenteExterna": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "idExterno": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "tipoIdentificacion": {
+            "maxLength": 30,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "identificacionFiscal": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "paisIdentificacion": {
+            "maxLength": 2,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
           },
           "esProveedorAutorizado": {
             "type": "boolean"
+          },
+          "fechaUltimaSincronizacion": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProveedorListarDTO": {
+        "required": [
+          "nombre"
+        ],
+        "type": "object",
+        "properties": {
+          "idProveedor": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nombre": {
+            "type": "string",
+            "nullable": true
+          },
+          "contacto": {
+            "type": "string",
+            "nullable": true
+          },
+          "telefono": {
+            "type": "string",
+            "nullable": true
+          },
+          "correo": {
+            "type": "string",
+            "nullable": true
+          },
+          "direccion": {
+            "type": "string",
+            "nullable": true
+          },
+          "provincia": {
+            "type": "string",
+            "nullable": true
+          },
+          "canton": {
+            "type": "string",
+            "nullable": true
+          },
+          "distrito": {
+            "type": "string",
+            "nullable": true
+          },
+          "fuenteExterna": {
+            "type": "string",
+            "nullable": true
+          },
+          "idExterno": {
+            "type": "string",
+            "nullable": true
+          },
+          "tipoIdentificacion": {
+            "type": "string",
+            "nullable": true
+          },
+          "identificacionFiscal": {
+            "type": "string",
+            "nullable": true
+          },
+          "paisIdentificacion": {
+            "type": "string",
+            "nullable": true
+          },
+          "esProveedorAutorizado": {
+            "type": "boolean"
+          },
+          "fechaUltimaSincronizacion": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "activo": {
+            "type": "boolean"
+          },
+          "fechaCreacion": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fechaModificacion": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProveedorListarDTOApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/ProveedorListarDTO"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProveedorListarDTOIEnumerableApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProveedorListarDTO"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -1602,9 +3349,8 @@
       "UnidadMedidaActualizarDTO": {
         "required": [
           "codigo",
-          "factorConversion",
-          "idUnidadMedida",
-          "nombre"
+          "nombre",
+          "tipoBase"
         ],
         "type": "object",
         "properties": {
@@ -1616,19 +3362,18 @@
           },
           "codigo": {
             "maxLength": 20,
-            "minLength": 1,
+            "minLength": 0,
             "type": "string"
           },
           "nombre": {
             "maxLength": 50,
-            "minLength": 2,
+            "minLength": 0,
             "type": "string"
           },
           "tipoBase": {
             "maxLength": 20,
             "minLength": 0,
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "factorConversion": {
             "type": "number",
@@ -1643,24 +3388,56 @@
       "UnidadMedidaCrearDTO": {
         "required": [
           "codigo",
-          "factorConversion",
-          "nombre"
+          "nombre",
+          "tipoBase"
         ],
         "type": "object",
         "properties": {
           "codigo": {
             "maxLength": 20,
-            "minLength": 1,
+            "minLength": 0,
             "type": "string"
           },
           "nombre": {
             "maxLength": 50,
-            "minLength": 2,
+            "minLength": 0,
             "type": "string"
           },
           "tipoBase": {
             "maxLength": 20,
             "minLength": 0,
+            "type": "string"
+          },
+          "factorConversion": {
+            "type": "number",
+            "format": "double"
+          },
+          "esUnidadBase": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UnidadMedidaDropdownDTO": {
+        "required": [
+          "codigo",
+          "tipoBase"
+        ],
+        "type": "object",
+        "properties": {
+          "idUnidadMedida": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nombre": {
+            "type": "string",
+            "nullable": true
+          },
+          "codigo": {
+            "type": "string",
+            "nullable": true
+          },
+          "tipoBase": {
             "type": "string",
             "nullable": true
           },
@@ -1670,6 +3447,99 @@
           },
           "esUnidadBase": {
             "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UnidadMedidaDropdownDTOIEnumerableApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UnidadMedidaDropdownDTO"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "UnidadMedidaListarDTO": {
+        "required": [
+          "codigo",
+          "nombre",
+          "tipoBase"
+        ],
+        "type": "object",
+        "properties": {
+          "idUnidadMedida": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "codigo": {
+            "type": "string",
+            "nullable": true
+          },
+          "nombre": {
+            "type": "string",
+            "nullable": true
+          },
+          "tipoBase": {
+            "type": "string",
+            "nullable": true
+          },
+          "factorConversion": {
+            "type": "number",
+            "format": "double"
+          },
+          "esUnidadBase": {
+            "type": "boolean"
+          },
+          "activo": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UnidadMedidaListarDTOApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/UnidadMedidaListarDTO"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UnidadMedidaListarDTOIEnumerableApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UnidadMedidaListarDTO"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false

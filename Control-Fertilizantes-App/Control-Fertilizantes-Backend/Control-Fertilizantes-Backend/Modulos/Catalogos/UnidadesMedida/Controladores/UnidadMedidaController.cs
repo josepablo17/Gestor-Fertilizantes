@@ -1,82 +1,49 @@
+using Microsoft.AspNetCore.Mvc;
 using Control_Fertilizantes_Backend.Comun.Respuestas;
 using Control_Fertilizantes_Backend.Modulos.Catalogos.UnidadesMedida.Contratos;
 using Control_Fertilizantes_Backend.Modulos.Catalogos.UnidadesMedida.DTOs.Entradas;
 using Control_Fertilizantes_Backend.Modulos.Catalogos.UnidadesMedida.DTOs.Salidas;
-using Microsoft.AspNetCore.Mvc;
 
-namespace Control_Fertilizantes_Backend.Modulos.Catalogos.UnidadesMedida.Controladores
+
+
+namespace Control_Fertilizantes_Backend.Modulos.Catalogos.UnidadesMedida.Controladores;
+
+[ApiController]
+[Route("api/[controller]")]
+public class UnidadMedidaController(IUnidadMedidaServicio servicio) : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class UnidadMedidaController : ControllerBase
+    [HttpGet("ListarUnidadMedida")]
+    public async Task<ActionResult<ApiRespuesta<IEnumerable<UnidadMedidaListarDTO>>>> Listar([FromQuery] bool soloActivos = false) =>
+        Ok(ApiRespuesta<IEnumerable<UnidadMedidaListarDTO>>.CrearExito("Registros obtenidos correctamente.", await servicio.ListarAsync(soloActivos)));
+
+    [HttpGet("ObtenerUnidadMedida/{idUnidadMedida}")]
+    public async Task<ActionResult<ApiRespuesta<UnidadMedidaListarDTO>>> ObtenerPorId(int idUnidadMedida)
     {
-        private readonly IUnidadMedidaServicio _unidadMedidaServicio;
-
-        public UnidadMedidaController(IUnidadMedidaServicio unidadMedidaServicio)
-        {
-            _unidadMedidaServicio = unidadMedidaServicio;
-        }
-
-        [HttpGet("ListarUnidadMedida")]
-        public async Task<IActionResult> Listar()
-        {
-            var unidadesMedida = await _unidadMedidaServicio.ListarAsync();
-
-            return Ok(ApiRespuesta<IEnumerable<UnidadMedidaListarDTO>>.CrearExito(
-                "Unidades de medida obtenidas correctamente.",
-                unidadesMedida
-            ));
-        }
-
-        [HttpGet("ObtenerUnidadMedida/{idUnidadMedida}")]
-        public async Task<IActionResult> ObtenerPorId(int idUnidadMedida)
-        {
-            var unidadMedida = await _unidadMedidaServicio.ObtenerPorIdAsync(idUnidadMedida);
-
-            if (unidadMedida == null)
-            {
-                return NotFound(ApiRespuesta<object>.CrearError("Unidad de medida no encontrada."));
-            }
-
-            return Ok(ApiRespuesta<UnidadMedidaListarDTO>.CrearExito(
-                "Unidad de medida obtenida correctamente.",
-                unidadMedida
-            ));
-        }
-
-        [HttpPost("InsertarUnidadMedida")]
-        public async Task<IActionResult> Insertar([FromBody] UnidadMedidaCrearDTO unidadMedidaCrearDTO)
-        {
-            var idUnidadMedida = await _unidadMedidaServicio.InsertarAsync(unidadMedidaCrearDTO);
-
-            return CreatedAtAction(
-                nameof(ObtenerPorId),
-                new { idUnidadMedida },
-                ApiRespuesta<object>.CrearExito(
-                    "Unidad de medida insertada correctamente.",
-                    new { idUnidadMedida }
-                )
-            );
-        }
-
-        [HttpPut("ActualizarUnidadMedida")]
-        public async Task<IActionResult> Actualizar([FromBody] UnidadMedidaActualizarDTO unidadMedidaActualizarDTO)
-        {
-            await _unidadMedidaServicio.ActualizarAsync(unidadMedidaActualizarDTO);
-
-            return Ok(ApiRespuesta<object>.CrearExito(
-                "Unidad de medida actualizada correctamente."
-            ));
-        }
-
-        [HttpDelete("Desactivar/{idUnidadMedida}")]
-        public async Task<IActionResult> Desactivar(int idUnidadMedida)
-        {
-            await _unidadMedidaServicio.DesactivarAsync(idUnidadMedida);
-
-            return Ok(ApiRespuesta<object>.CrearExito(
-                "Unidad de medida desactivada correctamente."
-            ));
-        }
+        var datos = await servicio.ObtenerPorIdAsync(idUnidadMedida);
+        if (datos is null) return NotFound(ApiRespuesta<object>.CrearError("El recurso solicitado no existe."));
+        return Ok(ApiRespuesta<UnidadMedidaListarDTO>.CrearExito("Registro obtenido correctamente.", datos));
     }
+
+    [HttpPost("InsertarUnidadMedida")]
+    public async Task<ActionResult<ApiRespuesta<object>>> Insertar([FromBody] UnidadMedidaCrearDTO dto)
+    {
+        var idUnidadMedida = await servicio.InsertarAsync(dto);
+        return CreatedAtAction(nameof(ObtenerPorId), new { idUnidadMedida },
+            ApiRespuesta<object>.CrearExito("Registro creado correctamente.", new { idUnidadMedida }));
+    }
+
+    [HttpPut("ActualizarUnidadMedida")]
+    public async Task<ActionResult<ApiRespuesta<object>>> Actualizar([FromBody] UnidadMedidaActualizarDTO dto)
+    {
+        await servicio.ActualizarAsync(dto);
+        return Ok(ApiRespuesta<object>.CrearExito("Registro actualizado correctamente."));
+    }
+
+    [HttpDelete("Desactivar/{idUnidadMedida}")]
+    public async Task<ActionResult<ApiRespuesta<object>>> Desactivar(int idUnidadMedida)
+    {
+        await servicio.DesactivarAsync(idUnidadMedida);
+        return Ok(ApiRespuesta<object>.CrearExito("Registro desactivado correctamente."));
+    }
+
 }

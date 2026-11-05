@@ -46,7 +46,7 @@ Se conservan los códigos históricos 50001–50005 durante la transición. El c
     ./scripts/Probar-Backend.ps1
     ./database/scripts/Invoke-DockerDatabase.ps1 -Action Test -VerifyBackend
 
-La primera orden ejecuta 61 pruebas unitarias y cinco comprobaciones HTTP sin SQL. La segunda usa proyecto/base/login/volumen aleatorios propios. Comprueba instalación, 89 casos SQL, historia persistida, recreación del contenedor, nueva publicación y permisos de la cuenta. Luego arranca la API con esa cuenta y comprueba consultas y respuestas HTTP, además de los casos habituales.
+La primera orden ejecuta 98 pruebas unitarias y cinco comprobaciones HTTP sin SQL. La segunda usa proyecto/base/login/volumen aleatorios propios. Comprueba instalación, 89 casos SQL, historia persistida, recreación del contenedor, nueva publicación y permisos de la cuenta. Luego arranca la API con esa cuenta y comprueba consultas y respuestas HTTP, además de los casos habituales.
 
 Las pruebas SQL del backend verifican lectura y escritura por procedimientos (la escritura de prueba se revierte), rechazo de acceso directo/DDL y traducción de excepciones SQL reales sin revelar su mensaje interno. Solo aceptan la base temporal de Compose. La limpieza elimina sus recursos propios; Down normal conserva el volumen local.
 
@@ -54,7 +54,9 @@ Evidencia del backend: artifacts/backend/ (JSON y TRX). Evidencia SQL: database/
 
 ## Alcance funcional
 
-Quedan pendientes los DTOs y casos de uso de catálogos, solicitudes, documentos, recepción/revisión y comparación. Los contratos están en database/contracts/Contratos-backend.md. Un endpoint antiguo con una firma SQL incorrecta sigue siendo un fallo técnico, aunque el proyecto compile.
+Los seis catálogos están adaptados a SQL. Quedan pendientes solicitudes, documentos, recepción/revisión y comparación, además del frontend. Los contratos están en database/contracts/Contratos-backend.md. Un endpoint antiguo con una firma SQL incorrecta sigue siendo un fallo técnico, aunque el proyecto compile.
 
 Referencias: [permisos de procedimientos SQL](https://learn.microsoft.com/sql/relational-databases/stored-procedures/grant-permissions-on-a-stored-procedure), [validación de opciones](https://learn.microsoft.com/aspnet/core/fundamentals/configuration/options).
-La etapa de organización ya separa DTOs por módulo y propósito; consultar [organización del backend](Organizacion-backend.md). Su adaptación funcional al modelo SQL continúa pendiente.
+La etapa de organización ya separa DTOs por módulo y propósito; consultar [organización del backend](Organizacion-backend.md). La adaptación funcional continúa en los módulos restantes.
+
+Actualización de catálogos: los seis ya están adaptados a SQL; ver [catálogos del backend](Catalogos-backend.md). Sus entradas cambiaron deliberadamente y el frontend sigue pendiente.

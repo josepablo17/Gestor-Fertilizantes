@@ -1,12 +1,13 @@
 using Control_Fertilizantes_Backend.Modulos.Catalogos.Productos.Modelos;
-namespace Control_Fertilizantes_Backend.Modulos.Catalogos.Productos.Contratos
+
+
+namespace Control_Fertilizantes_Backend.Modulos.Catalogos.Productos.Contratos;
+
+public interface IProductoRepositorio
 {
-    public interface IProductoRepositorio
-    {
-        Task<IEnumerable<Producto>> ListarAsync();
-        Task<Producto?> ObtenerPorIdAsync(int idProducto);
-        Task<int> InsertarAsync(Producto producto);
-        Task<bool> ActualizarAsync(Producto producto);
-        Task<bool> DesactivarAsync(int idProducto);
-    }
+    Task<IEnumerable<Producto>> ListarAsync(bool soloActivos = false, string? buscar = null, int? idProductoBase = null, int? idMarca = null);
+    Task<Producto?> ObtenerPorIdAsync(int id);
+    Task<int> InsertarAsync(ProductoGuardar datos);
+    Task<bool> ActualizarAsync(ProductoGuardar datos);
+    Task<bool> DesactivarAsync(int id);
 }

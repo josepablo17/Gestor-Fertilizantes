@@ -1,6 +1,6 @@
 # Gestor de fertilizantes
 
-Sistema local para solicitudes de cotización, recepción de proformas y comparación de precios. La base contiene el modelo nuevo; la adaptación funcional del backend y del frontend continúa pendiente.
+Sistema local para solicitudes de cotización, recepción de proformas y comparación de precios. La base contiene el modelo nuevo y los seis catálogos del backend ya están adaptados. Continúan pendientes los demás flujos del backend y la adaptación del frontend.
 
 ## Plataforma
 
@@ -17,14 +17,14 @@ Desde la raíz:
 
 Up prepara el usuario SQL limitado y la conexión del backend en appsettings.local.json. Ese archivo está excluido de Git y de publicación. La API lo carga solo en Development; ConnectionStrings__ConexionSql y los argumentos tienen prioridad. Fuera de Development se requiere configuración externa. La API valida la conexión al arrancar y rechaza configuración vacía, bases de sistema, ausencia de cifrado y usuario sa.
 
-Las rutas y reglas antiguas aún deben adaptarse a los contratos SQL nuevos. Consultar los [contratos](database/contracts/Contratos-backend.md).
+Productos base, marcas, productos, presentaciones, unidades y proveedores usan los contratos SQL nuevos. Los cuerpos antiguos de productos/presentaciones y las pantallas anteriores requieren migración. Consultar los [contratos](database/contracts/Contratos-backend.md).
 
 ## Verificación
 
     ./scripts/Probar-Backend.ps1
     ./database/scripts/Invoke-DockerDatabase.ps1 -Action Test -VerifyBackend
 
-La primera orden restaura en modo bloqueado, compila sin advertencias, ejecuta 61 pruebas unitarias y cinco comprobaciones HTTP sin SQL. La segunda verifica el DACPAC, 89 casos SQL, persistencia en Docker y la API con permisos reales de su usuario limitado. Usa recursos temporales propios que elimina al terminar.
+La primera orden restaura en modo bloqueado, compila sin advertencias, ejecuta 98 pruebas unitarias y cinco comprobaciones HTTP sin SQL. La segunda verifica el DACPAC, 89 casos SQL, persistencia en Docker y la API con permisos reales de su usuario limitado. Usa recursos temporales propios que elimina al terminar.
 
 Las 14 advertencias previas de nulabilidad se corrigieron sin supresiones. Todas las advertencias se tratan como errores. Los archivos generados bin/obj están fuera de Git. Los cambios deliberados de paquetes requieren actualizar su packages.lock.json y comprobar la restauración --locked-mode.
 
@@ -45,3 +45,5 @@ Consultar [guía SQL](database/README.md), [guía Docker](database/docker/README
 
 Referencias: [cambios de .NET 10](https://learn.microsoft.com/dotnet/core/compatibility/10), [imágenes sobre Ubuntu](https://learn.microsoft.com/dotnet/core/compatibility/containers/10.0/default-images-use-ubuntu).
 La estructura por módulos, clasificación de DTOs y deudas funcionales están en [organización del backend](docs/Organizacion-backend.md).
+
+Los contratos y cambios incompatibles de catálogos se describen en [catálogos del backend](docs/Catalogos-backend.md).
