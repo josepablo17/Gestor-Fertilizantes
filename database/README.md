@@ -29,9 +29,9 @@ database/
 
 ## Compilación
 
-Requisitos: SDK .NET **9.0.319**, PowerShell 7 y acceso inicial a NuGet. SQL Server 2022 o posterior solo es necesario para desplegar/probar. Se eligió el SDK disponible y verificado en este equipo; `global.json` exige esa versión y debe actualizarse deliberadamente cuando se renueve la herramienta.
+Requisitos: SDK .NET **10.0.403**, PowerShell 7 y acceso inicial a NuGet. SQL Server 2022 o posterior solo es necesario para desplegar/probar. `global.json` exige esa versión y debe actualizarse deliberadamente junto con el de la raíz y las imágenes Docker cuando se renueve la herramienta.
 
-Se fijaron `Microsoft.Build.Sql 2.3.0`, `Microsoft.SqlPackage 170.5.96`, `master 160.2.8` y `Microsoft.Data.SqlClient 6.1.5`. Los proyectos tienen archivos lock y restauración `--locked-mode`. SqlPackage puede usar el runtime .NET 9 del SDK sin instalar herramientas globales.
+Se fijaron `Microsoft.Build.Sql 2.3.0`, `Microsoft.SqlPackage 170.5.96`, `master 160.2.8` y `Microsoft.Data.SqlClient 6.1.5`. Los proyectos tienen archivos lock y restauración `--locked-mode`. El ejecutor de pruebas usa `net10.0`; SqlPackage, distribuido para `net8.0`, usa el runtime .NET 10 del SDK mediante `DOTNET_ROLL_FORWARD=Major`, sin instalar herramientas globales.
 
 Desde `database`:
 

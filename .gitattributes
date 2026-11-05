@@ -1,4 +1,8 @@
 database/** text eol=lf
 .github/workflows/database.yml text eol=lf
+.github/workflows/backend.yml text eol=lf
+scripts/** text eol=lf
+global.json text eol=lf
+NuGet.Config text eol=lf
 .gitattributes text eol=lf
 .gitignore text eol=lf

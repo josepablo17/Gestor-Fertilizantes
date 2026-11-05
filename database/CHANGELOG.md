@@ -1,5 +1,12 @@
 # Historial de la base de datos
 
+## Plataforma .NET 10 — 2026-11-05
+
+- SDK 10.0.403 fijado y ejecutor de pruebas dirigido a net10.0.
+- Imágenes de SDK/runtime .NET 10 sobre Ubuntu Noble, fijadas por digest.
+- SqlPackage 170.5.96 usa el runtime 10 mediante roll-forward.
+- Se conserva SQL Server 2022, el esquema y DacVersion 1.0.0.0.
+
 ## Infraestructura Docker y CI — 2026-10-16
 
 - Rama de trabajo y PR para revisar la baseline antes de integrar a main.

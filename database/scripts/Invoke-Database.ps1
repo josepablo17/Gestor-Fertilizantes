@@ -19,7 +19,7 @@ function Invoke-DotNet([string[]]$Arguments){
 }
 Push-Location $databaseRoot
 try{
-    # SqlPackage targets net8; SDK net9 is the pinned toolchain for this project.
+    # SqlPackage targets net8; allow it to use the pinned .NET 10 runtime.
     $env:DOTNET_ROLL_FORWARD='Major'
     $env:DOTNET_CLI_TELEMETRY_OPTOUT='1'
     Invoke-DotNet -Arguments @('tool','restore')
