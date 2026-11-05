@@ -12,13 +12,18 @@ public class OpcionesDocumentos { public string RutaRaiz { get; set; } = "datos/
 
 public class AlmacenDocumentosLocal(IOptions<OpcionesDocumentos> opciones, IHostEnvironment entorno) : IAlmacenDocumentos
 {
-    private const int MaximoBytes = 10 * 1024 * 1024;
     private readonly string raiz = Path.TrimEndingDirectorySeparator(Path.GetFullPath(opciones.Value.RutaRaiz, entorno.ContentRootPath));
 
-    public async Task<ArchivoDocumentoGuardado> GuardarAsync(IdentidadDocumentoSolicitud identidad, byte[] contenido, CancellationToken cancelacion)
+    public Task<ArchivoDocumentoGuardado> GuardarAsync(IdentidadDocumentoSolicitud identidad, byte[] contenido, CancellationToken cancelacion) =>
+        GuardarAsync(identidad, contenido, recibido: false, cancelacion);
+
+    public Task<ArchivoDocumentoGuardado> GuardarRecibidoAsync(IdentidadDocumentoSolicitud identidad, byte[] contenido, CancellationToken cancelacion) =>
+        GuardarAsync(identidad, contenido, recibido: true, cancelacion);
+
+    private async Task<ArchivoDocumentoGuardado> GuardarAsync(IdentidadDocumentoSolicitud identidad, byte[] contenido, bool recibido, CancellationToken cancelacion)
     {
-        if (contenido.Length is 0 or > MaximoBytes) throw new InvalidOperationException("Tamano de PDF generado fuera de rango.");
-        var clave = Prefijo(identidad) + Guid.NewGuid().ToString("N") + ".pdf";
+        if (contenido.Length is 0 or > LimitesPdf.Bytes) throw new InvalidOperationException("Tamaño de PDF fuera de rango.");
+        var clave = Prefijo(identidad, recibido) + Guid.NewGuid().ToString("N") + ".pdf";
         var ruta = Resolver(clave);
         ComprobarDirectorios(ruta);
         Directory.CreateDirectory(Path.GetDirectoryName(ruta)!);
@@ -42,10 +47,19 @@ public class AlmacenDocumentosLocal(IOptions<OpcionesDocumentos> opciones, IHost
         return new(clave, SHA256.HashData(contenido), contenido.LongLength);
     }
 
-    public async Task<byte[]> LeerVerificadoAsync(IdentidadDocumentoSolicitud identidad, Documento documento, CancellationToken cancelacion)
+    public Task<byte[]> LeerVerificadoAsync(IdentidadDocumentoSolicitud identidad, Documento documento, CancellationToken cancelacion) =>
+        LeerVerificadoAsync(identidad, documento, recibido: false, cancelacion);
+
+    public Task<byte[]> LeerRecibidoVerificadoAsync(IdentidadDocumentoSolicitud identidad, Documento documento, CancellationToken cancelacion) =>
+        LeerVerificadoAsync(identidad, documento, recibido: true, cancelacion);
+
+    private async Task<byte[]> LeerVerificadoAsync(IdentidadDocumentoSolicitud identidad, Documento documento, bool recibido, CancellationToken cancelacion)
     {
-        if (documento.Origen != "Generado" || documento.TipoContenido != "application/pdf" ||
-            documento.TamanoBytes is <= 0 or > MaximoBytes || !documento.RutaAlmacenamiento.StartsWith(Prefijo(identidad), StringComparison.Ordinal))
+        var prefijo = Prefijo(identidad, recibido);
+        if (documento.Origen != (recibido ? "Recibido" : "Generado") || documento.TipoContenido != "application/pdf" ||
+            documento.TamanoBytes is <= 0 or > LimitesPdf.Bytes ||
+            !documento.RutaAlmacenamiento.StartsWith(prefijo, StringComparison.Ordinal) ||
+            documento.RutaAlmacenamiento.AsSpan(prefijo.Length).Contains('/'))
             throw NoDisponible();
         try
         {
@@ -71,15 +85,16 @@ public class AlmacenDocumentosLocal(IOptions<OpcionesDocumentos> opciones, IHost
         return Task.CompletedTask;
     }
 
-    private static string Prefijo(IdentidadDocumentoSolicitud id)
+    private static string Prefijo(IdentidadDocumentoSolicitud id, bool recibido)
     {
         if (id.IdSolicitud <= 0 || id.IdDestinatario <= 0 || id.VersionSolicitud <= 0) throw new ArgumentOutOfRangeException(nameof(id));
-        return $"solicitudes/{id.IdSolicitud}/v{id.VersionSolicitud}/dest-{id.IdDestinatario}/";
+        return FormattableString.Invariant($"solicitudes/{id.IdSolicitud}/v{id.VersionSolicitud}/dest-{id.IdDestinatario}/") +
+            (recibido ? "recibidos/" : "");
     }
 
     private string Resolver(string clave)
     {
-        if (!Regex.IsMatch(clave, @"\Asolicitudes/[1-9][0-9]*/v[1-9][0-9]*/dest-[1-9][0-9]*/[a-f0-9]{32}\.pdf\z")) throw NoDisponible();
+        if (!Regex.IsMatch(clave, @"\Asolicitudes/[1-9][0-9]*/v[1-9][0-9]*/dest-[1-9][0-9]*/(?:recibidos/)?[a-f0-9]{32}\.pdf\z")) throw NoDisponible();
         var ruta = Path.GetFullPath(Path.Combine(raiz, clave.Replace('/', Path.DirectorySeparatorChar)));
         if (!Path.GetRelativePath(raiz, ruta).StartsWith("solicitudes" + Path.DirectorySeparatorChar, StringComparison.Ordinal)) throw NoDisponible();
         return ruta;
