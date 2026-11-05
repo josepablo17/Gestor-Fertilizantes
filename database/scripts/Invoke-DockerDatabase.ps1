@@ -21,12 +21,12 @@ function Initialize-LocalEnvironment{
         Write-Output 'Configuracion local creada en database/docker/.env (excluida de Git).'
     }
     $contenido=Get-Content -LiteralPath $environmentFile -Raw
-    if($contenido -notmatch '(?m)^GF_APP_SQL_USER=.+'){
-        Add-Content -LiteralPath $environmentFile -Value "GF_APP_SQL_USER=gestor_api" -Encoding utf8
+    if($contenido -notmatch '(?m)^GF_APP_SQL_USER=[^\r\n]+'){
+        Add-Content -LiteralPath $environmentFile -Value "`nGF_APP_SQL_USER=gestor_api" -Encoding utf8
     }
-    if($contenido -notmatch '(?m)^GF_APP_SQL_PASSWORD=.+'){
+    if($contenido -notmatch '(?m)^GF_APP_SQL_PASSWORD=[^\r\n]+'){
         $clave='Api!'+[Guid]::NewGuid().ToString('N')+'aA9'
-        Add-Content -LiteralPath $environmentFile -Value "GF_APP_SQL_PASSWORD=$clave" -Encoding utf8
+        Add-Content -LiteralPath $environmentFile -Value "`nGF_APP_SQL_PASSWORD=$clave" -Encoding utf8
     }
 }
 function Write-BackendConfiguration{

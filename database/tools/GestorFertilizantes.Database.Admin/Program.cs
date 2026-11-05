@@ -41,6 +41,8 @@ try
             THROW 53000,N'El rol de aplicacion hereda otros roles.',1;
         IF EXISTS(SELECT 1 FROM sys.schemas WHERE principal_id=DATABASE_PRINCIPAL_ID(N'rol_gestor_api'))
             THROW 53000,N'El rol de aplicacion no debe ser propietario de esquemas.',1;
+        IF EXISTS(SELECT 1 FROM sys.objects WHERE principal_id=DATABASE_PRINCIPAL_ID(N'rol_gestor_api'))
+            THROW 53000,N'El rol de aplicacion no debe ser propietario de objetos.',1;
         IF EXISTS(SELECT 1 FROM sys.database_permissions p WHERE p.grantee_principal_id=DATABASE_PRINCIPAL_ID(N'rol_gestor_api')
             AND (p.class<>1 OR p.permission_name<>N'EXECUTE' OR p.state<>'G' OR NOT EXISTS(
                 SELECT 1 FROM sys.procedures sp WHERE sp.object_id=p.major_id AND sp.schema_id=SCHEMA_ID(N'dbo')
@@ -77,6 +79,8 @@ try
                 THROW 53000,N'El usuario existente tiene permisos directos adicionales.',1;
             IF EXISTS(SELECT 1 FROM sys.schemas WHERE principal_id=DATABASE_PRINCIPAL_ID(@Usuario))
                 THROW 53000,N'El usuario existente es propietario de un esquema.',1;
+            IF EXISTS(SELECT 1 FROM sys.objects WHERE principal_id=DATABASE_PRINCIPAL_ID(@Usuario))
+                THROW 53000,N'El usuario existente es propietario de objetos.',1;
             IF NOT EXISTS(SELECT 1 FROM sys.database_role_members WHERE role_principal_id=DATABASE_PRINCIPAL_ID(N'rol_gestor_api')
                 AND member_principal_id=DATABASE_PRINCIPAL_ID(@Usuario))
             BEGIN
