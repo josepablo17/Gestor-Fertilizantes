@@ -1,5 +1,7 @@
 # Organización del backend y DTOs
 
+Esta guía documenta la organización inicial del paso 2. El estado posterior y la adaptación de los seis catálogos están en [catálogos del backend](Catalogos-backend.md).
+
 Se mantiene una solución, una API y los nombres de negocio en español. El código se organiza por módulo; SQL y el lector PDF quedan en infraestructura. Esta etapa conserva rutas, tipos públicos, propiedades JSON, validaciones y lógica actuales. La adaptación funcional a los procedimientos nuevos sigue pendiente.
 
 ## Dónde buscar
@@ -97,3 +99,5 @@ El siguiente paso es adaptar catálogos, comenzando por productos base, marcas y
 OpenAPI describe principalmente las entradas: muchos métodos devuelven IActionResult sin publicar esquemas de respuesta. No equivale a probar toda la funcionalidad. Se comprobó además que los cuerpos de los 104 archivos trasladados no cambiaron, salvo imports y namespaces, conservando propiedades y anotaciones de DTOs.
 
 Una migración funcional debe revisar las diferencias de OpenAPI antes de actualizar la referencia; no regenerarla automáticamente para hacer pasar CI. Docker con `-VerifyBackend` agrega pruebas SQL y HTTP usando el usuario limitado y una base temporal propia.
+
+Actualización posterior: se implementaron productos base y marcas y se adaptaron los seis catálogos; consultar [catálogos del backend](Catalogos-backend.md). Los conteos y ejemplos anteriores describen la organización inicial del paso 2.

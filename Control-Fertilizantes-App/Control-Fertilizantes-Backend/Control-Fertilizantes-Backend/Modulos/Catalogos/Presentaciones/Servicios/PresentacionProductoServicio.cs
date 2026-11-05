@@ -1,182 +1,79 @@
-using Control_Fertilizantes_Backend.Comun.Errores;
 using Control_Fertilizantes_Backend.Modulos.Catalogos.Presentaciones.Contratos;
 using Control_Fertilizantes_Backend.Modulos.Catalogos.Presentaciones.DTOs.Entradas;
 using Control_Fertilizantes_Backend.Modulos.Catalogos.Presentaciones.DTOs.Salidas;
 using Control_Fertilizantes_Backend.Modulos.Catalogos.Presentaciones.Modelos;
+using Control_Fertilizantes_Backend.Comun.Validacion;
+
 using Control_Fertilizantes_Backend.Modulos.Catalogos.Productos.DTOs.Salidas;
 using Control_Fertilizantes_Backend.Modulos.Catalogos.UnidadesMedida.DTOs.Salidas;
-using System.Net;
-namespace Control_Fertilizantes_Backend.Modulos.Catalogos.Presentaciones.Servicios
+
+namespace Control_Fertilizantes_Backend.Modulos.Catalogos.Presentaciones.Servicios;
+
+public class PresentacionProductoServicio(IPresentacionProductoRepositorio repositorio) : IPresentacionProductoServicio
 {
-    public class PresentacionProductoServicio : IPresentacionProductoServicio
+    public async Task<IEnumerable<PresentacionProductoListarDTO>> ListarAsync(int? idProducto = null, bool soloActivos = false)
     {
-        private readonly IPresentacionProductoRepositorio _presentacionProductoRepositorio;
-
-        public PresentacionProductoServicio(IPresentacionProductoRepositorio presentacionProductoRepositorio)
-        {
-            _presentacionProductoRepositorio = presentacionProductoRepositorio;
-        }
-
-        public async Task<IEnumerable<PresentacionProductoListarDTO>> ListarAsync()
-        {
-            var presentaciones = await _presentacionProductoRepositorio.ListarAsync();
-
-            return presentaciones.Select(MapearPresentacionProductoListarDTO);
-        }
-
-        public async Task<PresentacionProductoListarDTO?> ObtenerPorIdAsync(int idPresentacionProducto)
-        {
-            ValidarId(idPresentacionProducto, "El id de la presentación del producto no es válido.");
-
-            var presentacion = await _presentacionProductoRepositorio.ObtenerPorIdAsync(idPresentacionProducto);
-
-            if (presentacion == null)
-                return null;
-
-            return MapearPresentacionProductoListarDTO(presentacion);
-        }
-
-        public async Task<int> InsertarAsync(PresentacionProductoCrearDTO dto)
-        {
-            if (dto == null)
-                throw new ReglaNegocio("Los datos de la presentación del producto son obligatorios.", HttpStatusCode.BadRequest);
-
-            var presentacionProducto = ConstruirPresentacionProductoParaGuardar(
-                dto.IdProducto,
-                dto.Descripcion,
-                dto.Cantidad,
-                dto.IdUnidadMedida,
-                dto.CantidadNormalizada);
-
-            return await _presentacionProductoRepositorio.InsertarAsync(presentacionProducto);
-        }
-
-        public async Task<bool> ActualizarAsync(PresentacionProductoActualizarDTO dto)
-        {
-            if (dto == null)
-                throw new ReglaNegocio("Los datos de la presentación del producto son obligatorios.", HttpStatusCode.BadRequest);
-
-            ValidarId(dto.IdPresentacionProducto, "El id de la presentación del producto no es válido.");
-
-            var presentacionExistente = await _presentacionProductoRepositorio.ObtenerPorIdAsync(dto.IdPresentacionProducto);
-
-            if (presentacionExistente == null)
-                throw new ReglaNegocio("La presentación del producto que intenta actualizar no existe.", HttpStatusCode.NotFound);
-
-            if (!presentacionExistente.Activo)
-                throw new ReglaNegocio("No se puede actualizar una presentación del producto inactiva.", HttpStatusCode.Conflict);
-
-            var presentacionProducto = ConstruirPresentacionProductoParaGuardar(
-                dto.IdProducto,
-                dto.Descripcion,
-                dto.Cantidad,
-                dto.IdUnidadMedida,
-                dto.CantidadNormalizada);
-
-            presentacionProducto.IdPresentacionProducto = dto.IdPresentacionProducto;
-
-            return await _presentacionProductoRepositorio.ActualizarAsync(presentacionProducto);
-        }
-
-        public async Task<bool> DesactivarAsync(int idPresentacionProducto)
-        {
-            ValidarId(idPresentacionProducto, "El id de la presentación del producto no es válido.");
-
-            var presentacionExistente = await _presentacionProductoRepositorio.ObtenerPorIdAsync(idPresentacionProducto);
-
-            if (presentacionExistente == null)
-                throw new ReglaNegocio("La presentación del producto que intenta desactivar no existe.", HttpStatusCode.NotFound);
-
-            if (!presentacionExistente.Activo)
-                throw new ReglaNegocio("La presentación del producto ya se encuentra inactiva.", HttpStatusCode.Conflict);
-
-            return await _presentacionProductoRepositorio.DesactivarAsync(idPresentacionProducto);
-        }
-
-        public async Task<IEnumerable<ProductoDropdownDTO>> ListarProductosParaDropdownAsync()
-        {
-            return await _presentacionProductoRepositorio.ListarProductosParaDropdownAsync();
-        }
-
-        public async Task<IEnumerable<UnidadMedidaDropdownDTO>> ListarUnidadesMedidaParaDropdownAsync()
-        {
-            return await _presentacionProductoRepositorio.ListarUnidadesMedidaParaDropdownAsync();
-        }
-
-        // =========================
-        // MÉTODOS PRIVADOS
-        // =========================
-
-        private PresentacionProducto ConstruirPresentacionProductoParaGuardar(
-            int idProducto,
-            string? descripcionOriginal,
-            decimal cantidad,
-            int idUnidadMedida,
-            decimal cantidadNormalizada)
-        {
-            ValidarId(idProducto, "El id del producto no es válido.");
-            ValidarId(idUnidadMedida, "El id de la unidad de medida no es válido.");
-
-            var descripcion = LimpiarTexto(descripcionOriginal);
-
-            ValidarDescripcion(descripcion);
-            ValidarValoresNumericos(cantidad, cantidadNormalizada);
-
-            return new PresentacionProducto
-            {
-                IdProducto = idProducto,
-                Descripcion = descripcion,
-                Cantidad = cantidad,
-                IdUnidadMedida = idUnidadMedida,
-                CantidadNormalizada = cantidadNormalizada
-            };
-        }
-
-        private PresentacionProductoListarDTO MapearPresentacionProductoListarDTO(PresentacionProducto presentacion)
-        {
-            return new PresentacionProductoListarDTO
-            {
-                IdPresentacionProducto = presentacion.IdPresentacionProducto,
-                IdProducto = presentacion.IdProducto,
-                NombreProducto = presentacion.NombreProducto ?? string.Empty,
-                Descripcion = presentacion.Descripcion,
-                Cantidad = presentacion.Cantidad,
-                IdUnidadMedida = presentacion.IdUnidadMedida,
-                NombreUnidadMedida = presentacion.NombreUnidadMedida ?? string.Empty,
-                CantidadNormalizada = presentacion.CantidadNormalizada,
-                Activo = presentacion.Activo,
-                FechaCreacion = presentacion.FechaCreacion,
-                FechaModificacion = presentacion.FechaModificacion
-            };
-        }
-
-        private void ValidarId(int id, string mensaje)
-        {
-            if (id <= 0)
-                throw new ReglaNegocio(mensaje, HttpStatusCode.BadRequest);
-        }
-
-        private string LimpiarTexto(string? valor)
-        {
-            return string.IsNullOrWhiteSpace(valor) ? string.Empty : valor.Trim();
-        }
-
-        private void ValidarDescripcion(string descripcion)
-        {
-            if (string.IsNullOrWhiteSpace(descripcion))
-                throw new ReglaNegocio("La descripción de la presentación es obligatoria.", HttpStatusCode.BadRequest);
-
-            if (descripcion.Length > 150)
-                throw new ReglaNegocio("La descripción no puede superar los 150 caracteres.", HttpStatusCode.BadRequest);
-        }
-
-        private void ValidarValoresNumericos(decimal cantidad, decimal cantidadNormalizada)
-        {
-            if (cantidad <= 0)
-                throw new ReglaNegocio("La cantidad debe ser mayor que cero.", HttpStatusCode.BadRequest);
-
-            if (cantidadNormalizada <= 0)
-                throw new ReglaNegocio("La cantidad normalizada debe ser mayor que cero.", HttpStatusCode.BadRequest);
-        }
+        ValidacionCatalogo.IdOpcional(idProducto);
+        return (await repositorio.ListarAsync(idProducto, soloActivos)).Select(Mapear);
     }
+
+    public async Task<PresentacionProductoListarDTO?> ObtenerPorIdAsync(int id)
+    {
+        ValidacionCatalogo.Id(id);
+        var datos = await repositorio.ObtenerPorIdAsync(id);
+        return datos is null ? null : Mapear(datos);
+    }
+
+    public Task<int> InsertarAsync(PresentacionProductoCrearDTO dto)
+    {
+        ValidacionCatalogo.Validar(dto);
+        return repositorio.InsertarAsync(new PresentacionProductoGuardar
+        {
+            IdProducto = dto.IdProducto,
+            Descripcion = dto.Descripcion.Trim(),
+            Cantidad = dto.Cantidad,
+            IdUnidadMedida = dto.IdUnidadMedida,
+        });
+    }
+
+    public Task<bool> ActualizarAsync(PresentacionProductoActualizarDTO dto)
+    {
+        ValidacionCatalogo.Validar(dto);
+        return repositorio.ActualizarAsync(new PresentacionProductoGuardar
+        {
+            IdPresentacionProducto = dto.IdPresentacionProducto,
+            IdProducto = dto.IdProducto,
+            Descripcion = dto.Descripcion.Trim(),
+            Cantidad = dto.Cantidad,
+            IdUnidadMedida = dto.IdUnidadMedida,
+        });
+    }
+
+    public Task<bool> DesactivarAsync(int id)
+    {
+        ValidacionCatalogo.Id(id);
+        return repositorio.DesactivarAsync(id);
+    }
+    public Task<IEnumerable<ProductoDropdownDTO>> ListarProductosParaDropdownAsync() => repositorio.ListarProductosParaDropdownAsync();
+    public Task<IEnumerable<UnidadMedidaDropdownDTO>> ListarUnidadesMedidaParaDropdownAsync() => repositorio.ListarUnidadesMedidaParaDropdownAsync();
+    private static PresentacionProductoListarDTO Mapear(PresentacionProducto datos) => new()
+    {
+        IdPresentacionProducto = datos.IdPresentacionProducto,
+        IdProducto = datos.IdProducto,
+        Descripcion = datos.Descripcion,
+        Cantidad = datos.Cantidad,
+        IdUnidadMedida = datos.IdUnidadMedida,
+        NombreProducto = datos.NombreProducto,
+        IdProductoBase = datos.IdProductoBase,
+        IdMarca = datos.IdMarca,
+        Marca = datos.Marca,
+        CodigoUnidadMedida = datos.CodigoUnidadMedida,
+        NombreUnidadMedida = datos.NombreUnidadMedida,
+        TipoBase = datos.TipoBase,
+        FactorConversion = datos.FactorConversion,
+        CantidadNormalizada = datos.CantidadNormalizada,
+        Activo = datos.Activo,
+        FechaCreacion = datos.FechaCreacion,
+        FechaModificacion = datos.FechaModificacion,
+    };
 }

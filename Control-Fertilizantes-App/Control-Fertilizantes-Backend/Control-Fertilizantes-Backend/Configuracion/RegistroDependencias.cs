@@ -1,3 +1,9 @@
+using Control_Fertilizantes_Backend.Modulos.Catalogos.ProductosBase.Contratos;
+using Control_Fertilizantes_Backend.Modulos.Catalogos.ProductosBase.Servicios;
+using Control_Fertilizantes_Backend.Infraestructura.Persistencia.Repositorios.Catalogos.ProductosBase;
+using Control_Fertilizantes_Backend.Modulos.Catalogos.Marcas.Contratos;
+using Control_Fertilizantes_Backend.Modulos.Catalogos.Marcas.Servicios;
+using Control_Fertilizantes_Backend.Infraestructura.Persistencia.Repositorios.Catalogos.Marcas;
 using Control_Fertilizantes_Backend.Infraestructura.Pdf;
 using Control_Fertilizantes_Backend.Infraestructura.Persistencia;
 using Control_Fertilizantes_Backend.Infraestructura.Persistencia.Repositorios.Catalogos.Presentaciones;
@@ -50,6 +56,10 @@ public static class RegistroDependencias
 
     private static void AgregarCatalogos(IServiceCollection servicios)
     {
+        servicios.AddScoped<IProductoBaseRepositorio, ProductoBaseRepositorio>();
+        servicios.AddScoped<IProductoBaseServicio, ProductoBaseServicio>();
+        servicios.AddScoped<IMarcaRepositorio, MarcaRepositorio>();
+        servicios.AddScoped<IMarcaServicio, MarcaServicio>();
         servicios.AddScoped<IProductoRepositorio, ProductoRepositorio>();
         servicios.AddScoped<IProductoServicio, ProductoServicio>();
         servicios.AddScoped<IProveedorRepositorio, ProveedorRepositorio>();
