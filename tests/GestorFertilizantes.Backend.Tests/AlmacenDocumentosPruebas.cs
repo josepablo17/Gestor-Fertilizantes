@@ -51,6 +51,23 @@ public class AlmacenDocumentosPruebas : IDisposable
         await Assert.ThrowsAsync<ReglaNegocio>(() => Almacen().LeerVerificadoAsync(Identidad, meta, default));
     }
 
+    [Fact]
+    public async Task Distingue_original_recibido_de_generado_y_protege_su_huella()
+    {
+        var almacen = Almacen();
+        var contenido = new byte[] { 4, 3, 2, 1 };
+        var archivo = await almacen.GuardarRecibidoAsync(Identidad, contenido, default);
+        var metadata = Meta(archivo);
+        metadata.Origen = "Recibido";
+        Assert.Equal(contenido, await Almacen().LeerRecibidoVerificadoAsync(Identidad, metadata, default));
+        await Assert.ThrowsAsync<ReglaNegocio>(() => almacen.LeerRecibidoVerificadoAsync(new(1, 1, 3), metadata, default));
+        metadata.Origen = "Generado";
+        await Assert.ThrowsAsync<ReglaNegocio>(() => almacen.LeerVerificadoAsync(Identidad, metadata, default));
+        metadata.Origen = "Recibido";
+        await File.WriteAllBytesAsync(Path.Combine(carpeta, archivo.Clave.Replace('/', Path.DirectorySeparatorChar)), [1, 2, 3, 4]);
+        await Assert.ThrowsAsync<ReglaNegocio>(() => almacen.LeerRecibidoVerificadoAsync(Identidad, metadata, default));
+    }
+
     public void Dispose()
     {
         if (Path.GetDirectoryName(carpeta) != basePruebas || !Guid.TryParseExact(Path.GetFileName(carpeta), "N", out _))

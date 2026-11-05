@@ -14,3 +14,8 @@ public class Documento
 public record IdentidadDocumentoSolicitud(long IdSolicitud, int VersionSolicitud, long IdDestinatario);
 public record ArchivoDocumentoGuardado(string Clave, byte[] Sha256, long TamanoBytes);
 public record ArchivoDocumentoDescarga(byte[] Contenido, string Nombre);
+
+public static class LimitesPdf
+{
+    public const int Bytes = 10 * 1024 * 1024;
+}

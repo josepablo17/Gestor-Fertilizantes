@@ -131,6 +131,9 @@ Assert-Solicitud ($revision.estado -ceq 'Borrador' -and $revision.versionSolicit
     $revision.lineas[0].idSolicitudCotizacionDetalle -ne $emitida.lineas[0].idSolicitudCotizacionDetalle -and
     $revision.destinatarios[0].idSolicitudCotizacionProveedor -ne $destino1 -and $null -eq $revision.destinatarios[0].idDocumentoGenerado) 'La revisión crea identidades nuevas sin heredar documentos ni envíos'
 $null=Invoke-Solicitud GET "$ruta/$($revision.idSolicitudCotizacion)/destinatarios/$destino1/documento" 404
+foreach($caso in (& (Join-Path $PSScriptRoot 'Probar-RespuestasHttp.ps1') -Cliente $Cliente -Direccion $Direccion -RutaDocumentos $RutaDocumentos -Solicitud $emitida -IdDestinatario $destino1 -IdOtroDestinatario $destino2)){
+    $checks.Add($caso)
+}
 $cerrada=Invoke-Solicitud PUT "$ruta/$id/estado" 200 @{estado='Cerrada'}
 Assert-Solicitud ($cerrada.estado -ceq 'Cerrada' -and (Get-PdfSolicitud $rutaPdf) -ceq $doc.sha256) 'Al cerrar se conserva la descarga del original'
 
