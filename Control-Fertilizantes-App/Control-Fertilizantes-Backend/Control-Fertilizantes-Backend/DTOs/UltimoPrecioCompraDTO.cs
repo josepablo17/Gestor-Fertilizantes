@@ -6,7 +6,7 @@
         public DateTime FechaCompra { get; set; }
         public decimal PrecioTotal { get; set; }
         public decimal PrecioUnitarioCalculado { get; set; }
-        public string Moneda { get; set; } = string.Empty;
-        public string NombreProveedor { get; set; } = string.Empty;
+        public string? Moneda { get; set; }
+        public string? NombreProveedor { get; set; }
     }
 }

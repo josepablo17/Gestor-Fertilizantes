@@ -1,5 +1,6 @@
 [CmdletBinding()]
-param([ValidateSet('Init','Up','Down','Status','Logs','Test')][string]$Action='Up')
+param([ValidateSet('Init','Up','Down','Status','Logs','Test')][string]$Action='Up',
+      [switch]$VerifyBackend)
 $ErrorActionPreference='Stop'
 $databaseRoot=Split-Path $PSScriptRoot -Parent
 $dockerDirectory=Join-Path $databaseRoot 'docker'
@@ -19,6 +20,33 @@ function Initialize-LocalEnvironment{
         [IO.File]::WriteAllText($environmentFile,$contents,[Text.UTF8Encoding]::new($false))
         Write-Output 'Configuracion local creada en database/docker/.env (excluida de Git).'
     }
+    $contenido=Get-Content -LiteralPath $environmentFile -Raw
+    if($contenido -notmatch '(?m)^GF_APP_SQL_USER=[^\r\n]+'){
+        Add-Content -LiteralPath $environmentFile -Value "`nGF_APP_SQL_USER=gestor_api" -Encoding utf8
+    }
+    if($contenido -notmatch '(?m)^GF_APP_SQL_PASSWORD=[^\r\n]+'){
+        $clave='Api!'+[Guid]::NewGuid().ToString('N')+'aA9'
+        Add-Content -LiteralPath $environmentFile -Value "`nGF_APP_SQL_PASSWORD=$clave" -Encoding utf8
+    }
+}
+function Write-BackendConfiguration{
+    $json=& docker compose @composeArguments config --format json
+    if($LASTEXITCODE -ne 0){throw 'No se pudo resolver la configuracion de Docker.'}
+    $configuracion=($json|Out-String)|ConvertFrom-Json
+    $inicializador=$configuracion.services.'db-init'.environment
+    $puerto=$configuracion.services.sqlserver.ports[0].published
+    $cadena=[Data.Common.DbConnectionStringBuilder]::new()
+    $cadena['Server']="127.0.0.1,$puerto"
+    $cadena['Initial Catalog']=$inicializador.GF_DATABASE_NAME
+    $cadena['User ID']=$inicializador.GF_APP_SQL_USER
+    $cadena['Password']=$inicializador.GF_APP_SQL_PASSWORD
+    $cadena['Encrypt']=$true
+    $cadena['TrustServerCertificate']=$true
+    $archivo=Join-Path (Split-Path $databaseRoot -Parent) 'Control-Fertilizantes-App/Control-Fertilizantes-Backend/Control-Fertilizantes-Backend/appsettings.local.json'
+    $opciones=if(Test-Path -LiteralPath $archivo){Get-Content $archivo -Raw|ConvertFrom-Json -AsHashtable}else{@{}}
+    $opciones['ConnectionStrings']=@{ConexionSql=$cadena.ConnectionString}
+    [IO.File]::WriteAllText($archivo,($opciones|ConvertTo-Json -Depth 10),[Text.UTF8Encoding]::new($false))
+    Write-Output 'Conexion del backend preparada en appsettings.local.json, excluida de Git y de publicacion.'
 }
 function Get-SqlContainerId{
     $containerId=(Invoke-Compose -Arguments @('ps','--quiet','sqlserver') | Out-String).Trim()
@@ -44,6 +72,7 @@ if($Action -ne 'Test'){
             Invoke-Compose -Arguments @('build','db-init')
             Invoke-Compose -Arguments @('up','--detach','--wait','--wait-timeout','210','sqlserver')
             Invoke-Compose -Arguments @('run','--rm','--no-deps','db-init')
+            Write-BackendConfiguration
             Write-Output 'Base disponible en localhost,14333 salvo que GF_SQL_PORT se haya cambiado en .env.'
         }
         # Deliberately omit --volumes: normal shutdown always preserves data.
@@ -60,7 +89,7 @@ $runId=[Guid]::NewGuid().ToString('N')
 $project='gf-db-test-'+$runId
 $artifactDirectory=Join-Path $databaseRoot ('artifacts/docker/'+$runId)
 New-Item -ItemType Directory -Path $artifactDirectory -Force | Out-Null
-$keys=@('MSSQL_SA_PASSWORD','GF_DATABASE_NAME','GF_SQL_PORT','GF_DOCKER_ARTIFACTS_PATH')
+$keys=@('MSSQL_SA_PASSWORD','GF_DATABASE_NAME','GF_SQL_PORT','GF_DOCKER_ARTIFACTS_PATH','GF_APP_SQL_USER','GF_APP_SQL_PASSWORD','GF_API_TEST_CONNECTION_STRING')
 $previousEnvironment=@{}
 foreach($key in $keys){$previousEnvironment[$key]=[Environment]::GetEnvironmentVariable($key)}
 $owned=$false
@@ -68,6 +97,12 @@ $cleaned=$false
 try{
     $env:MSSQL_SA_PASSWORD='Ci!'+[Guid]::NewGuid().ToString('N')+'aA9'
     $env:GF_DATABASE_NAME='GF_DB_COMPOSE_'+$runId
+    $env:GF_APP_SQL_USER='api_test_'+$runId
+    $env:GF_APP_SQL_PASSWORD='Api!'+[Guid]::NewGuid().ToString('N')+'aA9'
+    if($env:GITHUB_ACTIONS -eq 'true'){
+        Write-Output "::add-mask::$env:MSSQL_SA_PASSWORD"
+        Write-Output "::add-mask::$env:GF_APP_SQL_PASSWORD"
+    }
     # Port 0 asks Docker to choose a free loopback port, avoiding the local SQL instance.
     $env:GF_SQL_PORT='0'
     $env:GF_DOCKER_ARTIFACTS_PATH=$artifactDirectory.Replace('\','/')
@@ -95,6 +130,12 @@ try{
     if($firstContainer -eq $secondContainer -or $firstVolume -ne $secondVolume){throw 'No se verifico la recreacion con el mismo volumen.'}
     Invoke-Compose -Arguments @('run','--rm','--no-deps','db-init')
     Invoke-Compose -Arguments @('run','--rm','--no-deps','verify','--verify-persistence')
+    if($VerifyBackend){
+        $direccion=(Invoke-Compose -Arguments @('port','sqlserver','1433')|Out-String).Trim()
+        if($direccion -notmatch '^127\.0\.0\.1:(\d+)$'){throw 'No se pudo obtener el puerto local de la prueba.'}
+        $env:GF_API_TEST_CONNECTION_STRING="Server=127.0.0.1,$($Matches[1]);Database=$env:GF_DATABASE_NAME;User ID=$env:GF_APP_SQL_USER;Password=$env:GF_APP_SQL_PASSWORD;Encrypt=True;TrustServerCertificate=True;Connect Timeout=5"
+        & (Join-Path (Split-Path $databaseRoot -Parent) 'scripts/Probar-Backend.ps1') -ConSql
+    }
     $verification=Get-Content (Join-Path $artifactDirectory 'verification.json') -Raw|ConvertFrom-Json
     if($verification.Failed -ne 0 -or $verification.IntegrationTests -ne 89){throw 'Resultados SQL incompletos.'}
     [ordered]@{Project=$project;Database=$env:GF_DATABASE_NAME;IntegrationTests=89;Linux=$true;FreshInitialization=$true;ContainerRecreated=$true;SameNamedVolume=$true;AllRowsPreserved=$true;SequenceNotReset=$true;ReappliedDacpac=$true}|ConvertTo-Json|Set-Content (Join-Path $artifactDirectory 'docker-verification.json') -Encoding utf8

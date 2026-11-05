@@ -22,7 +22,7 @@ namespace Control_Fertilizantes_Backend.Services
             return proveedores.Select(MapearProveedorListarDTO);
         }
 
-        public async Task<ProveedorListarDTO> ObtenerPorIdAsync(int idProveedor)
+        public async Task<ProveedorListarDTO?> ObtenerPorIdAsync(int idProveedor)
         {
             ValidarId(idProveedor, "El id del proveedor no es válido.");
 

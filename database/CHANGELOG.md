@@ -1,5 +1,13 @@
 # Historial de la base de datos
 
+## 1.0.1 — 2026-11-05
+
+- Rol versionado de ejecución con permisos sobre 82 procedimientos públicos.
+- Perfil portátil publica permisos declarados y conserva usuarios/membresías locales.
+- Inicializador prepara la cuenta de ejecución sin permisos administrativos ni cambios implícitos de contraseña.
+- Conexión privada de API hacia Docker y pruebas de permisos reales.
+- Se conservan tablas y procedimientos del modelo de negocio.
+
 ## Plataforma .NET 10 — 2026-11-05
 
 - SDK 10.0.403 fijado y ejecutor de pruebas dirigido a net10.0.

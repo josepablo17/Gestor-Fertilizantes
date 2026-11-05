@@ -1,96 +1,56 @@
-﻿using System.Net;
-using System.Text.Json;
+using System.Net;
 using Control_Fertilizantes_Backend.DTOs;
 using Control_Fertilizantes_Backend.Exceptions;
 using Microsoft.Data.SqlClient;
 
-namespace Control_Fertilizantes_Backend.Middlewares
+namespace Control_Fertilizantes_Backend.Middlewares;
+
+public class ManejoGlobalExcepcionesMiddleware
 {
-    public class ManejoGlobalExcepcionesMiddleware
+    private readonly RequestDelegate _siguiente;
+    private readonly ILogger<ManejoGlobalExcepcionesMiddleware> _logger;
+
+    public ManejoGlobalExcepcionesMiddleware(
+        RequestDelegate siguiente,
+        ILogger<ManejoGlobalExcepcionesMiddleware> logger)
     {
-        private readonly RequestDelegate _next;
-        private readonly ILogger<ManejoGlobalExcepcionesMiddleware> _logger;
+        _siguiente = siguiente;
+        _logger = logger;
+    }
 
-        public ManejoGlobalExcepcionesMiddleware(
-            RequestDelegate next,
-            ILogger<ManejoGlobalExcepcionesMiddleware> logger)
+    public async Task InvokeAsync(HttpContext contexto)
+    {
+        try
         {
-            _next = next;
-            _logger = logger;
+            await _siguiente(contexto);
         }
-
-        public async Task InvokeAsync(HttpContext context)
+        catch (OperationCanceledException) when (contexto.RequestAborted.IsCancellationRequested)
         {
-            try
-            {
-                await _next(context);
-            }
-            catch (ReglaNegocio ex)
-            {
-                _logger.LogWarning(ex, "Regla de negocio detectada.");
-                await ManejarExcepcionAsync(context, ex.Message, ex.StatusCode);
-            }
-            catch (SqlException ex) when (EsConflictoDuplicadoSQL(ex))
-            {
-                _logger.LogWarning(ex, "Conflicto de duplicado detectado desde SQL Server.");
-                await ManejarExcepcionAsync(context, ex.Message, HttpStatusCode.Conflict);
-            }
-            catch (SqlException ex) when (EsRecursoNoEncontradoSQL(ex))
-            {
-                _logger.LogWarning(ex, "Recurso no encontrado detectado desde SQL Server.");
-                await ManejarExcepcionAsync(context, ex.Message, HttpStatusCode.NotFound);
-            }
-            catch (SqlException ex) when (EsConflictoEstadoSQL(ex))
-            {
-                _logger.LogWarning(ex, "Conflicto de estado detectado desde SQL Server.");
-                await ManejarExcepcionAsync(context, ex.Message, HttpStatusCode.Conflict);
-            }
-            catch (SqlException ex)
-            {
-                _logger.LogError(ex, "Error SQL no controlado.");
-                await ManejarExcepcionAsync(
-                    context,
-                    "Ocurrió un error en la base de datos.",
-                    HttpStatusCode.InternalServerError);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error interno no controlado.");
-                await ManejarExcepcionAsync(
-                    context,
-                    "Ocurrió un error interno en el servidor.",
-                    HttpStatusCode.InternalServerError);
-            }
+            // El cliente ya cerro la solicitud; no convertir la cancelacion en HTTP 500.
         }
-
-        private static bool EsConflictoDuplicadoSQL(SqlException ex)
+        catch (ReglaNegocio excepcion) when (!contexto.Response.HasStarted)
         {
-            return ex.Number is 50001 or 50003;
+            _logger.LogWarning(excepcion, "Regla de negocio. Solicitud {Solicitud}.", contexto.TraceIdentifier);
+            await ResponderAsync(contexto, excepcion.Message, excepcion.StatusCode);
         }
-
-        private static bool EsRecursoNoEncontradoSQL(SqlException ex)
+        catch (SqlException excepcion) when (!contexto.Response.HasStarted)
         {
-            return ex.Number is 50002 or 50004;
+            var error = TraductorErroresSql.Traducir(excepcion);
+            _logger.Log(error.Estado == HttpStatusCode.InternalServerError ? LogLevel.Error : LogLevel.Warning,
+                excepcion, "Error SQL {Numero}. Solicitud {Solicitud}.", excepcion.Number, contexto.TraceIdentifier);
+            await ResponderAsync(contexto, error.Mensaje, error.Estado);
         }
-
-        private static bool EsConflictoEstadoSQL(SqlException ex)
+        catch (Exception excepcion) when (!contexto.Response.HasStarted)
         {
-            return ex.Number is 50005;
+            _logger.LogError(excepcion, "Error interno. Solicitud {Solicitud}.", contexto.TraceIdentifier);
+            await ResponderAsync(contexto, "Ocurrió un error interno en el servidor.", HttpStatusCode.InternalServerError);
         }
+    }
 
-        private static async Task ManejarExcepcionAsync(
-            HttpContext context,
-            string mensaje,
-            HttpStatusCode statusCode)
-        {
-            context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)statusCode;
-
-            var respuesta = ApiRespuesta<object>.CrearError(mensaje);
-
-            var json = JsonSerializer.Serialize(respuesta);
-
-            await context.Response.WriteAsync(json);
-        }
+    private static Task ResponderAsync(HttpContext contexto, string mensaje, HttpStatusCode estado)
+    {
+        contexto.Response.StatusCode = (int)estado;
+        return contexto.Response.WriteAsJsonAsync(ApiRespuesta<object>.CrearError(mensaje),
+            cancellationToken: contexto.RequestAborted);
     }
 }

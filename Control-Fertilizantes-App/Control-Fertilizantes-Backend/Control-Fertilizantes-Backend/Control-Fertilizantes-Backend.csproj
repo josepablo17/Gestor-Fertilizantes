@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Control_Fertilizantes_Backend</RootNamespace>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
@@ -20,6 +21,7 @@
 
   <ItemGroup>
     <Folder Include="Utils\" />
+    <Content Remove="appsettings.local.json" />
   </ItemGroup>
 
 </Project>

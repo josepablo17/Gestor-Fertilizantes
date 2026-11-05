@@ -8,7 +8,7 @@
     <DropRoleMembersNotInSource>False</DropRoleMembersNotInSource>
     <CreateNewDatabase>False</CreateNewDatabase>
     <ScriptDatabaseOptions>False</ScriptDatabaseOptions>
-    <IgnorePermissions>True</IgnorePermissions>
+    <IgnorePermissions>False</IgnorePermissions>
     <IgnoreUserSettingsObjects>True</IgnoreUserSettingsObjects>
     <IgnoreLoginSids>True</IgnoreLoginSids>
     <IncludeTransactionalScripts>True</IncludeTransactionalScripts>

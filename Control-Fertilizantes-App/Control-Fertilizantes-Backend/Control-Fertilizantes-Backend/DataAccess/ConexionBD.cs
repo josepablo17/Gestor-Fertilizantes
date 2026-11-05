@@ -1,21 +1,18 @@
-﻿using Control_Fertilizantes_Backend.Interfaces;
-using Microsoft.Data.SqlClient;
 using System.Data;
+using Control_Fertilizantes_Backend.Interfaces;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Options;
 
-namespace Control_Fertilizantes_Backend.DataAccess
+namespace Control_Fertilizantes_Backend.DataAccess;
+
+public class ConexionBD : IConexionBD
 {
-    public class ConexionBD : IConexionBD
+    private readonly string _cadena;
+
+    public ConexionBD(IOptions<OpcionesConexionSql> opciones)
     {
-        private readonly IConfiguration _configuration;
-
-        public ConexionBD(IConfiguration configuration) 
-        {
-            _configuration = configuration;
-        }
-
-        public IDbConnection ObtenerConexion()
-        {
-            return new SqlConnection(_configuration.GetConnectionString("ConexionSql"));
-        }
+        _cadena = opciones.Value.Cadena;
     }
+
+    public IDbConnection ObtenerConexion() => new SqlConnection(_cadena);
 }
