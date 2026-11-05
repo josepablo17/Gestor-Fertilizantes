@@ -1,6 +1,5 @@
 using System.Data;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Control_Fertilizantes_Backend.Modulos.Documentos.Modelos;
 using Control_Fertilizantes_Backend.Modulos.RespuestasCotizacion.Contratos;
 using Control_Fertilizantes_Backend.Modulos.RespuestasCotizacion.Modelos;
@@ -11,11 +10,9 @@ namespace Control_Fertilizantes_Backend.Infraestructura.Persistencia.Repositorio
 
 public sealed class RespuestaCotizacionRepositorio(IConexionBD conexionBD) : IRespuestaCotizacionRepositorio
 {
-    private static readonly JsonSerializerOptions JsonEvidencia = new(JsonSerializerDefaults.Web);
-    private static readonly JsonSerializerOptions JsonWeb = new(JsonSerializerDefaults.Web)
-    {
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-    };
+    // La cabecera es un reemplazo completo, incluso si todos los campos están vacíos.
+    // OPENJSON con esquema explícito no entrega una fila para un objeto {}.
+    private static readonly JsonSerializerOptions JsonWeb = new(JsonSerializerDefaults.Web);
 
     private static CommandDefinition Comando(string nombre, object parametros, CancellationToken ct, IDbTransaction? transaccion = null) =>
         new("dbo." + nombre, parametros, transaccion, commandType: CommandType.StoredProcedure, cancellationToken: ct);
@@ -45,7 +42,7 @@ public sealed class RespuestaCotizacionRepositorio(IConexionBD conexionBD) : IRe
             intento.Add("@Metodo", borrador.Extraccion.Metodo, DbType.AnsiString, size: 20);
             intento.Add("@Estado", borrador.Extraccion.Estado, DbType.AnsiString, size: 30);
             // Conservar también los valores nulos: campo existente sin valor y cadena vacía son evidencia distinta.
-            intento.Add("@DatosExtraidosJson", JsonSerializer.Serialize(borrador.Extraccion.Campos, JsonEvidencia), DbType.String, size: -1);
+            intento.Add("@DatosExtraidosJson", JsonSerializer.Serialize(borrador.Extraccion.Campos, JsonWeb), DbType.String, size: -1);
             intento.Add("@AdvertenciasJson", JsonSerializer.Serialize(borrador.Extraccion.Advertencias, JsonWeb), DbType.String, size: -1);
             intento.Add("@IdImportacionDocumento", dbType: DbType.Int64, direction: ParameterDirection.Output);
             await conexion.ExecuteAsync(Comando("usp_Importacion_Registrar", intento, ct, tx));
