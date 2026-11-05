@@ -1,6 +1,6 @@
 # Gestor de fertilizantes
 
-Sistema local para solicitudes de cotización, recepción de proformas y comparación de precios. El backend incluye los seis catálogos, las solicitudes con PDF rellenable por proveedor y la recepción y revisión de respuestas. Continúan pendientes la comparación por solicitud y la adaptación del frontend.
+Sistema local para solicitudes de cotización, recepción de proformas y comparación de precios. El backend incluye los seis catálogos, las solicitudes con PDF rellenable por proveedor, la recepción y revisión de respuestas y la comparación de ofertas validadas por solicitud. Continúa pendiente adaptar el frontend.
 
 ## Plataforma
 
@@ -22,6 +22,8 @@ Productos base, marcas, productos, presentaciones, unidades y proveedores usan l
 El flujo de [solicitudes y PDF](docs/Solicitudes-y-PDF.md) se puede probar desde Swagger en Development. El original se guarda en disco; respaldar la carpeta de documentos junto con la base.
 
 La guía de [recepción y revisión de proformas](docs/Recepcion-y-revision-de-proformas.md) explica cómo subir el PDF devuelto, corregir datos y validar la respuesta. Conserva el mismo DACPAC 1.0.2.0.
+
+La guía de [comparación por solicitud](docs/Comparacion-de-cotizaciones.md) explica cómo comparar por kg o litro, qué significa cada mínimo y dónde consultar los ajustes globales del documento.
 
 ## Verificación
 

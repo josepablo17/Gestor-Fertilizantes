@@ -5,7 +5,8 @@ param(
     [Parameter(Mandatory)][string]$RutaDocumentos,
     [Parameter(Mandatory)]$Solicitud,
     [Parameter(Mandatory)][long]$IdDestinatario,
-    [Parameter(Mandatory)][long]$IdOtroDestinatario
+    [Parameter(Mandatory)][long]$IdOtroDestinatario,
+    [Parameter(Mandatory)][int]$IdPresentacionAlternativa
 )
 
 $ErrorActionPreference='Stop'
@@ -74,6 +75,8 @@ function New-PdfExterno {
 
 $id=$Solicitud.idSolicitudCotizacion
 $rutaSolicitud="solicitudes-cotizacion/$id"
+$comparacion="$rutaSolicitud/comparacion"
+$criterio='moneda=CRC&baseTotalLinea=Bruto&fechaReferencia=2026-04-08'
 $dest="$rutaSolicitud/destinatarios/$IdDestinatario"
 $otro="$rutaSolicitud/destinatarios/$IdOtroDestinatario"
 $pdf=Get-BytesRespuesta "$dest/documento"
@@ -84,6 +87,8 @@ $recibida=Invoke-Respuesta POST "$dest/respuestas" 201 -Pdf $pdf -Nombre 'Formul
 $ruta="respuestas-cotizacion/$($recibida.respuesta.idProformaProveedor)"
 $linea=$recibida.lineas[0].idProformaProveedorDetalle
 $detalle=$Solicitud.lineas[0].idSolicitudCotizacionDetalle
+$detalleLiquido=$Solicitud.lineas[1].idSolicitudCotizacionDetalle
+$lineaLiquida=@($recibida.lineas | Where-Object idSolicitudDetalle -eq $detalleLiquido)[0].idProformaProveedorDetalle
 Assert-Respuesta ($recibida.respuesta.estado -ceq 'Borrador' -and $recibida.importacion.metodo -ceq 'AcroForm' -and
     $recibida.importacion.estado -ceq 'Parcial' -and $recibida.documento.sha256 -ceq $hash -and
     $recibida.lineas[0].idSolicitudDetalle -eq $detalle -and $null -eq $recibida.lineas[0].precioUnitario -and
@@ -97,7 +102,8 @@ Assert-Respuesta ($a.estado -ceq 'Respondida' -and $null -ne $a.fechaEnvio -and 
 $externo=New-PdfExterno
 $manual=Invoke-Respuesta POST "$otro/respuestas" 201 -Pdf $externo -Nombre 'Proforma-propia.pdf'
 $rutaManual="respuestas-cotizacion/$($manual.respuesta.idProformaProveedor)"
-$lineaManual=$manual.lineas[0].idProformaProveedorDetalle
+$lineaManual=@($manual.lineas | Where-Object idSolicitudDetalle -eq $detalle)[0].idProformaProveedorDetalle
+$liquidaManual=@($manual.lineas | Where-Object idSolicitudDetalle -eq $detalleLiquido)[0].idProformaProveedorDetalle
 $manualHash=[Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($externo))
 Assert-Respuesta ($manual.importacion.metodo -ceq 'Manual' -and $manual.importacion.estado -ceq 'NoCompatible' -and
     $manual.documento.sha256 -ceq $manualHash -and $null -eq $manual.lineas[0].numeroLinea -and
@@ -106,8 +112,12 @@ $contexto=Invoke-Respuesta GET $rutaSolicitud 200
 $a=@($contexto.destinatarios | Where-Object idSolicitudCotizacionProveedor -eq $IdOtroDestinatario)[0]
 Assert-Respuesta ($null -eq $a.fechaEnvio -and $a.cantidadRespuestas -eq 1) 'Una respuesta recibida no inventa evidencia de envío'
 $null=Invoke-Respuesta POST "$ruta/lineas/$lineaManual/revision" 404 @{motivo='Línea de otro proveedor'}
-$null=Invoke-Respuesta POST "$rutaManual/lineas" 200 @{motivo='El proveedor indicó otro producto sin existencias';linea=@{tipoOferta='Adicional';estadoOferta='NoDisponible';descripcion='Producto adicional';numeroLinea=2}}
+$null=Invoke-Respuesta POST "$rutaManual/lineas" 200 @{motivo='El proveedor indicó otro producto sin existencias';linea=@{tipoOferta='Adicional';estadoOferta='NoDisponible';descripcion='Producto adicional';numeroLinea=3}}
 $null=Invoke-Respuesta POST "$ruta/validacion" 409
+$vacia=Invoke-Respuesta GET "$comparacion`?$criterio" 200
+Assert-Respuesta (@($vacia.lineas).Count -eq 2 -and @($vacia.documentos).Count -eq 0 -and
+    @($vacia.lineas.ofertas | Where-Object condicionComparacion -ceq 'SinRespuestaValidada').Count -eq 4 -and
+    @($vacia.lineas.ofertas | Where-Object {$null -ne $_.precioPorUnidadBase}).Count -eq 0) 'La comparación muestra los proveedores y no toma precios de borradores'
 
 $ajuste=@{motivo='Captura revisada contra el PDF';linea=@{
     idSolicitudDetalle=$detalle;numeroLinea=1;codigo='001-1728';descripcion='Saco revisado';tipoOferta='Solicitada';
@@ -116,13 +126,19 @@ $ajuste=@{motivo='Captura revisada contra el PDF';linea=@{
 $imprecisa=$ajuste.linea.Clone(); $imprecisa.precioUnitario='100.0000001'
 $null=Invoke-Respuesta PUT "$ruta/lineas/$linea" 400 @{motivo='No se debe redondear';linea=$imprecisa}
 $null=Invoke-Respuesta PUT "$ruta/lineas/$linea" 200 $ajuste
+$ajusteLiquido=@{motivo='Captura de oferta líquida';linea=@{
+    idSolicitudDetalle=$detalleLiquido;numeroLinea=2;descripcion='Bidón de 20 litros';tipoOferta='Solicitada';
+    estadoOferta='Cotizada';baseTotalLinea='Bruto';cantidadEmpaques=2;precioUnitario=20;totalLinea=40
+}}
+$null=Invoke-Respuesta PUT "$ruta/lineas/$lineaLiquida" 200 $ajusteLiquido
 $cabecera=@{motivo='Datos transcritos y revisados';cabecera=@{
-    numeroProforma='EXT-1';fechaProforma='2026-04-01';fechaVencimiento='2026-04-08';moneda='CRC';subtotal=200;descuento=10;iva=5;
-    otrosCargos=0;total=195;datosClienteOriginal=@{nombre='Finca de prueba'};datosProveedorOriginal=@{nombre='Proveedor de prueba'}
+    numeroProforma='EXT-1';fechaProforma='2026-04-01';fechaVencimiento='2026-04-08';moneda='CRC';subtotal=240;descuento=10;iva=5;
+    otrosCargos=0;total=235;datosClienteOriginal=@{nombre='Finca de prueba'};datosProveedorOriginal=@{nombre='Proveedor de prueba'}
 }}
 $null=Invoke-Respuesta PUT "$ruta/cabecera" 200 $cabecera
 $conciliacion=@{estadoConciliacion='Conciliada';motivo='Verifiqué el total del documento';tolerancia=0}
 $null=Invoke-Respuesta POST "$ruta/lineas/$linea/revision" 200 @{motivo='Confirmé la línea con el PDF'}
+$null=Invoke-Respuesta POST "$ruta/lineas/$lineaLiquida/revision" 200 @{motivo='Confirmé el bidón y el precio por empaque'}
 $null=Invoke-Respuesta POST "$ruta/conciliacion" 200 $conciliacion
 $ajuste.linea.observacion='Comprobado nuevamente';$ajuste.motivo='Se revisó de nuevo el detalle'
 $corregida=Invoke-Respuesta PUT "$ruta/lineas/$linea" 200 $ajuste
@@ -141,6 +157,68 @@ $null=Invoke-Respuesta PUT "$ruta/cabecera" 409 $cabecera
 $revision=Invoke-Respuesta POST "$ruta/revisiones" 201
 Assert-Respuesta ($revision.respuesta.estado -ceq 'Borrador' -and $revision.respuesta.versionRespuesta -eq 2 -and
     $revision.documento.idDocumento -eq $recibida.documento.idDocumento -and $revision.importacion.idImportacionDocumento -eq $recibida.importacion.idImportacionDocumento) 'Revisar una respuesta validada conserva sus fuentes originales'
+
+$comparada=Invoke-Respuesta GET "$comparacion`?$criterio" 200
+$doc=$comparada.documentos[0]
+$peso=$comparada.lineas[0];$volumen=$comparada.lineas[1]
+Assert-Respuesta (@($comparada.documentos).Count -eq 1 -and $doc.idProformaProveedor -eq $validada.respuesta.idProformaProveedor -and
+    $doc.ajustesGlobales.descuento -eq 10 -and $doc.ajustesGlobales.iva -eq 5 -and $doc.ajustesGlobales.otrosCargos -eq 0 -and
+    $doc.totalDocumento -eq 235 -and $null -eq $peso.ofertas[0].ajustesGlobales) 'La revisión pendiente no sustituye a la validada y el documento aparece una vez'
+Assert-Respuesta ($peso.unidadBase -ceq 'KG' -and $peso.contenidoTotalSolicitado -eq 81.25 -and
+    $peso.ofertas[0].precioPorUnidadBase -eq 4 -and $peso.ofertas[0].precioPorEmpaque -eq 100 -and
+    $peso.ofertas[0].esMenorPrecioUnitario -and -not $peso.ofertas[0].cubreCantidadSolicitada -and
+    $null -eq $peso.menorPrecioConCoberturaYVigencia) 'El costo por kg usa el total de línea y señala una oferta parcial'
+Assert-Respuesta ($volumen.unidadBase -ceq 'L' -and $volumen.menorPrecioConCoberturaYVigencia -eq 1 -and
+    $volumen.ofertas[0].vigente -eq $true -and $volumen.ofertas[0].esMenorPrecioConCoberturaYVigencia) 'El costo por litro se calcula aparte y el vencimiento es inclusivo'
+
+$null=Invoke-Respuesta PUT "$rutaManual/lineas/$lineaManual" 200 @{motivo='El proveedor ofrece otra presentación';linea=@{
+    idSolicitudDetalle=$detalle;numeroLinea=1;descripcion='Bolsa de 10 kg';tipoOferta='Alternativa';motivoAlternativa='Otra presentación del mismo producto';
+    idPresentacionProducto=$IdPresentacionAlternativa;estadoOferta='Cotizada';baseTotalLinea='Bruto';cantidadEmpaques=9;precioUnitario=30;totalLinea=270
+}}
+$manualCorregida=Invoke-Respuesta PUT "$rutaManual/lineas/$liquidaManual" 200 @{motivo='Confirmé que no hay bidones';linea=@{
+    idSolicitudDetalle=$detalleLiquido;numeroLinea=2;tipoOferta='Solicitada';estadoOferta='NoDisponible'
+}}
+$cabeceraAlternativa=$cabecera.cabecera.Clone()
+$cabeceraAlternativa.numeroProforma='EXT-2'
+$cabeceraAlternativa.subtotal=270
+$cabeceraAlternativa.descuento=0
+$cabeceraAlternativa.iva=0
+$cabeceraAlternativa.otrosCargos=20
+$cabeceraAlternativa.total=290
+$null=Invoke-Respuesta PUT "$rutaManual/cabecera" 200 @{motivo='Transcripción de segunda proforma';cabecera=$cabeceraAlternativa}
+foreach($l in $manualCorregida.lineas){
+    $null=Invoke-Respuesta POST "$rutaManual/lineas/$($l.idProformaProveedorDetalle)/revision" 200 @{motivo='Confirmé el renglón del segundo proveedor'}
+}
+$null=Invoke-Respuesta POST "$rutaManual/conciliacion" 200 $conciliacion
+$manualValidada=Invoke-Respuesta POST "$rutaManual/validacion" 200
+$ambas=Invoke-Respuesta GET "$comparacion`?$criterio" 200
+$ganadora=$ambas.lineas[0].ofertas[0]
+$sinBidon=@($ambas.lineas[1].ofertas | Where-Object idSolicitudCotizacionProveedor -eq $IdOtroDestinatario)[0]
+Assert-Respuesta (@($ambas.documentos).Count -eq 2 -and @($ambas.lineas).Count -eq 2 -and
+    $ganadora.idProformaProveedor -eq $manualValidada.respuesta.idProformaProveedor -and $ganadora.precioPorUnidadBase -eq 3 -and
+    $ganadora.contenidoTotalOfrecido -eq 90 -and $ganadora.esMenorPrecioConCoberturaYVigencia -and $sinBidon.condicionComparacion -ceq 'NoDisponible' -and
+    $null -eq $sinBidon.precioPorUnidadBase) 'Compara empaques distintos por kg y conserva las ofertas no disponibles'
+
+$sinAlternativas=Invoke-Respuesta GET "$comparacion`?$criterio&incluirAlternativas=false&tipoBase=PESO&idSolicitudCotizacionDetalle=$detalle" 200
+Assert-Respuesta (@($sinAlternativas.lineas).Count -eq 1 -and -not $sinAlternativas.criterio.incluirAlternativas -and
+    $sinAlternativas.lineas[0].menorPrecioPorUnidadBase -eq 4 -and
+    $sinAlternativas.lineas[0].ofertas[1].condicionComparacion -ceq 'AlternativaNoIncluida') 'Los filtros de renglón, dimensión y alternativas llegan a SQL'
+$distinta=Invoke-Respuesta GET "$comparacion`?moneda=USD&baseTotalLinea=Bruto&fechaReferencia=2026-04-08" 200
+$baseDistinta=Invoke-Respuesta GET "$comparacion`?moneda=CRC&baseTotalLinea=ConImpuestos&fechaReferencia=2026-04-08" 200
+$vencida=Invoke-Respuesta GET "$comparacion`?moneda=CRC&baseTotalLinea=Bruto&fechaReferencia=2026-04-09" 200
+Assert-Respuesta ($distinta.lineas[0].ofertas[0].condicionComparacion -ceq 'MonedaDistinta' -and
+    $baseDistinta.lineas[0].ofertas[0].condicionComparacion -ceq 'BasePrecioDistinta' -and
+    $null -eq $distinta.lineas[0].menorPrecioPorUnidadBase -and $null -eq $baseDistinta.lineas[0].menorPrecioPorUnidadBase -and
+    $vencida.lineas[0].menorPrecioPorUnidadBase -eq 3 -and $null -eq $vencida.lineas[0].menorPrecioConCoberturaYVigencia) 'No mezcla monedas o bases ni marca una oferta vencida como vigente'
+
+$null=Invoke-Respuesta GET $comparacion 400
+$null=Invoke-Respuesta GET "$comparacion`?moneda=crc&baseTotalLinea=Bruto&fechaReferencia=2026-04-08" 400
+$null=Invoke-Respuesta GET "$comparacion`?moneda=CRC&baseTotalLinea=SinDefinir&fechaReferencia=2026-04-08" 400
+$null=Invoke-Respuesta GET "$comparacion`?moneda=CRC&baseTotalLinea=Bruto&fechaReferencia=2026-02-30" 400
+$null=Invoke-Respuesta GET "$comparacion`?$criterio&tipoBase=litros" 400
+$null=Invoke-Respuesta GET "$comparacion`?$criterio&idSolicitudCotizacionDetalle=9223372036854775807" 400
+$null=Invoke-Respuesta GET "solicitudes-cotizacion/9223372036854775807/comparacion`?$criterio" 404
+
 $null=Invoke-Respuesta POST "respuestas-cotizacion/$($revision.respuesta.idProformaProveedor)/cancelacion" 200 @{motivo='Prueba de cancelación'}
 $lista=Invoke-Respuesta GET "$dest/respuestas" 200
 Assert-Respuesta ($lista.totalRegistros -eq 2 -and @($lista.elementos).Count -eq 2) 'Listado del destinatario incluye sus dos versiones y excluye al otro proveedor'

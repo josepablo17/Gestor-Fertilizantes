@@ -1,6 +1,6 @@
 # Recepción y revisión de proformas
 
-El cliente abre la solicitud emitida y selecciona al proveedor del que recibió la respuesta. El backend conserva el PDF exactamente como se recibió y crea una respuesta en borrador. La comparación por solicitud y las pantallas para este flujo se implementan en etapas posteriores. Los pasos de esta guía se pueden probar en Swagger.
+El cliente abre la solicitud emitida y selecciona al proveedor del que recibió la respuesta. El backend conserva el PDF exactamente como se recibió y crea una respuesta en borrador. Las respuestas validadas están disponibles para la [comparación por solicitud](Comparacion-de-cotizaciones.md). Los pasos de esta guía se pueden probar en Swagger; las pantallas siguen pendientes.
 
 ## Subir y consultar
 
