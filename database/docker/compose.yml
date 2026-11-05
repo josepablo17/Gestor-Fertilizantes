@@ -28,6 +28,8 @@ services:
     environment:
       GF_SQL_SERVER: sqlserver,1433
       GF_DATABASE_NAME: ${GF_DATABASE_NAME:-BDComprasFertilizantes}
+      GF_APP_SQL_USER: ${GF_APP_SQL_USER:-gestor_api}
+      GF_APP_SQL_PASSWORD: ${GF_APP_SQL_PASSWORD:-}
       MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Defina MSSQL_SA_PASSWORD}
     depends_on:
       sqlserver:

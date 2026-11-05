@@ -8,14 +8,18 @@ COPY global.json NuGet.Config ./
 COPY .config/ .config/
 COPY GestorFertilizantes.Database/GestorFertilizantes.Database.sqlproj GestorFertilizantes.Database/packages.lock.json GestorFertilizantes.Database/
 COPY tests/GestorFertilizantes.Database.Tests/GestorFertilizantes.Database.Tests.csproj tests/GestorFertilizantes.Database.Tests/packages.lock.json tests/GestorFertilizantes.Database.Tests/
+COPY tools/GestorFertilizantes.Database.Admin/GestorFertilizantes.Database.Admin.csproj tools/GestorFertilizantes.Database.Admin/packages.lock.json tools/GestorFertilizantes.Database.Admin/
 RUN dotnet tool restore \
     && dotnet restore GestorFertilizantes.Database/GestorFertilizantes.Database.sqlproj --locked-mode \
-    && dotnet restore tests/GestorFertilizantes.Database.Tests/GestorFertilizantes.Database.Tests.csproj --locked-mode
+    && dotnet restore tests/GestorFertilizantes.Database.Tests/GestorFertilizantes.Database.Tests.csproj --locked-mode \
+    && dotnet restore tools/GestorFertilizantes.Database.Admin/GestorFertilizantes.Database.Admin.csproj --locked-mode
 COPY GestorFertilizantes.Database/ GestorFertilizantes.Database/
 COPY tests/ tests/
+COPY tools/ tools/
 COPY Profiles/ Profiles/
 RUN dotnet build GestorFertilizantes.Database/GestorFertilizantes.Database.sqlproj --configuration Release --no-restore \
-    && dotnet build tests/GestorFertilizantes.Database.Tests/GestorFertilizantes.Database.Tests.csproj --configuration Release --no-restore
+    && dotnet build tests/GestorFertilizantes.Database.Tests/GestorFertilizantes.Database.Tests.csproj --configuration Release --no-restore \
+    && dotnet publish tools/GestorFertilizantes.Database.Admin/GestorFertilizantes.Database.Admin.csproj --configuration Release --no-restore --no-self-contained --output /workspace/admin
 
 # Test-only image; never used as the SQL Server or application runtime.
 FROM build AS verify
@@ -28,6 +32,7 @@ ENV DOTNET_ROLL_FORWARD=Major \
     DACFX_TELEMETRY_OPTOUT=1
 WORKDIR /app
 COPY --from=build /workspace/GestorFertilizantes.Database/bin/Release/*.dacpac /app/
+COPY --from=build /workspace/admin/ /app/admin/
 COPY --from=build /opt/nuget/packages/microsoft.sqlpackage/170.5.96/tools/net8.0/any/ /app/sqlpackage/
 COPY Profiles/Portable.publish.xml /app/Portable.publish.xml
 COPY docker/deploy.sh /app/deploy.sh

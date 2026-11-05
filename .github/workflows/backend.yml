@@ -2,10 +2,10 @@ name: Backend .NET 10
 
 on:
   pull_request:
-    paths: ['Control-Fertilizantes-App/Control-Fertilizantes-Backend/**', 'scripts/Probar-Backend.ps1', 'global.json', 'NuGet.Config', 'database/global.json', '.github/workflows/backend.yml', '.gitignore']
+    paths: ['Control-Fertilizantes-App/Control-Fertilizantes-Backend/**', 'tests/GestorFertilizantes.Backend.Tests/**', 'scripts/**', 'global.json', 'NuGet.Config', 'database/global.json', '.github/workflows/backend.yml', '.gitignore']
   push:
     branches: [main]
-    paths: ['Control-Fertilizantes-App/Control-Fertilizantes-Backend/**', 'scripts/Probar-Backend.ps1', 'global.json', 'NuGet.Config', 'database/global.json', '.github/workflows/backend.yml', '.gitignore']
+    paths: ['Control-Fertilizantes-App/Control-Fertilizantes-Backend/**', 'tests/GestorFertilizantes.Backend.Tests/**', 'scripts/**', 'global.json', 'NuGet.Config', 'database/global.json', '.github/workflows/backend.yml', '.gitignore']
   workflow_dispatch:
 
 permissions:

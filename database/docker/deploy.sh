@@ -4,6 +4,8 @@ set -euo pipefail
 : "${GF_SQL_SERVER:?Defina el servidor SQL de destino}"
 : "${GF_DATABASE_NAME:?Defina el nombre de la base}"
 : "${MSSQL_SA_PASSWORD:?Defina la contrasena SQL por el entorno}"
+: "${GF_APP_SQL_USER:?Defina el usuario de ejecucion}"
+: "${GF_APP_SQL_PASSWORD:?Defina la clave de ejecucion}"
 
 if [[ ! "$GF_DATABASE_NAME" =~ ^[A-Za-z][A-Za-z0-9_]*$ ]]; then
   echo 'Nombre de base invalido: utilice letras, numeros y guion bajo.' >&2
@@ -15,7 +17,7 @@ esac
 
 # Never print the password or connection string. Compose waits for a successful
 # authenticated SQL health check before starting this service.
-exec dotnet /app/sqlpackage/sqlpackage.dll \
+dotnet /app/sqlpackage/sqlpackage.dll \
   /Action:Publish \
   /SourceFile:/app/GestorFertilizantes.Database.dacpac \
   /Profile:/app/Portable.publish.xml \
@@ -25,3 +27,5 @@ exec dotnet /app/sqlpackage/sqlpackage.dll \
   "/TargetPassword:$MSSQL_SA_PASSWORD" \
   /TargetEncryptConnection:True \
   /TargetTrustServerCertificate:True
+
+exec dotnet /app/admin/GestorFertilizantes.Database.Admin.dll

@@ -31,7 +31,7 @@ Conexión desde SSMS u otro cliente:
 - Base: `BDComprasFertilizantes`.
 - Cifrado activado y confianza en el certificado del servidor local.
 
-`sa` se utiliza para administrar y publicar este entorno de desarrollo. El usuario de ejecución del backend se definirá al adaptar esa aplicación.
+`sa` se utiliza para administrar y publicar este entorno de desarrollo. La API utiliza un usuario separado, gestor_api por defecto, preparado por el inicializador con el rol rol_gestor_api.
 
 El archivo `.env` está excluido de Git y del contexto de compilación. Conservarlo al reutilizar el volumen: cambiar su contraseña escrita no cambia automáticamente la contraseña que ya tiene SQL Server. Puede generarse antes del arranque con `-Action Init`, o prepararse a partir de `.env.example`. Para cambiar puerto/base, editar `GF_SQL_PORT` o `GF_DATABASE_NAME` antes del arranque.
 
@@ -85,3 +85,15 @@ Los códigos no necesitan ser consecutivos: una secuencia con caché puede salta
 - `.env.example`: campos de configuración, sin contraseña real.
 
 El healthcheck y la dependencia `service_healthy` controlan disponibilidad; arrancar el proceso SQL no basta para garantizar que acepte conexiones. Referencias: [despliegue oficial de SQL Server en contenedores](https://learn.microsoft.com/en-us/sql/linux/containers/deploy?view=sql-server-ver17), [dependencias de Compose](https://docs.docker.com/compose/how-tos/startup-order/).
+
+## Cuenta de ejecución y pruebas del backend
+
+Up añade GF_APP_SQL_USER y GF_APP_SQL_PASSWORD al archivo privado .env si faltan, sin cambiar la clave de una cuenta existente. El preparador rechaza cuentas o roles con privilegios adicionales no previstos. El rol versionado permite ejecutar 82 procedimientos públicos; no otorga permisos directos de tablas, esquema ni administración.
+
+Después de publicar, Up genera appsettings.local.json en el backend con la cuenta de aplicación. Ese JSON se excluye de Git y de publicación, se carga solo en Development y admite sobreescritura mediante ConnectionStrings__ConexionSql. Desde la raíz, iniciar con ./scripts/Iniciar-Backend.ps1.
+
+Para verificar también la API y los permisos reales, con el SDK fijado instalado en el host:
+
+    ./scripts/Invoke-DockerDatabase.ps1 -Action Test -VerifyBackend
+
+Esta variante comprueba errores SQL reales, lectura y escritura por procedimientos (revirtiendo la escritura de prueba), y rechazo del acceso directo y DDL. El CI la ejecuta con una base, cuenta y volumen temporales propios. Evidencia adicional: artifacts/backend/ en la raíz del repositorio.

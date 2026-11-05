@@ -1,10 +1,11 @@
 [CmdletBinding()]
-param()
+param([switch]$ConSql)
 
 $ErrorActionPreference='Stop'
 $repositoryRoot=Split-Path $PSScriptRoot -Parent
 $backendRoot=Join-Path $repositoryRoot 'Control-Fertilizantes-App/Control-Fertilizantes-Backend/Control-Fertilizantes-Backend'
 $project=Join-Path $backendRoot 'Control-Fertilizantes-Backend.csproj'
+$testProject=Join-Path $repositoryRoot 'tests/GestorFertilizantes.Backend.Tests/GestorFertilizantes.Backend.Tests.csproj'
 $artifactDirectory=Join-Path $repositoryRoot 'artifacts/backend'
 $process=$null
 $client=$null
@@ -19,8 +20,15 @@ try{
     $sdk=Get-Content (Join-Path $repositoryRoot 'global.json') -Raw | ConvertFrom-Json
     $databaseSdk=Get-Content (Join-Path $repositoryRoot 'database/global.json') -Raw | ConvertFrom-Json
     if($sdk.sdk.version -ne $databaseSdk.sdk.version){throw 'La API y la base deben usar el mismo SDK fijado.'}
-    Invoke-DotNet -Arguments @('restore',$project,'--locked-mode')
-    Invoke-DotNet -Arguments @('build',$project,'--configuration','Release','--no-restore')
+    if($ConSql -and [string]::IsNullOrWhiteSpace($env:GF_API_TEST_CONNECTION_STRING)){
+        throw 'La prueba SQL requiere GF_API_TEST_CONNECTION_STRING.'
+    }
+    Invoke-DotNet -Arguments @('restore',$testProject,'--locked-mode')
+    Invoke-DotNet -Arguments @('build',$testProject,'--configuration','Release','--no-restore')
+    Invoke-DotNet -Arguments @('test',$testProject,'--configuration','Release','--no-build','--filter','Categoria!=Sql','--logger','trx;LogFileName=unitarias.trx','--results-directory',$artifactDirectory)
+    if($ConSql){
+        Invoke-DotNet -Arguments @('test',$testProject,'--configuration','Release','--no-build','--filter','Categoria=Sql','--logger','trx;LogFileName=integracion-sql.trx','--results-directory',$artifactDirectory)
+    }
 
     $assembly=Join-Path $backendRoot 'bin/Release/net10.0/Control-Fertilizantes-Backend.dll'
     $runtime=Get-Content (Join-Path $backendRoot 'bin/Release/net10.0/Control-Fertilizantes-Backend.runtimeconfig.json') -Raw | ConvertFrom-Json
@@ -42,7 +50,7 @@ try{
     $start.RedirectStandardError=$true
     $start.Environment['ASPNETCORE_ENVIRONMENT']='Development'
     $start.Environment['ASPNETCORE_URLS']=$address
-    $start.Environment['ConnectionStrings__ConexionSql']='Server=127.0.0.1,1;Database=SinConexion;Integrated Security=True;Connect Timeout=1'
+    $start.Environment['ConnectionStrings__ConexionSql']=if($ConSql){$env:GF_API_TEST_CONNECTION_STRING}else{'Server=127.0.0.1,1;Database=SinConexion;Integrated Security=True;Encrypt=True;Connect Timeout=1'}
     $process=[Diagnostics.Process]::Start($start)
     $stdout=$process.StandardOutput.ReadToEndAsync()
     $stderr=$process.StandardError.ReadToEndAsync()
@@ -93,10 +101,26 @@ try{
         $checks.Add([ordered]@{Caso='Formulario sin archivo PDF rechazado';Estado='Aprobado'})
     }finally{$content.Dispose();if($response){$response.Dispose();$response=$null}}
 
+    if($ConSql){
+        try{
+            $response=$client.GetAsync("$address/api/Producto/ObtenerProducto/2147483647").GetAwaiter().GetResult()
+            $body=$response.Content.ReadAsStringAsync().GetAwaiter().GetResult() | ConvertFrom-Json
+            if([int]$response.StatusCode -ne 404 -or $body.mensaje -ne 'El recurso solicitado no existe.'){
+                throw 'El error SQL de recurso inexistente no produjo HTTP 404 seguro.'
+            }
+            $checks.Add([ordered]@{Caso='SQL 52004 produce HTTP 404';Estado='Aprobado'})
+        }finally{if($response){$response.Dispose();$response=$null}}
+        try{
+            $response=$client.GetAsync("$address/api/UnidadMedida/ListarUnidadMedida").GetAwaiter().GetResult()
+            $body=$response.Content.ReadAsStringAsync().GetAwaiter().GetResult() | ConvertFrom-Json
+            if([int]$response.StatusCode -ne 200 -or @($body.data).Count -ne 5){throw 'El usuario de API no pudo consultar las unidades.'}
+            $checks.Add([ordered]@{Caso='API consulta SQL con usuario limitado';Estado='Aprobado'})
+        }finally{if($response){$response.Dispose();$response=$null}}
+    }
     New-Item -ItemType Directory -Path $artifactDirectory -Force | Out-Null
-    [ordered]@{Sdk=$sdk.sdk.version;TargetFramework=$runtime.runtimeOptions.tfm;Pruebas=$checks;ConexionBaseUtilizada=$false} |
+    [ordered]@{Sdk=$sdk.sdk.version;TargetFramework=$runtime.runtimeOptions.tfm;Pruebas=$checks;ConexionBaseUtilizada=[bool]$ConSql} |
         ConvertTo-Json -Depth 6 | Set-Content (Join-Path $artifactDirectory 'verificacion.json') -Encoding utf8
-    Write-Output 'Backend .NET 10: 4 comprobaciones HTTP aprobadas, sin operaciones SQL.'
+    Write-Output "Backend .NET 10: $($checks.Count) comprobaciones HTTP aprobadas."
 }finally{
     if($client){$client.Dispose()}
     if($process){

@@ -29,6 +29,8 @@ try{
         Invoke-DotNet -Arguments @('build',$project,'--configuration','Release','--no-restore')
         Invoke-DotNet -Arguments @('restore',$testProject,'--locked-mode')
         Invoke-DotNet -Arguments @('build',$testProject,'--configuration','Release','--no-restore')
+        Invoke-DotNet -Arguments @('restore','tools/GestorFertilizantes.Database.Admin/GestorFertilizantes.Database.Admin.csproj','--locked-mode')
+        Invoke-DotNet -Arguments @('build','tools/GestorFertilizantes.Database.Admin/GestorFertilizantes.Database.Admin.csproj','--configuration','Release','--no-restore')
         $package=Join-Path $artifacts 'package'
         New-Item -ItemType Directory -Path $package -Force | Out-Null
         Get-ChildItem (Split-Path $dacpac -Parent) -Filter '*.dacpac' | Copy-Item -Destination $package -Force

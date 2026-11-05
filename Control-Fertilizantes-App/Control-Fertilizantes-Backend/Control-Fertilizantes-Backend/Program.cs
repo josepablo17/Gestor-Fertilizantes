@@ -5,9 +5,22 @@ using Control_Fertilizantes_Backend.Middlewares;
 using Control_Fertilizantes_Backend.Repositories;
 using Control_Fertilizantes_Backend.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using TuProyecto.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddJsonFile("appsettings.local.json", optional: true, reloadOnChange: false)
+        .AddEnvironmentVariables().AddCommandLine(args);
+}
+
+builder.Services.AddSingleton<IValidateOptions<OpcionesConexionSql>, ValidadorConexionSql>();
+builder.Services.AddOptions<OpcionesConexionSql>()
+    .Configure<IConfiguration>((opciones, configuracion) =>
+        opciones.Cadena = configuracion.GetConnectionString("ConexionSql") ?? string.Empty)
+    .ValidateOnStart();
 
 // Servicios
 builder.Services.AddControllers();
@@ -25,7 +38,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 
         var mensaje = errores.Any()
             ? string.Join(" ", errores)
-            : "Los datos enviados no son v·lidos.";
+            : "Los datos enviados no son v√°lidos.";
 
         var respuesta = ApiRespuesta<object>.CrearError(mensaje);
 
@@ -36,7 +49,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// InyecciÛn de dependencias
+// Inyecci√≥n de dependencias
 builder.Services.AddScoped<IConexionBD, ConexionBD>();
 builder.Services.AddScoped<IProductoRepositorio, ProductoRepositorio>();
 builder.Services.AddScoped<IProductoServicio, ProductoServicio>();
