@@ -1,12 +1,7 @@
-using Control_Fertilizantes_Backend.DataAccess;
-using Control_Fertilizantes_Backend.DTOs;
-using Control_Fertilizantes_Backend.Interfaces;
-using Control_Fertilizantes_Backend.Middlewares;
-using Control_Fertilizantes_Backend.Repositories;
-using Control_Fertilizantes_Backend.Services;
+using Control_Fertilizantes_Backend.Comun.Errores;
+using Control_Fertilizantes_Backend.Comun.Respuestas;
+using Control_Fertilizantes_Backend.Configuracion;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using TuProyecto.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,11 +11,7 @@ if (builder.Environment.IsDevelopment())
         .AddEnvironmentVariables().AddCommandLine(args);
 }
 
-builder.Services.AddSingleton<IValidateOptions<OpcionesConexionSql>, ValidadorConexionSql>();
-builder.Services.AddOptions<OpcionesConexionSql>()
-    .Configure<IConfiguration>((opciones, configuracion) =>
-        opciones.Cadena = configuracion.GetConnectionString("ConexionSql") ?? string.Empty)
-    .ValidateOnStart();
+builder.Services.AgregarBackend();
 
 // Servicios
 builder.Services.AddControllers();
@@ -48,28 +39,6 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
-// Inyección de dependencias
-builder.Services.AddScoped<IConexionBD, ConexionBD>();
-builder.Services.AddScoped<IProductoRepositorio, ProductoRepositorio>();
-builder.Services.AddScoped<IProductoServicio, ProductoServicio>();
-builder.Services.AddScoped<IProveedorRepositorio, ProveedorRepositorio>();
-builder.Services.AddScoped<IProveedorServicio, ProveedorServicio>();
-builder.Services.AddScoped<IUnidadMedidaRepositorio, UnidadMedidaRepositorio>();
-builder.Services.AddScoped<IUnidadMedidaServicio, UnidadMedidaServicio>();
-builder.Services.AddScoped<IPresentacionProductoRepositorio, PresentacionProductoRepositorio>();
-builder.Services.AddScoped<IPresentacionProductoServicio, PresentacionProductoServicio>();
-builder.Services.AddScoped<ICompraRepositorio, CompraRepositorio>();
-builder.Services.AddScoped<ICompraServicio, CompraServicio>();
-builder.Services.AddScoped<ICompraInteligenciaRepositorio, CompraInteligenciaRepositorio>();
-builder.Services.AddScoped<ICompraInteligenciaServicio, CompraInteligenciaServicio>();
-builder.Services.AddScoped<IComparadorProveedorRepositorio, ComparadorProveedorRepositorio>();
-builder.Services.AddScoped<IComparadorProveedorServicio, ComparadorProveedorServicio>();
-builder.Services.AddScoped<IProformaPdfServicio, ProformaPdfServicio>();
-builder.Services.AddScoped<ICompraAutomaticaRepositorio, CompraAutomaticaRepositorio>();
-builder.Services.AddScoped<ICompraAutomaticaServicio, CompraAutomaticaServicio>();
-builder.Services.AddScoped<IProformaProveedorRepositorio, ProformaProveedorRepositorio>();
-builder.Services.AddScoped<IProformaProveedorServicio, ProformaProveedorServicio>();
 
 builder.Services.AddCors(options =>
 {

@@ -1,7 +1,8 @@
+using Control_Fertilizantes_Backend.Comun.Errores;
+using Control_Fertilizantes_Backend.Modulos.Catalogos.Productos.Modelos;
 using System.Data;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Control_Fertilizantes_Backend.Middlewares;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.DependencyInjection;
