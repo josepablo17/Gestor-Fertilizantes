@@ -15,6 +15,7 @@ public class PresentacionProductoCrearDTO
     public string Descripcion { get; set; } = string.Empty;
 
     [DecimalSql(18, 4)]
+    [JsonConverter(typeof(DecimalCatalogoJsonConverter))]
     public decimal Cantidad { get; set; }
 
     [Range(1, int.MaxValue, ErrorMessage = "El campo {0} debe ser mayor que cero.")]

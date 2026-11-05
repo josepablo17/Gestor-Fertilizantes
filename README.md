@@ -24,7 +24,7 @@ Productos base, marcas, productos, presentaciones, unidades y proveedores usan l
     ./scripts/Probar-Backend.ps1
     ./database/scripts/Invoke-DockerDatabase.ps1 -Action Test -VerifyBackend
 
-La primera orden restaura en modo bloqueado, compila sin advertencias, ejecuta 90 pruebas unitarias y cinco comprobaciones HTTP sin SQL. La segunda verifica el DACPAC, 89 casos SQL, persistencia en Docker y la API con permisos reales de su usuario limitado. Usa recursos temporales propios que elimina al terminar.
+La primera orden restaura en modo bloqueado, compila sin advertencias, ejecuta 98 pruebas unitarias y cinco comprobaciones HTTP sin SQL. La segunda verifica el DACPAC, 89 casos SQL, persistencia en Docker y la API con permisos reales de su usuario limitado. Usa recursos temporales propios que elimina al terminar.
 
 Las 14 advertencias previas de nulabilidad se corrigieron sin supresiones. Todas las advertencias se tratan como errores. Los archivos generados bin/obj están fuera de Git. Los cambios deliberados de paquetes requieren actualizar su packages.lock.json y comprobar la restauración --locked-mode.
 

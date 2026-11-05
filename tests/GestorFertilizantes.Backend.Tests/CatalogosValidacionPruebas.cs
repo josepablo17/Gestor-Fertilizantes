@@ -13,6 +13,31 @@ namespace GestorFertilizantes.Backend.Tests;
 public class CatalogosValidacionPruebas
 {
     [Theory]
+    [InlineData("1.00000000000000000000000000001")]
+    [InlineData("0.00000000000000000000000000001")]
+    [InlineData("1e100")]
+    [InlineData("1e-100")]
+    public void Token_json_no_se_redondea_antes_de_validar(string numero)
+    {
+        var json = "{\"idProducto\":1,\"descripcion\":\"Saco\",\"idUnidadMedida\":1,\"cantidad\":" + numero + "}";
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<PresentacionProductoCrearDTO>(json, new JsonSerializerOptions(JsonSerializerDefaults.Web)));
+    }
+
+    [Theory]
+    [InlineData("2.5e1", "25")]
+    [InlineData("25000e-3", "25")]
+    [InlineData("25.0000000000000000000000000000000000000", "25")]
+    [InlineData("99999999999999.9999", "99999999999999.9999")]
+    public void Token_json_exacto_conserva_exponente_y_ceros_finales(string numero, string esperado)
+    {
+        var json = "{\"idProducto\":1,\"descripcion\":\"Saco\",\"idUnidadMedida\":1,\"cantidad\":" + numero + "}";
+        var entrada = JsonSerializer.Deserialize<PresentacionProductoCrearDTO>(json, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        Assert.NotNull(entrada);
+        Assert.Equal(decimal.Parse(esperado, System.Globalization.CultureInfo.InvariantCulture), entrada.Cantidad);
+        ValidacionCatalogo.Validar(entrada);
+    }
+
+    [Theory]
     [InlineData(4, "0.0001", true)]
     [InlineData(4, "99999999999999.9999", true)]
     [InlineData(4, "100000000000000", false)]

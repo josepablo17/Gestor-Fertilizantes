@@ -20,6 +20,7 @@ public class UnidadMedidaCrearDTO : IValidatableObject
     public string TipoBase { get; set; } = string.Empty;
 
     [DecimalSql(18, 6)]
+    [JsonConverter(typeof(DecimalCatalogoJsonConverter))]
     public decimal FactorConversion { get; set; }
 
     public bool EsUnidadBase { get; set; }

@@ -46,7 +46,7 @@ Se conservan los códigos históricos 50001–50005 durante la transición. El c
     ./scripts/Probar-Backend.ps1
     ./database/scripts/Invoke-DockerDatabase.ps1 -Action Test -VerifyBackend
 
-La primera orden ejecuta 90 pruebas unitarias y cinco comprobaciones HTTP sin SQL. La segunda usa proyecto/base/login/volumen aleatorios propios. Comprueba instalación, 89 casos SQL, historia persistida, recreación del contenedor, nueva publicación y permisos de la cuenta. Luego arranca la API con esa cuenta y comprueba consultas y respuestas HTTP, además de los casos habituales.
+La primera orden ejecuta 98 pruebas unitarias y cinco comprobaciones HTTP sin SQL. La segunda usa proyecto/base/login/volumen aleatorios propios. Comprueba instalación, 89 casos SQL, historia persistida, recreación del contenedor, nueva publicación y permisos de la cuenta. Luego arranca la API con esa cuenta y comprueba consultas y respuestas HTTP, además de los casos habituales.
 
 Las pruebas SQL del backend verifican lectura y escritura por procedimientos (la escritura de prueba se revierte), rechazo de acceso directo/DDL y traducción de excepciones SQL reales sin revelar su mensaje interno. Solo aceptan la base temporal de Compose. La limpieza elimina sus recursos propios; Down normal conserva el volumen local.
 

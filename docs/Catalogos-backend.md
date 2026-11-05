@@ -102,3 +102,5 @@ Los cuerpos antiguos que envían marca textual o cantidadNormalizada requieren m
 El primer comando ejecuta pruebas de precisión, validación fiscal y contratos, dependencias de todos los controladores, arranque y HTTP sin SQL. El segundo crea su propia base/login/volumen, prueba SQL, persistencia y permisos, y ejecuta `scripts/Probar-CatalogosHttp.ps1` mediante la API real. El script de escrituras HTTP rechaza cualquier base que no sea la temporal de Compose. La instancia Windows original y el volumen habitual no se usan para estas pruebas.
 
 Continúan pendientes solicitudes, documentos, recepción/revisión y comparación por solicitud, además de adaptar el frontend. Los contratos heredados de proformas y compra automática siguen documentados en Organizacion-backend.md.
+
+El lector JSON de cantidades/factores comprueba el token original antes de convertirlo a decimal. Rechaza pérdida de precisión incluso con dígitos más allá de la capacidad de decimal; admite exponentes y ceros finales exactos. Las validaciones de cada operación aplican luego su escala y rango concretos.
