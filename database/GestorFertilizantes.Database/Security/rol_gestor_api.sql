@@ -165,3 +165,6 @@ GRANT EXECUTE ON OBJECT::[dbo].[usp_Solicitud_ObtenerPorId] TO [rol_gestor_api];
 GO
 GRANT EXECUTE ON OBJECT::[dbo].[usp_Solicitud_RegistrarEnvio] TO [rol_gestor_api];
 GO
+
+GRANT EXECUTE ON OBJECT::dbo.usp_Solicitud_AsignarDocumento TO rol_gestor_api;
+GO

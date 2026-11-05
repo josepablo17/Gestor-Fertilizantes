@@ -34,6 +34,11 @@ using Control_Fertilizantes_Backend.Modulos.Importaciones.Servicios;
 using Control_Fertilizantes_Backend.Modulos.Proformas.Contratos;
 using Control_Fertilizantes_Backend.Modulos.Proformas.Servicios;
 using Microsoft.Extensions.Options;
+using Control_Fertilizantes_Backend.Infraestructura.Archivos;
+using Control_Fertilizantes_Backend.Infraestructura.Persistencia.Repositorios.Solicitudes;
+using Control_Fertilizantes_Backend.Modulos.Documentos.Contratos;
+using Control_Fertilizantes_Backend.Modulos.SolicitudesCotizacion.Contratos;
+using Control_Fertilizantes_Backend.Modulos.SolicitudesCotizacion.Servicios;
 
 namespace Control_Fertilizantes_Backend.Configuracion;
 
@@ -51,6 +56,13 @@ public static class RegistroDependencias
         AgregarCompras(servicios);
         AgregarImportaciones(servicios);
         AgregarProformas(servicios);
+        servicios.AddSingleton(TimeProvider.System);
+        servicios.AddOptions<OpcionesDocumentos>().BindConfiguration("Documentos")
+            .Validate(x => !string.IsNullOrWhiteSpace(x.RutaRaiz), "La carpeta de documentos debe estar configurada.").ValidateOnStart();
+        servicios.AddScoped<IAlmacenDocumentos, AlmacenDocumentosLocal>();
+        servicios.AddScoped<IGeneradorSolicitudPdf, GeneradorSolicitudPdf>();
+        servicios.AddScoped<ISolicitudRepositorio, SolicitudRepositorio>();
+        servicios.AddScoped<ISolicitudServicio, SolicitudServicio>();
         return servicios;
     }
 

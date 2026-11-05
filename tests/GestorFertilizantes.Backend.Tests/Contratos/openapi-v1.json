@@ -1726,6 +1726,513 @@
         }
       }
     },
+    "/api/solicitudes-cotizacion": {
+      "get": {
+        "tags": [
+          "SolicitudCotizacion"
+        ],
+        "parameters": [
+          {
+            "name": "Estado",
+            "in": "query",
+            "schema": {
+              "pattern": "^(Borrador|Emitida|Cerrada|Cancelada)$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "Buscar",
+            "in": "query",
+            "schema": {
+              "maxLength": 50,
+              "minLength": 0,
+              "type": "string"
+            }
+          },
+          {
+            "name": "Pagina",
+            "in": "query",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "TamanoPagina",
+            "in": "query",
+            "schema": {
+              "maximum": 200,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudListadoDTOPaginaRespuestaApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudListadoDTOPaginaRespuestaApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudListadoDTOPaginaRespuestaApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "SolicitudCotizacion"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolicitudGuardarBorradorDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolicitudGuardarBorradorDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolicitudGuardarBorradorDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudRespuestaDTOApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudRespuestaDTOApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudRespuestaDTOApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/solicitudes-cotizacion/{idSolicitud}": {
+      "get": {
+        "tags": [
+          "SolicitudCotizacion"
+        ],
+        "parameters": [
+          {
+            "name": "idSolicitud",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudRespuestaDTOApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudRespuestaDTOApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudRespuestaDTOApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/solicitudes-cotizacion/{idSolicitud}/borrador": {
+      "put": {
+        "tags": [
+          "SolicitudCotizacion"
+        ],
+        "parameters": [
+          {
+            "name": "idSolicitud",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolicitudGuardarBorradorDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolicitudGuardarBorradorDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolicitudGuardarBorradorDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudRespuestaDTOApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudRespuestaDTOApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudRespuestaDTOApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/solicitudes-cotizacion/{idSolicitud}/emision": {
+      "post": {
+        "tags": [
+          "SolicitudCotizacion"
+        ],
+        "parameters": [
+          {
+            "name": "idSolicitud",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudRespuestaDTOApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudRespuestaDTOApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudRespuestaDTOApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/solicitudes-cotizacion/{idSolicitud}/revisiones": {
+      "post": {
+        "tags": [
+          "SolicitudCotizacion"
+        ],
+        "parameters": [
+          {
+            "name": "idSolicitud",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudRespuestaDTOApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudRespuestaDTOApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudRespuestaDTOApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/solicitudes-cotizacion/{idSolicitud}/estado": {
+      "put": {
+        "tags": [
+          "SolicitudCotizacion"
+        ],
+        "parameters": [
+          {
+            "name": "idSolicitud",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolicitudEstadoDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolicitudEstadoDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolicitudEstadoDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudRespuestaDTOApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudRespuestaDTOApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudRespuestaDTOApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/solicitudes-cotizacion/{idSolicitud}/destinatarios/{idDestinatario}/documento": {
+      "post": {
+        "tags": [
+          "SolicitudCotizacion"
+        ],
+        "parameters": [
+          {
+            "name": "idSolicitud",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "idDestinatario",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentoRespuestaDTOApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentoRespuestaDTOApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentoRespuestaDTOApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "SolicitudCotizacion"
+        ],
+        "parameters": [
+          {
+            "name": "idSolicitud",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "idDestinatario",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/solicitudes-cotizacion/{idSolicitud}/destinatarios/{idDestinatario}/envios": {
+      "post": {
+        "tags": [
+          "SolicitudCotizacion"
+        ],
+        "parameters": [
+          {
+            "name": "idSolicitud",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "idDestinatario",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolicitudEnvioDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolicitudEnvioDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolicitudEnvioDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudRespuestaDTOApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudRespuestaDTOApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolicitudRespuestaDTOApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/UnidadMedida/ListarUnidadMedida": {
       "get": {
         "tags": [
@@ -1956,6 +2463,45 @@
         },
         "additionalProperties": false
       },
+      "ClienteSolicitudDTO": {
+        "required": [
+          "nombre"
+        ],
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "maxLength": 150,
+            "minLength": 0,
+            "type": "string"
+          },
+          "identificacion": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "direccion": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "telefono": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "correo": {
+            "maxLength": 150,
+            "minLength": 0,
+            "type": "string",
+            "format": "email",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "CompraActualizarDTO": {
         "required": [
           "fechaCompra",
@@ -2090,6 +2636,52 @@
               "$ref": "#/components/schemas/ProformaPdfLineaValidadaDTO"
             },
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "DocumentoRespuestaDTO": {
+        "type": "object",
+        "properties": {
+          "idDocumento": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nombre": {
+            "type": "string",
+            "nullable": true
+          },
+          "tamanoBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sha256": {
+            "type": "string",
+            "nullable": true
+          },
+          "versionPlantilla": {
+            "type": "string",
+            "nullable": true
+          },
+          "fechaRegistro": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DocumentoRespuestaDTOApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/DocumentoRespuestaDTO"
           }
         },
         "additionalProperties": false
@@ -3342,6 +3934,425 @@
               "$ref": "#/components/schemas/ProveedorListarDTO"
             },
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SolicitudDestinatarioDTO": {
+        "required": [
+          "estado",
+          "nombreProveedor"
+        ],
+        "type": "object",
+        "properties": {
+          "idSolicitudCotizacionProveedor": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "idSolicitudCotizacion": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "idProveedor": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nombreProveedor": {
+            "type": "string",
+            "nullable": true
+          },
+          "idDocumentoGenerado": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "estado": {
+            "type": "string",
+            "nullable": true
+          },
+          "fechaEnvio": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "fechaRespuesta": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "observaciones": {
+            "type": "string",
+            "nullable": true
+          },
+          "cantidadRespuestas": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SolicitudEnvioDTO": {
+        "type": "object",
+        "properties": {
+          "fechaEnvio": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SolicitudEstadoDTO": {
+        "required": [
+          "estado"
+        ],
+        "type": "object",
+        "properties": {
+          "estado": {
+            "minLength": 1,
+            "pattern": "^(Cerrada|Cancelada)$",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SolicitudGuardarBorradorDTO": {
+        "required": [
+          "fechaSolicitud",
+          "lineas",
+          "numeroSolicitud",
+          "proveedores"
+        ],
+        "type": "object",
+        "properties": {
+          "numeroSolicitud": {
+            "maxLength": 50,
+            "minLength": 0,
+            "type": "string"
+          },
+          "fechaSolicitud": {
+            "type": "string",
+            "format": "date"
+          },
+          "fechaLimiteRespuesta": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "datosCliente": {
+            "$ref": "#/components/schemas/ClienteSolicitudDTO"
+          },
+          "observaciones": {
+            "maxLength": 2000,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "lineas": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SolicitudLineaGuardarDTO"
+            }
+          },
+          "proveedores": {
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "SolicitudLineaDTO": {
+        "required": [
+          "codigoUnidadOriginal",
+          "nombreProductoOriginal",
+          "presentacionOriginal",
+          "tipoBaseOriginal"
+        ],
+        "type": "object",
+        "properties": {
+          "idSolicitudCotizacionDetalle": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "idSolicitudCotizacion": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "numeroLinea": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "idProducto": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "idPresentacionProducto": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cantidadEmpaquesSolicitada": {
+            "type": "number",
+            "format": "double"
+          },
+          "nombreProductoOriginal": {
+            "type": "string",
+            "nullable": true
+          },
+          "marcaOriginal": {
+            "type": "string",
+            "nullable": true
+          },
+          "presentacionOriginal": {
+            "type": "string",
+            "nullable": true
+          },
+          "contenidoEmpaqueOriginal": {
+            "type": "number",
+            "format": "double"
+          },
+          "idUnidadMedidaOriginal": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "codigoUnidadOriginal": {
+            "type": "string",
+            "nullable": true
+          },
+          "tipoBaseOriginal": {
+            "type": "string",
+            "nullable": true
+          },
+          "factorConversionOriginal": {
+            "type": "number",
+            "format": "double"
+          },
+          "contenidoNormalizadoOriginal": {
+            "type": "number",
+            "format": "double"
+          },
+          "permiteAlternativas": {
+            "type": "boolean"
+          },
+          "observaciones": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SolicitudLineaGuardarDTO": {
+        "type": "object",
+        "properties": {
+          "numeroLinea": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "idProducto": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "idPresentacionProducto": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "cantidadEmpaques": {
+            "type": "number",
+            "format": "double"
+          },
+          "permiteAlternativas": {
+            "type": "boolean"
+          },
+          "observaciones": {
+            "maxLength": 1000,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SolicitudListadoDTO": {
+        "required": [
+          "estado",
+          "numeroSolicitud"
+        ],
+        "type": "object",
+        "properties": {
+          "idSolicitudCotizacion": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "numeroSolicitud": {
+            "type": "string",
+            "nullable": true
+          },
+          "versionSolicitud": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fechaSolicitud": {
+            "type": "string",
+            "format": "date"
+          },
+          "fechaLimiteRespuesta": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "estado": {
+            "type": "string",
+            "nullable": true
+          },
+          "cantidadLineas": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "cantidadProveedores": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SolicitudListadoDTOPaginaRespuesta": {
+        "type": "object",
+        "properties": {
+          "elementos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SolicitudListadoDTO"
+            },
+            "nullable": true
+          },
+          "totalRegistros": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "pagina": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tamanoPagina": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SolicitudListadoDTOPaginaRespuestaApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/SolicitudListadoDTOPaginaRespuesta"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SolicitudRespuestaDTO": {
+        "required": [
+          "estado",
+          "numeroSolicitud"
+        ],
+        "type": "object",
+        "properties": {
+          "idSolicitudCotizacion": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "numeroSolicitud": {
+            "type": "string",
+            "nullable": true
+          },
+          "versionSolicitud": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "idSolicitudAnterior": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "fechaSolicitud": {
+            "type": "string",
+            "format": "date"
+          },
+          "fechaLimiteRespuesta": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "estado": {
+            "type": "string",
+            "nullable": true
+          },
+          "datosCliente": {
+            "nullable": true
+          },
+          "observaciones": {
+            "type": "string",
+            "nullable": true
+          },
+          "fechaEmision": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "fechaCreacion": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fechaModificacion": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lineas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SolicitudLineaDTO"
+            },
+            "nullable": true
+          },
+          "destinatarios": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SolicitudDestinatarioDTO"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SolicitudRespuestaDTOApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/SolicitudRespuestaDTO"
           }
         },
         "additionalProperties": false

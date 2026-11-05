@@ -50,6 +50,7 @@ try{
     $start.RedirectStandardError=$true
     $start.Environment['ASPNETCORE_ENVIRONMENT']='Development'
     $start.Environment['ASPNETCORE_URLS']=$address
+    $start.Environment['Documentos__RutaRaiz']=Join-Path $artifactDirectory ("documentos-http/" + [guid]::NewGuid().ToString('N'))
     $start.Environment['ConnectionStrings__ConexionSql']=if($ConSql){$env:GF_API_TEST_CONNECTION_STRING}else{'Server=127.0.0.1,1;Database=SinConexion;Integrated Security=True;Encrypt=True;Connect Timeout=1'}
     $process=[Diagnostics.Process]::Start($start)
     $stdout=$process.StandardOutput.ReadToEndAsync()
@@ -77,8 +78,7 @@ try{
     $checks=[Collections.Generic.List[object]]::new()
     $checks.Add([ordered]@{Caso='Arranque y OpenAPI bajo .NET 10';Estado='Aprobado'})
 
-    # Referencia revisada al adaptar catalogos: rutas antiguas conservadas,
-    # diez rutas nuevas y contratos de entradas/salidas alineados con SQL.
+    # Contrato versionado; revisar cualquier cambio antes de reemplazar la referencia.
     $contractPath=Join-Path $repositoryRoot 'tests/GestorFertilizantes.Backend.Tests/Contratos/openapi-v1.json'
     $expectedContract=Get-Content $contractPath -Raw | ConvertFrom-Json
     $expectedJson=$expectedContract | ConvertTo-Json -Depth 100 -Compress
@@ -87,7 +87,7 @@ try{
         $openApi | ConvertTo-Json -Depth 100 | Set-Content (Join-Path $artifactDirectory 'openapi-actual.json') -Encoding utf8
         throw 'OpenAPI cambio frente al contrato versionado. Revisar rutas, parametros y esquemas antes de actualizar la referencia.'
     }
-    $checks.Add([ordered]@{Caso='Contrato OpenAPI revisado (49 rutas y 42 esquemas)';Estado='Aprobado'})
+    $checks.Add([ordered]@{Caso='Contrato OpenAPI coincide con la referencia versionada';Estado='Aprobado'})
 
     $content=[Net.Http.StringContent]::new('{}',[Text.Encoding]::UTF8,'application/json')
     try{
@@ -129,6 +129,9 @@ try{
             $checks.Add([ordered]@{Caso='API consulta SQL con usuario limitado';Estado='Aprobado'})
         }finally{if($response){$response.Dispose();$response=$null}}
         foreach($caso in (& (Join-Path $PSScriptRoot 'Probar-CatalogosHttp.ps1') -Cliente $client -Direccion $address)){
+            $checks.Add($caso)
+        }
+        foreach($caso in (& (Join-Path $PSScriptRoot 'Probar-SolicitudesHttp.ps1') -Cliente $client -Direccion $address -RutaDocumentos $start.Environment['Documentos__RutaRaiz'])){
             $checks.Add($caso)
         }
     }

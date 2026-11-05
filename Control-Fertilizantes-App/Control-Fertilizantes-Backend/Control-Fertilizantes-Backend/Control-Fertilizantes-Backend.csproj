@@ -13,6 +13,7 @@
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.72" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.0" />
+    <PackageReference Include="PDFsharp" Version="6.2.4" />
     <!-- Fija la dependencia transitiva de SqlClient en una version corregida. -->
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
     <PackageReference Include="PdfPig" Version="0.1.14" />
@@ -21,6 +22,8 @@
 
   <ItemGroup>
     <Content Remove="appsettings.local.json" />
+    <Content Remove="datos/**" />
+    <EmbeddedResource Include="Infraestructura/Pdf/Fuentes/*.ttf" />
   </ItemGroup>
 
 </Project>
