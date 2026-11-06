@@ -1,3 +1,6 @@
+import EntradaNumerica from "../comunes/EntradaNumerica.jsx";
+import { formatearNumero } from "../../utils/numeros.js";
+
 function CompraCamposFormulario({
   compra,
   productos,
@@ -72,7 +75,7 @@ function CompraCamposFormulario({
               {(presentacion.descripcion ||
                 presentacion.presentacion ||
                 "Presentación")}{" "}
-              - {presentacion.cantidad || 0}{" "}
+              - {formatearNumero(presentacion.cantidad)}{" "}
               {presentacion.unidadMedida || ""}
             </option>
           ))}
@@ -96,15 +99,14 @@ function CompraCamposFormulario({
       {/* Cantidad */}
       <div className="form__group">
         <label htmlFor="cantidadComprada" className="label">Cantidad comprada</label>
-        <input
+        <EntradaNumerica
           id="cantidadComprada"
-          type="number"
+          formato="entero"
           name="cantidadComprada"
           placeholder="Ej: 10"
+          title="Indica la cantidad de empaques completos, sin decimales."
           value={compra.cantidadComprada}
           onChange={onChange}
-          min="0"
-          step="0.01"
           required
           className="input input--md"
         />
@@ -113,15 +115,13 @@ function CompraCamposFormulario({
       {/* Precio */}
       <div className="form__group">
         <label htmlFor="precioTotal" className="label">Precio total</label>
-        <input
+        <EntradaNumerica
           id="precioTotal"
-          type="number"
+          formato="decimal"
           name="precioTotal"
           placeholder="Ej: 25000"
           value={compra.precioTotal}
           onChange={onChange}
-          min="0"
-          step="0.01"
           required
           className="input input--md"
         />

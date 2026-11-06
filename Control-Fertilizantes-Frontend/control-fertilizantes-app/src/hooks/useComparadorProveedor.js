@@ -1,90 +1,56 @@
 import { useState } from "react";
-import {
-  obtenerComparativaProveedores,
-  obtenerDetalleProveedor
-} from "../api/comparadorProveedorApi";
+import { obtenerComparativaProveedores, obtenerDetalleProveedor } from "../api/comparadorProveedorApi.js";
 
-function useComparadorProveedor() {
+export default function useComparadorProveedor() {
   const [comparativa, setComparativa] = useState(null);
   const [cargando, setCargando] = useState(false);
-  const [error, setError] = useState(null);
-
+  const [error, setError] = useState("");
   const [detalleProveedor, setDetalleProveedor] = useState(null);
-  const [modalDetalleAbierto, setModalDetalleAbierto] = useState(false);
 
-  const consultarComparativa = async (filtros) => {
+  async function consultarComparativa(filtros) {
+    setCargando(true);
+    setError("");
+    setDetalleProveedor(null);
     try {
-      setCargando(true);
-      setError(null);
-
-      const data = await obtenerComparativaProveedores({
-        idProducto: filtros.idProducto,
-        idPresentacionProducto: filtros.idPresentacionProducto,
-        moneda: filtros.moneda,
-        mesesAnalisis: filtros.mesesAnalisis,
-        soloAutorizados: filtros.soloAutorizados
-      });
-
-      setComparativa(data);
-    } catch (err) {
-      console.error(err);
-      setError("No se pudo cargar la comparativa de proveedores.");
+      const datos = await obtenerComparativaProveedores(filtros);
+      setComparativa({ datos, filtros });
+    } catch (fallo) {
+      setError(fallo.message || "No se pudo cargar la comparativa de proveedores.");
       setComparativa(null);
     } finally {
       setCargando(false);
     }
-  };
+  }
 
-  const consultarDetalleProveedor = async (filtrosDetalle) => {
+  async function consultarDetalleProveedor(filtros) {
+    setCargando(true);
+    setError("");
     try {
-      setCargando(true);
-      setError(null);
-
-      const data = await obtenerDetalleProveedor({
-        idProducto: filtrosDetalle.idProducto,
-        idPresentacionProducto: filtrosDetalle.idPresentacionProducto,
-        idProveedor: filtrosDetalle.idProveedor,
-        moneda: filtrosDetalle.moneda,
-        mesesAnalisis: filtrosDetalle.mesesAnalisis
-      });
-
-      setDetalleProveedor(data);
-      setModalDetalleAbierto(true);
-    } catch (err) {
-      console.error(err);
-      setError("No se pudo cargar el detalle del proveedor.");
+      setDetalleProveedor(await obtenerDetalleProveedor(filtros));
+    } catch (fallo) {
+      setError(fallo.message || "No se pudo cargar el detalle del proveedor.");
       setDetalleProveedor(null);
-      setModalDetalleAbierto(false);
     } finally {
       setCargando(false);
     }
-  };
+  }
 
-  const cerrarModalDetalle = () => {
-    setModalDetalleAbierto(false);
-    setDetalleProveedor(null);
-  };
-
-  const limpiarComparativa = () => {
+  function limpiarComparativa() {
     setComparativa(null);
     setDetalleProveedor(null);
-    setModalDetalleAbierto(false);
-    setError(null);
-  };
+    setError("");
+  }
 
   return {
-    comparativa,
-    resumen: comparativa?.resumen ?? null,
-    proveedores: comparativa?.proveedores ?? [],
+    filtrosAplicados: comparativa?.filtros,
+    resumen: comparativa?.datos?.resumen,
+    proveedores: comparativa?.datos?.proveedores ?? [],
     cargando,
     error,
     detalleProveedor,
-    modalDetalleAbierto,
     consultarComparativa,
     consultarDetalleProveedor,
-    cerrarModalDetalle,
+    cerrarModalDetalle: () => setDetalleProveedor(null),
     limpiarComparativa
   };
 }
-
-export default useComparadorProveedor;

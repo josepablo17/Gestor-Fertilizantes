@@ -1,13 +1,13 @@
 import { useCallback, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import Campo from "../componentes/comunes/Campo.jsx";
-import Pagina, { EstadoConsulta, Mensajes, Tarjeta } from "../componentes/comunes/Pagina.jsx";
-import useConsulta from "../hooks/useConsulta.js";
-import useOperacion from "../hooks/useOperacion.js";
-import { cargarCatalogoCotizacion, etiquetaPresentacion } from "../api/catalogosApi.js";
-import { guardarSolicitud, obtenerSolicitud } from "../api/cotizacionesApi.js";
+import Campo from "../../../componentes/comunes/Campo.jsx";
+import Pagina, { EstadoConsulta, Mensajes, Tarjeta } from "../../../componentes/comunes/Pagina.jsx";
+import useConsulta from "../../../hooks/useConsulta.js";
+import useOperacion from "../../../hooks/useOperacion.js";
+import { etiquetaPresentacion } from "../../../api/catalogosApi.js";
+import { cargarCatalogoCotizacion, guardarSolicitud, obtenerSolicitud } from "../api/cotizacionesApi.js";
 import { camposCliente, cuerpoSolicitud, nuevaLineaSolicitud, valoresSolicitud } from "../utils/formularioSolicitud.js";
-import { mismoId } from "../utils/datosApi.js";
+import { mismoId } from "../../../utils/datosApi.js";
 
 export default function SolicitudFormulario() {
   const { id } = useParams();
@@ -91,7 +91,7 @@ function EditorSolicitud({ id, volver, original, catalogo }) {
             cambiar={(valor) => cambiarLinea(linea.clave, { idProducto: valor, idPresentacionProducto: "" })} />
           <Campo etiqueta={`Presentación del renglón ${i + 1}`} valor={linea.idPresentacionProducto} opciones={opcionesPresentacion} required
             cambiar={(valor) => cambiarLinea(linea.clave, { idPresentacionProducto: valor })} />
-          <Campo etiqueta={`Empaques solicitados del renglón ${i + 1}`} valor={linea.cantidadEmpaques} inputMode="decimal" required
+          <Campo etiqueta={`Empaques solicitados del renglón ${i + 1}`} valor={linea.cantidadEmpaques} formatoNumerico="decimal" required
             cambiar={(valor) => cambiarLinea(linea.clave, { cantidadEmpaques: valor })} />
           <Campo etiqueta={`Permitir alternativas en renglón ${i + 1}`} valor={linea.permiteAlternativas} casilla
             cambiar={(valor) => cambiarLinea(linea.clave, { permiteAlternativas: valor })} />

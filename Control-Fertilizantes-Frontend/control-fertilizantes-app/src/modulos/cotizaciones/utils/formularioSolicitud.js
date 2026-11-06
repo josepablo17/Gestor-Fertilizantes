@@ -1,4 +1,5 @@
-import { decimalOpcional, enteroOpcional, fechaLocal, textoOpcional } from "./datosApi.js";
+import { decimalOpcional, enteroOpcional, fechaLocal, textoOpcional } from "../../../utils/datosApi.js";
+import { numeroEditable } from "../../../utils/numeros.js";
 
 export const camposCliente = [
   ["nombre", "Nombre del cliente", 150],
@@ -23,7 +24,7 @@ export function valoresSolicitud(original) {
       clave: `guardada-${linea.idSolicitudCotizacionDetalle}`,
       idProducto: linea.idProducto,
       idPresentacionProducto: linea.idPresentacionProducto,
-      cantidadEmpaques: linea.cantidadEmpaquesSolicitada,
+      cantidadEmpaques: numeroEditable(linea.cantidadEmpaquesSolicitada),
       permiteAlternativas: linea.permiteAlternativas,
       observaciones: linea.observaciones ?? "",
       etiquetaProducto: linea.nombreProductoOriginal,

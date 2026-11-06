@@ -1,3 +1,4 @@
+import { formatearNumero, formatearCantidadComprada } from "../../utils/numeros.js";
 function TablaHistorialPrecios({ historial }) {
   if (!historial || historial.length === 0) {
     return (
@@ -66,7 +67,7 @@ function TablaHistorialPrecios({ historial }) {
 
                     <td>
                       <span className="table__cell-muted">
-                        {formatearNumero(item.cantidadComprada)}
+                        {formatearCantidadComprada(item.cantidadComprada)}
                       </span>
                     </td>
 
@@ -126,28 +127,16 @@ function formatearFecha(fecha) {
   });
 }
 
-function formatearNumero(valor) {
-  if (valor === null || valor === undefined) return "N/A";
-
-  return Number(valor).toLocaleString("es-CR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
-}
-
 function formatearMoneda(valor) {
   if (valor === null || valor === undefined) return "N/A";
 
-  return Number(valor).toLocaleString("es-CR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
+  return formatearNumero(valor);
 }
 
 function formatearPorcentaje(valor) {
   if (valor === null || valor === undefined) return "N/A";
 
-  return `${Number(valor).toFixed(2)}%`;
+  return `${formatearNumero(valor)}%`;
 }
 
 function obtenerClaseVariacion(valor) {

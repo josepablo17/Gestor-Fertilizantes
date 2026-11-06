@@ -1,57 +1,52 @@
-/* =========================================================
-   SHELL GENERAL DE LA APLICACIÓN
-========================================================= */
-
 .app-layout {
   display: grid;
   grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
-  min-height: 100vh;
-  background-color: var(--color-bg-app);
+  grid-template-rows: var(--topbar-height) 1fr;
+  grid-template-areas: "sidebar topbar" "sidebar main";
+  min-height: 100dvh;
 }
 
-/* =========================================================
-   CONTENIDO PRINCIPAL
-========================================================= */
-
-.app-layout__main {
-  min-width: 0;
+.app-layout__topbar {
+  grid-area: topbar;
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
   display: flex;
-  flex-direction: column;
-  background-color: var(--color-bg-app);
+  align-items: center;
+  gap: var(--space-3);
+  padding-inline: var(--content-padding);
+  background: var(--color-bg-app);
+  border-bottom: 1px solid var(--color-border);
 }
 
-.app-layout__content {
-  flex: 1;
+.app-layout__ruta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   min-width: 0;
-  padding: var(--space-6);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
 }
 
-/* =========================================================
-   CONTENEDOR INTERNO
-========================================================= */
+.app-layout__ruta span { color: var(--color-text-primary); }
+.app-layout__ruta svg { width: 12px; flex: none; }
+.app-layout .app-layout__menu { display: none; }
 
-.app-layout__container {
+.app-layout__main { grid-area: main; min-width: 0; }
+.app-layout__content {
   width: 100%;
   max-width: var(--page-max-width);
-  margin: 0 auto;
+  margin-inline: auto;
+  padding: var(--content-padding);
 }
 
-/* =========================================================
-   RESPONSIVE
-========================================================= */
-
-@media (max-width: 1024px) {
+@media (max-width: 820px) {
   .app-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: var(--topbar-height) auto 1fr;
+    grid-template-areas: "topbar" "sidebar" "main";
   }
 
-  .app-layout__content {
-    padding: var(--space-5);
-  }
-}
-
-@media (max-width: 768px) {
-  .app-layout__content {
-    padding: var(--space-4);
-  }
+  .app-layout .app-layout__menu { display: inline-flex; }
+  .app-layout[data-menu-abierto="false"] .sidebar { display: none; }
 }

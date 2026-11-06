@@ -1,158 +1,57 @@
 import { useMemo, useState } from "react";
-import FiltroProveedores from "./FiltroProveedores";
-import TablaProveedores from "./TablaProveedores";
-import EstadoLista from "../../EstadoLista";
-import useProveedores from "../../hooks/useProveedores";
-import usePaginacion from "../../hooks/usePaginacion";
-import { filtrarProveedores, obtenerTextoResumen } from "../../utils/proveedores";
+import { obtenerProveedores, desactivarProveedor } from "../../api/proveedorApi.js";
+import ContenidoListado from "../comunes/ContenidoListado.jsx";
+import { Mensajes } from "../comunes/Pagina.jsx";
+import useConsulta from "../../hooks/useConsulta.js";
+import useDesactivarRegistro from "../../hooks/useDesactivarRegistro.js";
+import Paginador from "../comunes/Paginador.jsx";
+import usePaginacion from "../../hooks/usePaginacion.js";
+import { filtrarProveedores } from "../../utils/proveedores.js";
+import FiltroProveedores from "./FiltroProveedores.jsx";
+import TablaProveedores from "./TablaProveedores.jsx";
 
-function ListaProveedores({ recargar, onEditar, onProveedorDesactivado, onAgregar }) {
-    const [busqueda, setBusqueda] = useState("");
-    const [filtroEstado, setFiltroEstado] = useState("todos");
+const sinRegistros = [];
 
-    const proveedoresPorPagina = 5;
+export default function ListaProveedores() {
+  const estado = useConsulta(obtenerProveedores);
+  const proveedores = estado.datos ?? sinRegistros;
+  const operacion = useDesactivarRegistro(desactivarProveedor, estado.recargar);
 
-    const {
-        proveedores,
-        cargando,
-        error,
-        manejarDesactivar
-    } = useProveedores(recargar, onProveedorDesactivado);
+  const [busqueda, setBusqueda] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("todos");
 
-    const proveedoresFiltrados = useMemo(() => {
-        return filtrarProveedores(proveedores, busqueda, filtroEstado);
-    }, [proveedores, busqueda, filtroEstado]);
+  const filtrados = useMemo(
+    () => filtrarProveedores(proveedores, busqueda, filtroEstado),
+    [proveedores, busqueda, filtroEstado]
+  );
+  const { itemsPaginados, indiceInicial, indiceFinal, ...paginador } =
+    usePaginacion(filtrados, 5, [busqueda, filtroEstado]);
+  const cantidad = filtrados.length;
+  const resumen = `Mostrando ${indiceInicial + 1}-${Math.min(indiceFinal, cantidad)} de ${cantidad} ${cantidad === 1 ? "proveedor" : "proveedores"}`;
 
-    const {
-        paginaActual,
-        totalPaginas,
-        indiceInicial,
-        indiceFinal,
-        itemsPaginados: proveedoresPaginados,
-        irAPagina,
-        irAnterior,
-        irSiguiente
-    } = usePaginacion(proveedoresFiltrados, proveedoresPorPagina, [
-        busqueda,
-        filtroEstado
-    ]);
+  function limpiarFiltros() {
+    setBusqueda("");
+    setFiltroEstado("todos");
+  }
 
-    const limpiarFiltros = () => {
-        setBusqueda("");
-        setFiltroEstado("todos");
-    };
-
-    return (
-        <section className="page-section">
-
-            {/* HEADER */}
-            <div className="page-section__header">
-                <div>
-                    <h2 className="page-section__title">Lista de proveedores</h2>
-                    <p className="page-section__subtitle">
-                        Consulta, filtra, edita y administra los proveedores registrados.
-                    </p>
-                </div>
-
-                {onAgregar && (
-                    <button
-                        type="button"
-                        className="btn btn--primary btn--md"
-                        onClick={onAgregar}
-                    >
-                        Agregar proveedor
-                    </button>
-                )}
-            </div>
-
-            {/* CONTENIDO */}
-            {cargando ? (
-                <EstadoLista tipo="cargando" mensaje="Cargando proveedores..." />
-            ) : error ? (
-                <EstadoLista tipo="error" mensaje={error} />
-            ) : proveedores.length === 0 ? (
-                <EstadoLista
-                    tipo="vacio"
-                    mensaje="No hay proveedores registrados"
-                    subtitulo="Cuando agregues proveedores, aparecerán aquí para administrarlos."
-                />
-            ) : proveedoresFiltrados.length === 0 ? (
-                <EstadoLista
-                    tipo="vacio"
-                    mensaje="No se encontraron resultados"
-                    subtitulo="Prueba con otra búsqueda o cambia los filtros seleccionados."
-                />
-            ) : (
-                <>
-                    {/* FILTROS */}
-                    <FiltroProveedores
-                        busqueda={busqueda}
-                        setBusqueda={setBusqueda}
-                        filtroEstado={filtroEstado}
-                        setFiltroEstado={setFiltroEstado}
-                        onLimpiarFiltros={limpiarFiltros}
-                    />
-
-                    {/* RESUMEN */}
-                    <div className="table__cell-muted" style={{ padding: "0 0 var(--space-3) 0" }}>
-                        {proveedoresFiltrados.length > 0
-                            ? `Mostrando ${indiceInicial + 1}-${Math.min(indiceFinal, proveedoresFiltrados.length)} de ${proveedoresFiltrados.length} proveedor${proveedoresFiltrados.length !== 1 ? "es" : ""}`
-                            : obtenerTextoResumen(proveedores.length, proveedoresFiltrados.length)}
-                    </div>
-
-                    {/* TABLA */}
-                    <TablaProveedores
-                        proveedores={proveedoresPaginados}
-                        onEditar={onEditar}
-                        onDesactivar={manejarDesactivar}
-                    />
-                    {/* PAGINACIÓN */}
-                    {totalPaginas > 1 && (
-                        <div className="toolbar">
-                            <button
-                                type="button"
-                                className="btn btn--ghost"
-                                onClick={irAnterior}
-                                disabled={paginaActual === 1}
-                            >
-                                Anterior
-                            </button>
-
-                            <div className="toolbar__group">
-                                {Array.from({ length: totalPaginas }, (_, index) => {
-                                    const numeroPagina = index + 1;
-
-                                    return (
-                                        <button
-                                            key={numeroPagina}
-                                            type="button"
-                                            className={
-                                                paginaActual === numeroPagina
-                                                    ? "btn btn--primary"
-                                                    : "btn btn--ghost"
-                                            }
-                                            onClick={() => irAPagina(numeroPagina)}
-                                        >
-                                            {numeroPagina}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-
-                            <button
-                                type="button"
-                                className="btn btn--ghost"
-                                onClick={irSiguiente}
-                                disabled={paginaActual === totalPaginas}
-                            >
-                                Siguiente
-                            </button>
-                        </div>
-                    )}
-                </>
-            )}
-        </section>
-    );
+  return (
+    <>
+      <Mensajes {...operacion} />
+      <ContenidoListado estado={estado}
+        mensajeVacio="No hay proveedores registrados"
+        detalleVacio="Cuando agregues proveedores, aparecerán aquí para administrarlos."
+        resumen={resumen}
+        sinCoincidencias={cantidad === 0}
+        filtros={<FiltroProveedores
+          busqueda={busqueda} setBusqueda={setBusqueda}
+          filtroEstado={filtroEstado} setFiltroEstado={setFiltroEstado}
+          onLimpiarFiltros={limpiarFiltros}
+        />}>
+        <TablaProveedores proveedores={itemsPaginados}
+          ocupado={operacion.ocupado}
+          onDesactivar={(item) => operacion.desactivar(item.idProveedor, item.nombre)} />
+        <Paginador {...paginador} />
+      </ContenidoListado>
+    </>
+  );
 }
-
-export default ListaProveedores;

@@ -8,6 +8,7 @@ import { obtenerProductos } from "../api/productosApi";
 import { obtenerProveedores } from "../api/proveedorApi";
 import { obtenerPresentacionesProducto } from "../api/presentacionProductoApi";
 import { mostrarError, mostrarExito } from "../utils/alertas";
+import { decimalOpcional } from "../utils/datosApi.js";
 
 const compraInicial = {
   idCompra: 0,
@@ -153,18 +154,21 @@ function useFormularioCompra({
       return false;
     }
 
-    if (!compra.cantidadComprada || Number(compra.cantidadComprada) <= 0) {
+    const cantidad = Number(compra.cantidadComprada);
+    if (!/^[0-9]+$/.test(String(compra.cantidadComprada)) || !Number.isSafeInteger(cantidad) || cantidad <= 0) {
       mostrarError(
         "Campo inválido",
-        "La cantidad comprada debe ser mayor que cero."
+        "Indica un número entero de empaques mayor que cero."
       );
       return false;
     }
 
-    if (!compra.precioTotal || Number(compra.precioTotal) <= 0) {
+    try {
+      if (!decimalOpcional(compra.precioTotal, 4, true)) throw new Error();
+    } catch {
       mostrarError(
         "Campo inválido",
-        "El precio total debe ser mayor que cero."
+        "Indica un precio total mayor que cero, con hasta cuatro decimales."
       );
       return false;
     }
@@ -201,7 +205,7 @@ function useFormularioCompra({
       idPresentacionProducto: Number(compra.idPresentacionProducto),
       fechaCompra: compra.fechaCompra,
       cantidadComprada: Number(compra.cantidadComprada),
-      precioTotal: Number(compra.precioTotal),
+      precioTotal: Number(decimalOpcional(compra.precioTotal, 4, true)),
       moneda: compra.moneda.trim(),
       observaciones: compra.observaciones.trim()
     };

@@ -76,6 +76,16 @@ function pdfSinFormulario() {
 try {
   await abrir("/");
   await pagina.getByRole("heading", { name: "Solicitudes de cotización", exact: true }).waitFor();
+  await campo("Buscar módulo").fill("catalogo inexistente");
+  await visible("No se encontraron módulos.");
+  await campo("Buscar módulo").fill("");
+  await pagina.setViewportSize({ width: 390, height: 844 });
+  await boton("Abrir menú").click();
+  await pagina.getByRole("navigation", { name: "Navegación principal" })
+    .getByRole("link", { name: "Proveedores", exact: true }).click();
+  await pagina.waitForURL((url) => url.pathname === "/proveedores");
+  assert.equal(await boton("Abrir menú").getAttribute("aria-expanded"), "false");
+  await pagina.setViewportSize({ width: 1440, height: 960 });
   await alta("/productos-base/nuevo", "/productos-base", { "Código": `B-${clave}`, "Nombre": base, "Fórmula declarada": "12-60-0" });
   await alta("/marcas/nuevo", "/marcas", { "Nombre": marca });
   await alta("/productos/nuevo", "/productos", { "Nombre": producto }, [["Producto base", base], ["Marca", marca]]);
@@ -91,6 +101,42 @@ try {
   await alta(`/proveedores/editar/${anterior.idProveedor}`, "/proveedores", { "Contacto": "Contacto E2E" });
   assert.equal((await json(`/Proveedor/ObtenerProveedor/${anterior.idProveedor}`)).identificacionFiscal, clave);
   console.log("OK: catálogos, cantidad de empaque decimal y conservación de datos fiscales.");
+
+  const grupoPaginacion = `Paginacion ${clave}`;
+  for (let indice = 1; indice <= 6; indice++) {
+    const altaProveedor = await pagina.request.post(new URL("/api/Proveedor/InsertarProveedor", origen).href, {
+      data: { nombre: `${grupoPaginacion} ${indice}` },
+    });
+    assert.ok(altaProveedor.ok(), `Alta de proveedor para paginación: HTTP ${altaProveedor.status()}`);
+  }
+  await pagina.route("**/api/Proveedor/ListarProveedor", (route) => route.fulfill({ status: 503 }), { times: 1 });
+  await abrir("/proveedores");
+  await boton("Reintentar").click();
+  const buscarProveedor = pagina.getByPlaceholder("Nombre, contacto o teléfono...");
+  await buscarProveedor.fill(grupoPaginacion);
+  const paginador = pagina.getByRole("navigation", { name: "Paginación" });
+  await paginador.getByRole("button", { name: "Siguiente" }).click();
+  assert.equal(await paginador.getByRole("button", { name: "Página 2" }).getAttribute("aria-current"), "page");
+  assert.equal(await pagina.locator("tbody tr").count(), 1);
+  await buscarProveedor.fill(`Sin coincidencias ${clave}`);
+  await visible("No se encontraron resultados");
+  await boton("Limpiar").click();
+  await buscarProveedor.fill(grupoPaginacion);
+  await paginador.getByRole("button", { name: "Página 1", exact: true }).waitFor();
+
+  const filaProveedor = pagina.getByRole("row").filter({ hasText: `${grupoPaginacion} 1` });
+  const contarRecarga = (solicitud) => {
+    if (new URL(solicitud.url()).pathname === "/api/Proveedor/ListarProveedor") recargas++;
+  };
+  let recargas = 0;
+  pagina.on("request", contarRecarga);
+  await filaProveedor.getByRole("button", { name: "Desactivar" }).click();
+  await pagina.getByRole("dialog").getByRole("button", { name: "Sí, desactivar" }).click();
+  await visible("Registro desactivado.");
+  await filaProveedor.getByText("Inactivo", { exact: true }).waitFor();
+  pagina.off("request", contarRecarga);
+  assert.equal(recargas, 1);
+  console.log("OK: reintento, paginación, filtros sin coincidencias y una sola recarga al desactivar.");
 
   await abrir("/solicitudes/nueva");
   await campo("Número de solicitud").fill(numero);
@@ -130,6 +176,9 @@ try {
   await pagina.waitForURL((url) => /^\/respuestas\/\d+$/.test(url.pathname));
   const respuesta = rutaActual();
   await pagina.getByText(/^Formulario reconocido/).waitFor();
+  const visor = pagina.getByTitle("PDF original de la proforma");
+  await visor.waitFor();
+  await pagina.locator('iframe[title="PDF original de la proforma"][src^="blob:"]').waitFor();
   const descargaOriginal = pagina.waitForEvent("download");
   await boton("Descargar PDF original").click();
   assert.deepEqual(await readFile(await (await descargaOriginal).path()), bytes);
@@ -178,13 +227,59 @@ try {
   await campo("Base de precio").selectOption("Bruto");
   await campo("Fecha para comprobar vigencia").fill("2026-04-15");
   await boton("Comparar").click();
-  await pagina.getByRole("cell", { name: /^CRC 4(?:\.0+)?\/KG$/ }).first().waitFor();
+  const matriz = pagina.getByRole("table", { name: "Ofertas por producto y proveedor" });
+  await matriz.getByRole("columnheader", { name: proveedor }).waitFor();
+  await matriz.getByRole("columnheader", { name: otroProveedor }).waitFor();
+  await matriz.locator("td").getByText(/^CRC 4(?:\.0+)?\/KG$/).first().waitFor();
   await visible("Sin respuesta validada");
   const tablaAjustes = tarjeta("Ajustes globales por proforma");
   assert.equal(await tablaAjustes.locator("tbody tr").count(), 1);
   await campo("Moneda de comparación").fill("USD");
   await boton("Comparar").click();
   await visible("Moneda distinta");
+
+  const idProducto = (await json("/Producto/ListarProducto")).find((item) => item.nombre === producto).idProducto;
+  const idPresentacionProducto = (await json("/PresentacionProducto/ListarPresentacionesProducto"))
+    .find((item) => item.idProducto === idProducto).idPresentacionProducto;
+  const urlCompra = new URL("/api/Compra/InsertarCompra", origen).href;
+  const datosCompra = { idProducto, idPresentacionProducto, idProveedor: anterior.idProveedor,
+    fechaCompra: new Date(Date.now() - 86400000).toISOString().slice(0, 10),
+    cantidadComprada: 2, precioTotal: 250, moneda: "USD" };
+  const compraFraccionaria = await pagina.request.post(urlCompra, { data: { ...datosCompra, cantidadComprada: 2.5 } });
+  assert.equal(compraFraccionaria.status(), 400);
+  assert.match((await compraFraccionaria.json()).mensaje, /número entero/);
+  const compraUsd = await pagina.request.post(urlCompra, { data: datosCompra });
+  assert.ok(compraUsd.ok(), `Alta de compra en USD: HTTP ${compraUsd.status()}`);
+  const idCompra = (await compraUsd.json()).data.idCompra;
+  await abrir("/compras");
+  await pagina.getByPlaceholder("Buscar producto...").fill(producto);
+  await pagina.getByRole("row").filter({ hasText: producto }).getByRole("link", { name: "Editar" }).click();
+  await pagina.waitForURL((url) => url.pathname === `/compras/editar/${idCompra}`);
+  await campo("Precio total").waitFor();
+  assert.equal(await campo("Precio total").inputValue(), "250");
+  await campo("Precio total").fill("2e3");
+  assert.equal(await campo("Precio total").inputValue(), "250");
+  await campo("Precio total").fill("250,35");
+  assert.equal(await campo("Precio total").inputValue(), "250,35");
+  await campo("Cantidad comprada").fill("dos");
+  assert.equal(await campo("Cantidad comprada").inputValue(), "2");
+  await campo("Cantidad comprada").clear();
+  await campo("Cantidad comprada").pressSequentially("2.5");
+  assert.equal(await campo("Cantidad comprada").inputValue(), "2.5");
+  assert.equal(await campo("Cantidad comprada").evaluate((input) => input.checkValidity()), false);
+
+  await abrir("/comparador-proveedores");
+  await pagina.locator("#idProducto").selectOption(String(idProducto));
+  await pagina.locator("#idPresentacionProducto").selectOption(String(idPresentacionProducto));
+  await campo("Moneda").selectOption("USD");
+  await boton("Comparar proveedores").click();
+  const importe = new Intl.NumberFormat("es-CR", { style: "currency", currency: "USD",
+    minimumFractionDigits: 0, maximumFractionDigits: 1 }).format(125);
+  await pagina.getByRole("cell", { name: importe, exact: true }).first().waitFor();
+  await campo("Moneda").selectOption("CRC");
+  await boton("Ver detalle").click();
+  await pagina.locator(".modal-detalle-overlay").getByText(importe, { exact: true }).first().waitFor();
+  console.log("OK: el comparador y su detalle conservan USD hasta aplicar otro filtro.");
   assert.deepEqual(errores, []);
   console.log("OK: corrección, revisión, conciliación, validación y comparación con cargos globales separados.");
 } catch (error) {

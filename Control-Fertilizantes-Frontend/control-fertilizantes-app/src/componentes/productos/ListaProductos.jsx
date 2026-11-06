@@ -1,175 +1,62 @@
 import { useMemo, useState } from "react";
-import FiltrosProductos from "./FiltroProductos";
-import TablaProductos from "./TablaProductos";
-import EstadoLista from "../../EstadoLista";
-import useProductos from "../../hooks/useProductos";
-import usePaginacion from "../../hooks/usePaginacion";
-import {
-  filtrarProductos,
-  obtenerCategoriasDisponibles,
-  obtenerTextoResumen
-} from "../../utils/productos";
+import { obtenerProductos, desactivarProducto } from "../../api/productosApi.js";
+import ContenidoListado from "../comunes/ContenidoListado.jsx";
+import { Mensajes } from "../comunes/Pagina.jsx";
+import useConsulta from "../../hooks/useConsulta.js";
+import useDesactivarRegistro from "../../hooks/useDesactivarRegistro.js";
+import Paginador from "../comunes/Paginador.jsx";
+import usePaginacion from "../../hooks/usePaginacion.js";
+import { filtrarProductos, obtenerCategoriasDisponibles } from "../../utils/productos.js";
+import FiltrosProductos from "./FiltroProductos.jsx";
+import TablaProductos from "./TablaProductos.jsx";
 
-function ListaProductos({ recargar, onEditar, onProductoDesactivado, onAgregar }) {
+const sinRegistros = [];
+
+export default function ListaProductos() {
+  const estado = useConsulta(obtenerProductos);
+  const productos = estado.datos ?? sinRegistros;
+  const operacion = useDesactivarRegistro(desactivarProducto, estado.recargar);
+
   const [busqueda, setBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("todos");
   const [filtroCategoria, setFiltroCategoria] = useState("todas");
 
-  const productosPorPagina = 5;
+  const categoriasDisponibles = useMemo(() => obtenerCategoriasDisponibles(productos), [productos]);
+  const filtrados = useMemo(
+    () => filtrarProductos(productos, busqueda, filtroEstado, filtroCategoria),
+    [productos, busqueda, filtroEstado, filtroCategoria]
+  );
+  const { itemsPaginados, indiceInicial, indiceFinal, ...paginador } =
+    usePaginacion(filtrados, 5, [busqueda, filtroEstado, filtroCategoria]);
+  const cantidad = filtrados.length;
+  const resumen = `Mostrando ${indiceInicial + 1}-${Math.min(indiceFinal, cantidad)} de ${cantidad} ${cantidad === 1 ? "producto" : "productos"}`;
 
-  const {
-    productos,
-    cargando,
-    error,
-    manejarDesactivar
-  } = useProductos(recargar, onProductoDesactivado);
-
-  const categoriasDisponibles = useMemo(() => {
-    return obtenerCategoriasDisponibles(productos);
-  }, [productos]);
-
-  const productosFiltrados = useMemo(() => {
-    return filtrarProductos(productos, busqueda, filtroEstado, filtroCategoria);
-  }, [productos, busqueda, filtroEstado, filtroCategoria]);
-
-  const {
-    paginaActual,
-    totalPaginas,
-    indiceInicial,
-    indiceFinal,
-    itemsPaginados: productosPaginados,
-    irAPagina,
-    irAnterior,
-    irSiguiente
-  } = usePaginacion(productosFiltrados, productosPorPagina, [
-    busqueda,
-    filtroEstado,
-    filtroCategoria
-  ]);
-
-  const limpiarFiltros = () => {
+  function limpiarFiltros() {
     setBusqueda("");
     setFiltroEstado("todos");
     setFiltroCategoria("todas");
-  };
+  }
 
   return (
-    <section className="page-section">
-      
-      {/* HEADER */}
-      <div className="page-section__header">
-        <div>
-          <h2 className="page-section__title">Lista de productos</h2>
-          <p className="page-section__subtitle">
-            Consulta, filtra, edita y administra los productos registrados.
-          </p>
-        </div>
-
-        {onAgregar && (
-          <button
-            className="btn btn--primary"
-            onClick={onAgregar}
-            type="button"
-          >
-            Agregar producto
-          </button>
-        )}
-      </div>
-
-      {/* FILTROS + RESUMEN */}
-      {!cargando && !error && productos.length > 0 && (
-        <>
-          <FiltrosProductos
-            busqueda={busqueda}
-            setBusqueda={setBusqueda}
-            filtroEstado={filtroEstado}
-            setFiltroEstado={setFiltroEstado}
-            filtroCategoria={filtroCategoria}
-            setFiltroCategoria={setFiltroCategoria}
-            categoriasDisponibles={categoriasDisponibles}
-            onLimpiarFiltros={limpiarFiltros}
-          />
-
-          <span className="text-muted">
-            {productosFiltrados.length > 0
-              ? `Mostrando ${indiceInicial + 1}-${Math.min(indiceFinal, productosFiltrados.length)} de ${productosFiltrados.length} producto${productosFiltrados.length !== 1 ? "s" : ""}`
-              : obtenerTextoResumen(productos.length, productosFiltrados.length)}
-          </span>
-        </>
-      )}
-
-      {/* ESTADOS */}
-      {cargando ? (
-        <EstadoLista tipo="cargando" mensaje="Cargando productos..." />
-      ) : error ? (
-        <EstadoLista tipo="error" mensaje={error} />
-      ) : productos.length === 0 ? (
-        <EstadoLista
-          tipo="vacio"
-          mensaje="No hay productos registrados"
-          subtitulo="Cuando agregues productos, aparecerán aquí para administrarlos."
-        />
-      ) : productosFiltrados.length === 0 ? (
-        <EstadoLista
-          tipo="vacio"
-          mensaje="No se encontraron resultados"
-          subtitulo="Prueba con otra búsqueda o cambia los filtros seleccionados."
-        />
-      ) : (
-        <>
-          <TablaProductos
-            productos={productosPaginados}
-            onEditar={onEditar}
-            onDesactivar={manejarDesactivar}
-          />
-
-          {/* PAGINACIÓN */}
-          {totalPaginas > 1 && (
-            <div className="toolbar">
-              <button
-                type="button"
-                className="btn btn--ghost"
-                onClick={irAnterior}
-                disabled={paginaActual === 1}
-              >
-                Anterior
-              </button>
-
-              <div className="toolbar__group">
-                {Array.from({ length: totalPaginas }, (_, index) => {
-                  const numeroPagina = index + 1;
-
-                  return (
-                    <button
-                      key={numeroPagina}
-                      type="button"
-                      className={
-                        paginaActual === numeroPagina
-                          ? "btn btn--primary"
-                          : "btn btn--ghost"
-                      }
-                      onClick={() => irAPagina(numeroPagina)}
-                    >
-                      {numeroPagina}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <button
-                type="button"
-                className="btn btn--ghost"
-                onClick={irSiguiente}
-                disabled={paginaActual === totalPaginas}
-              >
-                Siguiente
-              </button>
-            </div>
-          )}
-        </>
-      )}
-    </section>
+    <>
+      <Mensajes {...operacion} />
+      <ContenidoListado estado={estado}
+        mensajeVacio="No hay productos registrados"
+        detalleVacio="Cuando agregues productos, aparecerán aquí para administrarlos."
+        resumen={resumen}
+        sinCoincidencias={cantidad === 0}
+        filtros={<FiltrosProductos
+          busqueda={busqueda} setBusqueda={setBusqueda}
+          filtroEstado={filtroEstado} setFiltroEstado={setFiltroEstado}
+          filtroCategoria={filtroCategoria} setFiltroCategoria={setFiltroCategoria}
+          categoriasDisponibles={categoriasDisponibles}
+          onLimpiarFiltros={limpiarFiltros}
+        />}>
+        <TablaProductos productos={itemsPaginados}
+          ocupado={operacion.ocupado}
+          onDesactivar={(item) => operacion.desactivar(item.idProducto, item.nombre)} />
+        <Paginador {...paginador} />
+      </ContenidoListado>
+    </>
   );
 }
-
-export default ListaProductos;

@@ -1,4 +1,7 @@
-function TablaCompras({ compras, onEditar }) {
+import { formatearNumero, formatearCantidadComprada } from "../../utils/numeros.js";
+import AccionesRegistro from "../comunes/AccionesRegistro.jsx";
+
+function TablaCompras({ compras }) {
   const formatearFecha = (fecha) => {
     if (!fecha) {
       return "Sin fecha";
@@ -12,7 +15,7 @@ function TablaCompras({ compras, onEditar }) {
       return "No disponible";
     }
 
-    return `${moneda || ""} ${Number(monto).toFixed(2)}`.trim();
+    return `${moneda || ""} ${formatearNumero(monto)}`.trim();
   };
 
   const obtenerClaseTendencia = (tendencia) => {
@@ -74,7 +77,7 @@ function TablaCompras({ compras, onEditar }) {
                   </span>
                   <br />
                   <span className="table__cell-muted">
-                    {compra.cantidadPresentacion || "0"} {compra.unidadMedida || ""}
+                    {formatearNumero(compra.cantidadPresentacion)} {compra.unidadMedida || ""}
                   </span>
                 </div>
               </td>
@@ -87,7 +90,7 @@ function TablaCompras({ compras, onEditar }) {
 
               <td>
                 <span className="table__cell-muted">
-                  {compra.cantidadComprada ?? "0"}
+                  {formatearCantidadComprada(compra.cantidadComprada)}
                 </span>
               </td>
 
@@ -110,15 +113,7 @@ function TablaCompras({ compras, onEditar }) {
               </td>
 
               <td>
-                <div className="table__actions">
-                  <button
-                    className="btn btn--ghost btn--sm"
-                    onClick={() => onEditar(compra)}
-                    type="button"
-                  >
-                    Editar
-                  </button>
-                </div>
+                <AccionesRegistro rutaEdicion={`/compras/editar/${compra.idCompra}`} />
               </td>
             </tr>
           ))}

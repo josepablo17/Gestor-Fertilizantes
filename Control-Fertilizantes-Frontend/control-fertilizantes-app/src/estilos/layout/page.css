@@ -5,7 +5,7 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--space-4);
 }
 
 .page__header {
@@ -35,7 +35,7 @@
 }
 
 .page__title {
-  font-size: var(--font-size-3xl);
+  font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
   line-height: 1.2;
@@ -61,7 +61,7 @@
 .page__body {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--space-4);
 
   margin-top: var(--space-2);
 }

@@ -67,15 +67,3 @@ export function filtrarCompras(
     );
   });
 }
-
-export function obtenerTextoResumen(total, filtrados) {
-  if (total === 0) {
-    return "No hay compras registradas.";
-  }
-
-  if (filtrados === total) {
-    return `Mostrando ${total} compra${total !== 1 ? "s" : ""}.`;
-  }
-
-  return `Mostrando ${filtrados} de ${total} compra${total !== 1 ? "s" : ""}.`;
-}

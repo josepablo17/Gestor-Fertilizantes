@@ -22,11 +22,18 @@ export function Tarjeta({ titulo, children }) {
 
 export function EstadoConsulta({ estado, children }) {
   if (estado.cargando) return <Loader texto="Cargando información…" alto="120px" />;
-  if (estado.error) return <div role="alert">
+  if (estado.error) return <div className="estado-consulta__error" role="alert">
     <p>{estado.error}</p>
-    <button className="btn btn--secondary" onClick={estado.recargar}>Reintentar</button>
+    {estado.recargar && <button type="button" className="btn btn--secondary" onClick={estado.recargar}>Reintentar</button>}
   </div>;
   return children;
+}
+
+export function EstadoVacio({ mensaje, detalle }) {
+  return <div className="estado-lista estado-vacio">
+    <h3>{mensaje}</h3>
+    {detalle && <p>{detalle}</p>}
+  </div>;
 }
 
 export function Mensajes({ error, aviso }) {

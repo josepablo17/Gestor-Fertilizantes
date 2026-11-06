@@ -1,10 +1,12 @@
+import AccionesRegistro from "../comunes/AccionesRegistro.jsx";
+
 import {
     formatearEstado,
     formatearFactorConversion,
     formatearUnidadBase
 } from "../../utils/unidadesMedida";
 
-function TablaUnidadesMedida({ unidadesMedida, onEditar, onDesactivar }) {
+function TablaUnidadesMedida({ unidadesMedida, onDesactivar, ocupado }) {
     return (
         <div className="table-wrapper">
             <table className="table">
@@ -72,25 +74,9 @@ function TablaUnidadesMedida({ unidadesMedida, onEditar, onDesactivar }) {
                             </td>
 
                             <td>
-                                <div className="table__actions">
-                                    <button
-                                        className="btn btn--ghost btn--sm"
-                                        onClick={() => onEditar(unidadMedida)}
-                                        type="button"
-                                    >
-                                        Editar
-                                    </button>
-
-                                    {unidadMedida.activo && (
-                                        <button
-                                            className="btn btn--secondary btn--sm"
-                                            onClick={() => onDesactivar(unidadMedida)}
-                                            type="button"
-                                        >
-                                            Desactivar
-                                        </button>
-                                    )}
-                                </div>
+                                <AccionesRegistro rutaEdicion={`/unidadesMedida/editar/${unidadMedida.idUnidadMedida}`}
+                                  onCambiarEstado={unidadMedida.activo ? () => onDesactivar(unidadMedida) : undefined}
+                                  ocupado={ocupado} />
                             </td>
                         </tr>
                     ))}

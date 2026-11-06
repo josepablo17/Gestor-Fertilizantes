@@ -1,12 +1,13 @@
+import { formatearNumero } from "../../../utils/numeros.js";
 import { useCallback } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import Pagina, { EstadoConsulta, Mensajes, Tarjeta } from "../componentes/comunes/Pagina.jsx";
-import DestinatarioSolicitud from "../componentes/solicitudes/DestinatarioSolicitud.jsx";
-import useConsulta from "../hooks/useConsulta.js";
-import useOperacion from "../hooks/useOperacion.js";
+import Pagina, { EstadoConsulta, Mensajes, Tarjeta } from "../../../componentes/comunes/Pagina.jsx";
+import DestinatarioSolicitud from "../componentes/DestinatarioSolicitud.jsx";
+import useConsulta from "../../../hooks/useConsulta.js";
+import useOperacion from "../../../hooks/useOperacion.js";
 import { cambiarEstadoSolicitud, emitirSolicitud, obtenerSolicitud, revisarSolicitud } from "../api/cotizacionesApi.js";
-import { mostrarConfirmacion } from "../utils/alertas.js";
-import { fechaHora, mostrarDato } from "../utils/datosApi.js";
+import { mostrarConfirmacion } from "../../../utils/alertas.js";
+import { fechaHora, mostrarDato } from "../../../utils/datosApi.js";
 
 export default function SolicitudDetalle() {
   const { id } = useParams();
@@ -68,8 +69,8 @@ export default function SolicitudDetalle() {
             <table className="table"><thead><tr><th>#</th><th>Producto</th><th>Presentación</th><th>Empaques</th><th>Alternativas</th></tr></thead>
               <tbody>{solicitud.lineas.map((l) => <tr key={l.idSolicitudCotizacionDetalle}>
                 <td>{l.numeroLinea}</td><td>{l.nombreProductoOriginal}{l.marcaOriginal && ` · ${l.marcaOriginal}`}</td>
-                <td>{l.presentacionOriginal} · {l.contenidoEmpaqueOriginal} {l.codigoUnidadOriginal}</td>
-                <td>{l.cantidadEmpaquesSolicitada}</td><td>{l.permiteAlternativas ? "Permitidas" : "No permitidas"}</td>
+                <td>{l.presentacionOriginal} · {formatearNumero(l.contenidoEmpaqueOriginal)} {l.codigoUnidadOriginal}</td>
+                <td>{formatearNumero(l.cantidadEmpaquesSolicitada)}</td><td>{l.permiteAlternativas ? "Permitidas" : "No permitidas"}</td>
               </tr>)}</tbody>
             </table>
           </div>}

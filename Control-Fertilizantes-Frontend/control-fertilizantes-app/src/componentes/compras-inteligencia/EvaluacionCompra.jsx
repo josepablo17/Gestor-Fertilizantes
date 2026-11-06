@@ -1,3 +1,4 @@
+import { formatearNumero } from "../../utils/numeros.js";
 function EvaluacionCompra({ evaluacion }) {
   if (!evaluacion) {
     return (
@@ -130,21 +131,21 @@ function obtenerTituloImpacto(clasificacionCompra, porcentajeVsPromedio) {
 
   if (clasificacion.includes("conveniente")) {
     if (!isNaN(porcentaje) && porcentaje < 0) {
-      return `Compra favorable: ${Math.abs(porcentaje).toFixed(2)}% por debajo del promedio histórico`;
+      return `Compra favorable: ${formatearNumero(Math.abs(porcentaje))}% por debajo del promedio histórico`;
     }
     return "Compra favorable frente al comportamiento histórico";
   }
 
   if (clasificacion.includes("aceptable")) {
     if (!isNaN(porcentaje)) {
-      return `Compra aceptable con una variación de ${porcentaje.toFixed(2)}% frente al promedio`;
+      return `Compra aceptable con una variación de ${formatearNumero(porcentaje)}% frente al promedio`;
     }
     return "Compra aceptable dentro del comportamiento histórico";
   }
 
   if (clasificacion.includes("riesgosa") || clasificacion.includes("cara")) {
     if (!isNaN(porcentaje) && porcentaje > 0) {
-      return `Atención: compra ${porcentaje.toFixed(2)}% por encima del promedio histórico`;
+      return `Atención: compra ${formatearNumero(porcentaje)}% por encima del promedio histórico`;
     }
     return "Atención: compra con señales de sobrecosto";
   }
@@ -206,19 +207,10 @@ function formatearFecha(fecha) {
   });
 }
 
-function formatearNumero(valor) {
-  if (valor === null || valor === undefined) return "N/A";
-
-  return Number(valor).toLocaleString("es-CR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
-}
-
 function formatearPorcentaje(valor) {
   if (valor === null || valor === undefined) return "N/A";
 
-  return `${Number(valor).toFixed(2)}%`;
+  return `${formatearNumero(valor)}%`;
 }
 
 function obtenerClaseClasificacion(clasificacion) {

@@ -1,3 +1,4 @@
+import { formatearNumero } from "../../utils/numeros.js";
 function CompraInformacionReferencia({
   ultimoPrecio,
   cargandoUltimoPrecio,
@@ -18,7 +19,7 @@ function CompraInformacionReferencia({
       return "No disponible";
     }
 
-    return `${Number(valor).toFixed(2)}%`;
+    return `${formatearNumero(valor)}%`;
   };
 
   const obtenerClaseTendencia = (tendencia) => {

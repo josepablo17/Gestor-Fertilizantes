@@ -1,4 +1,5 @@
-import { decimalOpcional, enteroOpcional, idRuta, textoOpcional } from "./datosApi.js";
+import { decimalOpcional, enteroOpcional, idRuta, textoOpcional } from "../../../utils/datosApi.js";
+import { numeroEditable } from "../../../utils/numeros.js";
 
 export const basesImporte = [
   { value: "Bruto", label: "Bruto (antes de descuentos e impuestos)" },
@@ -38,12 +39,14 @@ export const camposParte = [
   ["nombre", "Nombre", 150],
   ["identificacion", "Identificación", 100],
   ["direccion", "Dirección", 500],
-  ["telefono", "Teléfono", 50],
+  ["telefono", "Teléfono", 50, "tel"],
   ["correo", "Correo", 150],
 ];
 
 export function valoresCabecera(cabecera) {
-  const datos = Object.fromEntries(camposCabecera.map(([campo]) => [campo, cabecera[campo] ?? ""]));
+  const datos = Object.fromEntries(camposCabecera.map(([campo, , , tipo]) => [
+    campo, tipo === "decimal" ? numeroEditable(cabecera[campo]) : cabecera[campo] ?? "",
+  ]));
   for (const [campo] of partesCabecera) datos[campo] = { ...(cabecera[campo] ?? {}) };
   return datos;
 }
@@ -89,16 +92,18 @@ export function valoresLinea(linea) {
     baseTotalLinea: linea?.baseTotalLinea ?? "SinDefinir",
     motivoAlternativa: linea?.motivoAlternativa ?? "",
     observacion: linea?.observacion ?? "",
-    ...Object.fromEntries(importesLinea.map(([campo]) => [campo, linea?.[campo] ?? ""])),
+    ...Object.fromEntries(importesLinea.map(([campo]) => [campo, numeroEditable(linea?.[campo])])),
   };
 }
 
 export function cuerpoLinea(valores) {
   const cotizada = valores.estadoOferta === "Cotizada";
+  const numeroLinea = enteroOpcional(valores.numeroLinea);
+  if (numeroLinea === 0) throw new Error("El número de renglón debe ser mayor que cero.");
   return {
     idSolicitudDetalle: valores.tipoOferta === "Adicional" || !valores.idSolicitudDetalle
       ? null : idRuta(valores.idSolicitudDetalle),
-    numeroLinea: enteroOpcional(valores.numeroLinea),
+    numeroLinea,
     idPresentacionProducto: valores.tipoOferta !== "Solicitada" && cotizada
       ? enteroOpcional(valores.idPresentacionProducto) : null,
     codigo: textoOpcional(valores.codigo),

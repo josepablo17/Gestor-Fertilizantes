@@ -234,8 +234,8 @@ namespace Control_Fertilizantes_Backend.Modulos.Compras.Servicios
             if (fechaCompra.Date > DateTime.Today)
                 throw new ReglaNegocio("La fecha de compra no puede ser futura.", HttpStatusCode.BadRequest);
 
-            if (cantidadComprada <= 0)
-                throw new ReglaNegocio("La cantidad comprada debe ser mayor a cero.", HttpStatusCode.BadRequest);
+            if (cantidadComprada <= 0 || cantidadComprada != decimal.Truncate(cantidadComprada))
+                throw new ReglaNegocio("La cantidad comprada debe ser un número entero mayor que cero.", HttpStatusCode.BadRequest);
 
             if (precioTotal <= 0)
                 throw new ReglaNegocio("El precio total debe ser mayor a cero.", HttpStatusCode.BadRequest);

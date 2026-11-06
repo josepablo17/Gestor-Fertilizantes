@@ -31,7 +31,7 @@
 
 .table th,
 .table td {
-  padding: 14px 16px;
+  padding: var(--table-cell-padding-y) var(--table-cell-padding-x);
   text-align: left;
   vertical-align: middle;
 }

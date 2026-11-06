@@ -32,15 +32,3 @@ export function filtrarProductos(productos, busqueda, filtroEstado, filtroCatego
     return coincideBusqueda && coincideEstado && coincideCategoria;
   });
 }
-
-export function obtenerTextoResumen(total, filtrados) {
-  if (total === 0) {
-    return "No hay productos registrados.";
-  }
-
-  if (filtrados === total) {
-    return `Mostrando ${total} producto${total !== 1 ? "s" : ""}.`;
-  }
-
-  return `Mostrando ${filtrados} de ${total} producto${total !== 1 ? "s" : ""}.`;
-}

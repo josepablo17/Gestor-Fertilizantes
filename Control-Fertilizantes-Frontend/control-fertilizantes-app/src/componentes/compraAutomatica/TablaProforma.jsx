@@ -1,3 +1,4 @@
+import { formatearNumero } from "../../utils/numeros.js";
 function TablaProforma({
   lineas,
   productos,
@@ -141,7 +142,7 @@ function TablaProforma({
                       )}
                     </td>
 
-                    <td>{linea.cantidad}</td>
+                    <td>{formatearNumero(linea.cantidad)}</td>
                     <td>{formatearMoneda(linea.precio)}</td>
                     <td>{formatearMoneda(linea.totalLinea)}</td>
 

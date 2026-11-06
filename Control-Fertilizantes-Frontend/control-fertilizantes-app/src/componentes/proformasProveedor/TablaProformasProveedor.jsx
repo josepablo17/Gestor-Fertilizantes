@@ -1,12 +1,5 @@
-function formatearMoneda(valor) {
-  const numero = Number(valor ?? 0);
-
-  return new Intl.NumberFormat("es-CR", {
-    style: "currency",
-    currency: "CRC",
-    minimumFractionDigits: 2
-  }).format(numero);
-}
+import { formatearMoneda as monedaLocal } from "../../utils/moneda.js";
+const formatearMoneda = (valor) => monedaLocal(valor, "CRC");
 
 function formatearFecha(fecha) {
   if (!fecha) return "Sin fecha";

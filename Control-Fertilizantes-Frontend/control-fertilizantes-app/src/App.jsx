@@ -9,11 +9,11 @@ import Compras from "./paginas/Compras";
 import ComprasFormulario from "./paginas/ComprasFormulario"
 import CatalogoFormulario from "./paginas/CatalogoFormulario";
 import CatalogoIdentidades from "./paginas/CatalogoIdentidades";
-import Solicitudes from "./paginas/Solicitudes";
-import SolicitudFormulario from "./paginas/SolicitudFormulario";
-import SolicitudDetalle from "./paginas/SolicitudDetalle";
-import RespuestaCotizacion from "./paginas/RespuestaCotizacion";
-import ComparacionSolicitud from "./paginas/ComparacionSolicitud";
+import Solicitudes from "./modulos/cotizaciones/paginas/Solicitudes";
+import SolicitudFormulario from "./modulos/cotizaciones/paginas/SolicitudFormulario";
+import SolicitudDetalle from "./modulos/cotizaciones/paginas/SolicitudDetalle";
+import RespuestaCotizacion from "./modulos/cotizaciones/paginas/RespuestaCotizacion";
+import ComparacionSolicitud from "./modulos/cotizaciones/paginas/ComparacionSolicitud";
 
 const CompraInteligencia = lazy(() => import("./paginas/CompraInteligencia"));
 const ComparadorProveedor = lazy(() => import("./paginas/ComparadorProveedor"));

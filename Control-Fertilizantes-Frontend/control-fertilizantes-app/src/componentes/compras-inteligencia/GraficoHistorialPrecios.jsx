@@ -1,3 +1,4 @@
+import { formatearNumero } from "../../utils/numeros.js";
 import {
   LineChart,
   Line,
@@ -62,18 +63,20 @@ function GraficoHistorialPrecios({ historial }) {
         <div className="chart-container">
           <ResponsiveContainer width="100%" height={320}>
             <LineChart data={datosGrafico}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <CartesianGrid stroke="var(--color-border)" strokeDasharray="3 3" vertical={false} />
 
               <XAxis
                 dataKey="fecha"
                 tickLine={false}
                 axisLine={false}
+                tick={{ fill: "var(--color-text-muted)" }}
                 className="chart-axis"
               />
 
               <YAxis
                 tickLine={false}
                 axisLine={false}
+                tick={{ fill: "var(--color-text-muted)" }}
                 width={60}
                 tickFormatter={(value) => formatearEjeY(value)}
                 className="chart-axis"
@@ -83,13 +86,15 @@ function GraficoHistorialPrecios({ historial }) {
 
               <ReferenceLine
                 y={promedioHistorico}
+                stroke="var(--color-text-muted)"
                 strokeDasharray="6 6"
-                label="Promedio"
+                label={{ value: "Promedio", fill: "var(--color-text-muted)" }}
               />
 
               <Line
                 type="monotone"
                 dataKey="precioUnitario"
+                stroke="var(--color-primary-500)"
                 strokeWidth={3}
                 dot={<PuntoPersonalizado />}
                 activeDot={{ r: 6 }}
@@ -107,26 +112,26 @@ function PuntoPersonalizado(props) {
   if (payload?.esUltimo) {
     return (
       <g>
-        <circle cx={cx} cy={cy} r={10} fill="rgba(37, 99, 235, 0.18)" />
-        <circle cx={cx} cy={cy} r={6} fill="#2563eb" stroke="#ffffff" strokeWidth={3} />
+        <circle cx={cx} cy={cy} r={10} fill="var(--color-primary-200)" />
+        <circle cx={cx} cy={cy} r={6} fill="var(--color-primary-500)" stroke="var(--color-bg-surface)" strokeWidth={3} />
       </g>
     );
   }
 
   if (payload?.esMaximo) {
     return (
-      <circle cx={cx} cy={cy} r={5} fill="#dc2626" stroke="#ffffff" strokeWidth={2} />
+      <circle cx={cx} cy={cy} r={5} fill="var(--color-danger-600)" stroke="var(--color-bg-surface)" strokeWidth={2} />
     );
   }
 
   if (payload?.esMinimo) {
     return (
-      <circle cx={cx} cy={cy} r={5} fill="#059669" stroke="#ffffff" strokeWidth={2} />
+      <circle cx={cx} cy={cy} r={5} fill="var(--color-success-600)" stroke="var(--color-bg-surface)" strokeWidth={2} />
     );
   }
 
   return (
-    <circle cx={cx} cy={cy} r={4} fill="#ffffff" stroke="#2563eb" strokeWidth={3} />
+    <circle cx={cx} cy={cy} r={4} fill="var(--color-bg-surface)" stroke="var(--color-primary-500)" strokeWidth={3} />
   );
 }
 
@@ -193,10 +198,7 @@ function formatearFecha(fecha) {
 function formatearTooltipMoneda(valor) {
   if (valor === null || valor === undefined || isNaN(Number(valor))) return "N/A";
 
-  return Number(valor).toLocaleString("es-CR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
+  return formatearNumero(valor);
 }
 
 function formatearEjeY(valor) {

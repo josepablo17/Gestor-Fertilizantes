@@ -1,4 +1,7 @@
-function TablaPresentacionesProducto({ presentacionesProducto, onEditar, onDesactivar }) {
+import { formatearNumero } from "../../utils/numeros.js";
+import AccionesRegistro from "../comunes/AccionesRegistro.jsx";
+
+function TablaPresentacionesProducto({ presentacionesProducto, onDesactivar, ocupado }) {
   return (
     <div className="table-wrapper">
       <table className="table">
@@ -34,7 +37,7 @@ function TablaPresentacionesProducto({ presentacionesProducto, onEditar, onDesac
 
               <td>
                 <span className="table__cell-muted">
-                  {presentacion.cantidad ?? "0"}
+                  {formatearNumero(presentacion.cantidad)}
                 </span>
               </td>
 
@@ -46,7 +49,7 @@ function TablaPresentacionesProducto({ presentacionesProducto, onEditar, onDesac
 
               <td>
                 <span className="table__cell-muted">
-                  {presentacion.cantidadNormalizada ?? "0"}
+                  {formatearNumero(presentacion.cantidadNormalizada)}
                 </span>
               </td>
 
@@ -63,25 +66,9 @@ function TablaPresentacionesProducto({ presentacionesProducto, onEditar, onDesac
               </td>
 
               <td>
-                <div className="table__actions">
-                  <button
-                    type="button"
-                    className="btn btn--secondary btn--sm"
-                    onClick={() => onEditar(presentacion)}
-                  >
-                    Editar
-                  </button>
-
-                  {presentacion.activo && (
-                    <button
-                      type="button"
-                      className="btn btn--danger btn--sm"
-                      onClick={() => onDesactivar(presentacion)}
-                    >
-                      Desactivar
-                    </button>
-                  )}
-                </div>
+                <AccionesRegistro rutaEdicion={`/presentacionProductos/editar/${presentacion.idPresentacionProducto}`}
+                  onCambiarEstado={presentacion.activo ? () => onDesactivar(presentacion) : undefined}
+                  ocupado={ocupado} />
               </td>
             </tr>
           ))}

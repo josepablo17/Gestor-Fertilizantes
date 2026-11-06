@@ -1,12 +1,6 @@
-function formatearMoneda(valor) {
-  const numero = Number(valor ?? 0);
-
-  return new Intl.NumberFormat("es-CR", {
-    style: "currency",
-    currency: "CRC",
-    minimumFractionDigits: 2
-  }).format(numero);
-}
+import { formatearNumero } from "../../utils/numeros.js";
+import { formatearMoneda as monedaLocal } from "../../utils/moneda.js";
+const formatearMoneda = (valor) => monedaLocal(valor, "CRC");
 
 function formatearFecha(fecha) {
   if (!fecha) return "Sin fecha";
@@ -177,11 +171,11 @@ function DetalleProformaProveedorContenido({ proforma }) {
 
                       <td>{detalle.descripcionPresentacion || "No asignada"}</td>
 
-                      <td>{detalle.cantidad}</td>
+                      <td>{formatearNumero(detalle.cantidad)}</td>
 
                       <td>{formatearMoneda(detalle.precioUnitario)}</td>
 
-                      <td>{detalle.descuentoPorcentaje ?? 0}%</td>
+                      <td>{formatearNumero(detalle.descuentoPorcentaje ?? 0)}%</td>
 
                       <td className="table__cell-strong">
                         {formatearMoneda(detalle.totalLinea)}

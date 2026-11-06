@@ -30,7 +30,7 @@ export function decimalOpcional(valor, escala, positivo = false) {
 export function enteroOpcional(valor) {
   if (valor == null || valor === "") return null;
   const numero = Number(valor);
-  if (!Number.isInteger(numero) || numero < 0 || numero > 2147483647) {
+  if (!/^[0-9]+$/.test(String(valor)) || !Number.isInteger(numero) || numero > 2147483647) {
     throw new Error("Introduce un número entero válido.");
   }
   return numero;

@@ -1,4 +1,6 @@
-function TablaProveedores({ proveedores, onEditar, onDesactivar }) {
+import AccionesRegistro from "../comunes/AccionesRegistro.jsx";
+
+function TablaProveedores({ proveedores, onDesactivar, ocupado }) {
     return (
         <div className="table-wrapper">
             <table className="table">
@@ -66,25 +68,9 @@ function TablaProveedores({ proveedores, onEditar, onDesactivar }) {
                             </td>
 
                             <td>
-                                <div className="table__actions">
-                                    <button
-                                        type="button"
-                                        className="btn btn--secondary btn--sm"
-                                        onClick={() => onEditar(proveedor)}
-                                    >
-                                        Editar
-                                    </button>
-
-                                    {proveedor.activo && (
-                                        <button
-                                            type="button"
-                                            className="btn btn--danger btn--sm"
-                                            onClick={() => onDesactivar(proveedor)}
-                                        >
-                                            Desactivar
-                                        </button>
-                                    )}
-                                </div>
+                                <AccionesRegistro rutaEdicion={`/proveedores/editar/${proveedor.idProveedor}`}
+                                  onCambiarEstado={proveedor.activo ? () => onDesactivar(proveedor) : undefined}
+                                  ocupado={ocupado} />
                             </td>
                         </tr>
                     ))}

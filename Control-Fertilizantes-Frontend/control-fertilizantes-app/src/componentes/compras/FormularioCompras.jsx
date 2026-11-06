@@ -1,3 +1,4 @@
+import { formatearNumero } from "../../utils/numeros.js";
 import useFormularioCompra from "../../hooks/useCompraFormulario";
 import CompraCamposFormulario from "./CompraCamposFormulario";
 import CompraInformacionReferencia from "./CompraInformacionReferencia";
@@ -30,7 +31,7 @@ function FormularioCompra({
       return "No disponible";
     }
 
-    return `${moneda || ""} ${Number(monto).toFixed(2)}`.trim();
+    return `${moneda || ""} ${formatearNumero(monto)}`.trim();
   };
 
  return (

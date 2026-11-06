@@ -1,53 +1,15 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import ListaCompras from "../componentes/compras/ListaCompras";
-import "../estilos/index.css";
+import { Link } from "react-router-dom";
+import Pagina, { Tarjeta } from "../componentes/comunes/Pagina.jsx";
+import ListaCompras from "../componentes/compras/ListaCompras.jsx";
 
-function Compras() {
-  const [recargarLista] = useState(false);
-  const navigate = useNavigate();
-
-  const irANuevaCompra = () => {
-    navigate("/compras/nuevo");
-  };
-
-  const irAEditarCompra = (compra) => {
-    navigate(`/compras/editar/${compra.idCompra}`);
-  };
-
+export default function Compras() {
   return (
-    <section className="page">
-      <header className="page__header">
-        <div className="page__header-content">
-          <h1 className="page__title">Gestión de Compras</h1>
-          <p className="page__subtitle">
-            Administra y registra las compras realizadas en el sistema.
-          </p>
-        </div>
-
-        <div className="page__actions">
-          <button
-            type="button"
-            className="btn btn--primary btn--md"
-            onClick={irANuevaCompra}
-          >
-            Registrar compra
-          </button>
-        </div>
-      </header>
-
-      <div className="page__body">
-        <section className="card">
-          <div className="card__body">
-            <ListaCompras
-              recargar={recargarLista}
-              onEditar={irAEditarCompra}
-            />
-          </div>
-        </section>
-      </div>
-    </section>
+    <Pagina titulo="Gestión de Compras"
+      descripcion="Administra y registra las compras realizadas en el sistema."
+      acciones={<Link className="btn btn--primary btn--md" to="/compras/nuevo">Registrar compra</Link>}>
+      <Tarjeta titulo="Lista de compras">
+        <ListaCompras />
+      </Tarjeta>
+    </Pagina>
   );
 }
-
-export default Compras;

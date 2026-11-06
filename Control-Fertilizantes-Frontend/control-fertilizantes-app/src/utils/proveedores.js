@@ -16,15 +16,3 @@ export function filtrarProveedores(proveedores,busqueda,filtroEstado){
         return coincideBusqueda && coincideEstado;
     });
 }
-
-export function obtenerTextoResumen(total, filtrados) {
-  if (total === 0) {
-    return "No hay proveedores registrados.";
-  }
-
-  if (filtrados === total) {
-    return `Mostrando ${total} proveedor${total !== 1 ? "es" : ""}.`;
-  }
-
-  return `Mostrando ${filtrados} de ${total} proveedor${total !== 1 ? "es" : ""}.`;
-}
