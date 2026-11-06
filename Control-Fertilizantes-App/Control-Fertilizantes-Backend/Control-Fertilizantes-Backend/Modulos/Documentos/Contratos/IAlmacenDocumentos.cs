@@ -4,5 +4,7 @@ public interface IAlmacenDocumentos
 {
     Task<ArchivoDocumentoGuardado> GuardarAsync(IdentidadDocumentoSolicitud identidad, byte[] contenido, CancellationToken cancelacion);
     Task<byte[]> LeerVerificadoAsync(IdentidadDocumentoSolicitud identidad, Documento documento, CancellationToken cancelacion);
+    Task<ArchivoDocumentoGuardado> GuardarRecibidoAsync(IdentidadDocumentoSolicitud identidad, byte[] contenido, CancellationToken cancelacion);
+    Task<byte[]> LeerRecibidoVerificadoAsync(IdentidadDocumentoSolicitud identidad, Documento documento, CancellationToken cancelacion);
     Task EliminarNoRegistradoAsync(string clave);
 }

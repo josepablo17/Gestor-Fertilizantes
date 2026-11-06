@@ -48,8 +48,13 @@ $suffix=[guid]::NewGuid().ToString('N')
 $idBase=(Invoke-Solicitud POST 'ProductoBase/InsertarProductoBase' 201 @{codigo="S-$suffix";nombre="Base $suffix"}).idProductoBase
 $producto=@{nombre="Producto original $suffix";idProductoBase=$idBase}
 $idProducto=(Invoke-Solicitud POST 'Producto/InsertarProducto' 201 $producto).idProducto
-$kg=@((Invoke-Solicitud GET 'UnidadMedida/ListarUnidadMedida' 200) | Where-Object {$_.codigo -ceq 'KG'})[0].idUnidadMedida
+$unidades=Invoke-Solicitud GET 'UnidadMedida/ListarUnidadMedida' 200
+$kg=@($unidades | Where-Object {$_.codigo -ceq 'KG'})[0].idUnidadMedida
+$litro=@($unidades | Where-Object {$_.codigo -ceq 'L'})[0].idUnidadMedida
 $idPresentacion=(Invoke-Solicitud POST 'PresentacionProducto/InsertarPresentacionProducto' 201 @{idProducto=$idProducto;descripcion='Saco';cantidad=25;idUnidadMedida=$kg}).idPresentacionProducto
+$idPresentacionAlternativa=(Invoke-Solicitud POST 'PresentacionProducto/InsertarPresentacionProducto' 201 @{idProducto=$idProducto;descripcion='Bolsa';cantidad=10;idUnidadMedida=$kg}).idPresentacionProducto
+$idProductoLiquido=(Invoke-Solicitud POST 'Producto/InsertarProducto' 201 @{nombre="Producto líquido $suffix";idProductoBase=$idBase}).idProducto
+$idPresentacionLiquida=(Invoke-Solicitud POST 'PresentacionProducto/InsertarPresentacionProducto' 201 @{idProducto=$idProductoLiquido;descripcion='Bidón';cantidad=20;idUnidadMedida=$litro}).idPresentacionProducto
 $idProveedor1=(Invoke-Solicitud POST 'Proveedor/InsertarProveedor' 201 @{nombre="Proveedor A $suffix"}).idProveedor
 $idProveedor2=(Invoke-Solicitud POST 'Proveedor/InsertarProveedor' 201 @{nombre="Proveedor B $suffix"}).idProveedor
 
@@ -58,8 +63,9 @@ $numero="SOL-$suffix"
 $borrador=Invoke-Solicitud POST $ruta 201 @{numeroSolicitud=$numero;fechaSolicitud='2026-03-26'}
 $id=$borrador.idSolicitudCotizacion
 $null=Invoke-Solicitud POST "$ruta/$id/emision" 400
-$linea=@{numeroLinea=1;idProducto=$idProducto;idPresentacionProducto=$idPresentacion;cantidadEmpaques=3.25;permiteAlternativas=$false}
-$datos=@{numeroSolicitud=$numero;fechaSolicitud='2026-03-26';fechaLimiteRespuesta='2026-04-03';datosCliente=@{nombre=' Finca de prueba '};lineas=@($linea);proveedores=@($idProveedor1,$idProveedor2)}
+$linea=@{numeroLinea=1;idProducto=$idProducto;idPresentacionProducto=$idPresentacion;cantidadEmpaques=3.25;permiteAlternativas=$true}
+$lineaLiquida=@{numeroLinea=2;idProducto=$idProductoLiquido;idPresentacionProducto=$idPresentacionLiquida;cantidadEmpaques=1.5;permiteAlternativas=$false}
+$datos=@{numeroSolicitud=$numero;fechaSolicitud='2026-03-26';fechaLimiteRespuesta='2026-04-03';datosCliente=@{nombre=' Finca de prueba '};lineas=@($linea,$lineaLiquida);proveedores=@($idProveedor1,$idProveedor2)}
 $invalida=$datos.Clone(); $invalida.lineas=@($null)
 $null=Invoke-Solicitud PUT "$ruta/$id/borrador" 400 $invalida
 $invalida.lineas=@($linea.Clone()); $invalida.lineas[0].cantidadEmpaques=1.00001
@@ -131,6 +137,9 @@ Assert-Solicitud ($revision.estado -ceq 'Borrador' -and $revision.versionSolicit
     $revision.lineas[0].idSolicitudCotizacionDetalle -ne $emitida.lineas[0].idSolicitudCotizacionDetalle -and
     $revision.destinatarios[0].idSolicitudCotizacionProveedor -ne $destino1 -and $null -eq $revision.destinatarios[0].idDocumentoGenerado) 'La revisión crea identidades nuevas sin heredar documentos ni envíos'
 $null=Invoke-Solicitud GET "$ruta/$($revision.idSolicitudCotizacion)/destinatarios/$destino1/documento" 404
+foreach($caso in (& (Join-Path $PSScriptRoot 'Probar-RespuestasHttp.ps1') -Cliente $Cliente -Direccion $Direccion -RutaDocumentos $RutaDocumentos -Solicitud $emitida -IdDestinatario $destino1 -IdOtroDestinatario $destino2 -IdPresentacionAlternativa $idPresentacionAlternativa)){
+    $checks.Add($caso)
+}
 $cerrada=Invoke-Solicitud PUT "$ruta/$id/estado" 200 @{estado='Cerrada'}
 Assert-Solicitud ($cerrada.estado -ceq 'Cerrada' -and (Get-PdfSolicitud $rutaPdf) -ceq $doc.sha256) 'Al cerrar se conserva la descarga del original'
 

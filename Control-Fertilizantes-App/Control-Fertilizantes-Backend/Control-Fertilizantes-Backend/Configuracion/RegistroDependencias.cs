@@ -39,6 +39,10 @@ using Control_Fertilizantes_Backend.Infraestructura.Persistencia.Repositorios.So
 using Control_Fertilizantes_Backend.Modulos.Documentos.Contratos;
 using Control_Fertilizantes_Backend.Modulos.SolicitudesCotizacion.Contratos;
 using Control_Fertilizantes_Backend.Modulos.SolicitudesCotizacion.Servicios;
+using Control_Fertilizantes_Backend.Modulos.RespuestasCotizacion.Contratos;
+using Control_Fertilizantes_Backend.Modulos.RespuestasCotizacion.Servicios;
+using Control_Fertilizantes_Backend.Modulos.ComparacionCotizaciones.Contratos;
+using Control_Fertilizantes_Backend.Modulos.ComparacionCotizaciones.Servicios;
 
 namespace Control_Fertilizantes_Backend.Configuracion;
 
@@ -63,6 +67,11 @@ public static class RegistroDependencias
         servicios.AddScoped<IGeneradorSolicitudPdf, GeneradorSolicitudPdf>();
         servicios.AddScoped<ISolicitudRepositorio, SolicitudRepositorio>();
         servicios.AddScoped<ISolicitudServicio, SolicitudServicio>();
+        servicios.AddScoped<ILectorRespuestaPdf, LectorRespuestaPdf>();
+        servicios.AddScoped<IRespuestaCotizacionRepositorio, RespuestaCotizacionRepositorio>();
+        servicios.AddScoped<RespuestaCotizacionServicio>();
+        servicios.AddScoped<IComparacionCotizacionesRepositorio, ComparacionCotizacionesRepositorio>();
+        servicios.AddScoped<ComparacionCotizacionesServicio>();
         return servicios;
     }
 
