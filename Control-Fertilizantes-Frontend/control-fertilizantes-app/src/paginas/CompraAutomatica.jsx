@@ -3,7 +3,6 @@ import EstadoLista from "../EstadoLista";
 
 import {
   obtenerVistaPreviaValidada,
-  confirmarComprasAutomaticas,
 } from "../api/compraAutomaticaApi";
 import { obtenerProductos } from "../api/productosApi";
 import { obtenerPresentacionesProducto } from "../api/presentacionProductoApi";

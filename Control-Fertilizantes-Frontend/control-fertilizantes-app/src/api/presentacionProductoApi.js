@@ -80,7 +80,7 @@ export const actualizarPresentacionProducto = async (presentacion) => {
 
 export const desactivarPresentacionProducto = async (idPresentacionProducto) => {
   try {
-    const respuesta = await fetch(`${CONFIG.API_URL}/PresentacionProducto/DesactivarPresentacionProducto/${idPresentacionProducto}`, {
+    const respuesta = await fetch(`${CONFIG.API_URL}/PresentacionProducto/Desactivar/${idPresentacionProducto}`, {
       method: "DELETE"
     });
 

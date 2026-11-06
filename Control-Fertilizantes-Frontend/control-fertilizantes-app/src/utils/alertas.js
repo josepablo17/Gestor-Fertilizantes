@@ -34,14 +34,14 @@ export const mostrarError = (titulo, texto) => {
   });
 };
 
-export const mostrarConfirmacion = (titulo, texto) => {
+export const mostrarConfirmacion = (titulo, texto, confirmar = "Sí, desactivar") => {
   return Swal.fire({
     ...configuracionBase,
     icon: "warning",
     title: titulo,
     text: texto,
     showCancelButton: true,
-    confirmButtonText: "Sí, desactivar",
+    confirmButtonText: confirmar,
     cancelButtonText: "Cancelar",
     reverseButtons: false
   });

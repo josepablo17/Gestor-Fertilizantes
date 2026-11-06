@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { createElement } from "react";
 import {
   HiCube,
   HiBuildingStorefront,
@@ -7,12 +8,15 @@ import {
   HiShoppingCart,
   HiChartBar,
   HiScale,
-  HiDocumentArrowUp,
+  HiTag,
   HiClipboardDocumentList
 } from "react-icons/hi2";
 import "../../estilos/layout/sidebar.css";
 
 const modulosNavegacion = [
+  { to: "/solicitudes", label: "Solicitudes de cotización", icon: HiClipboardDocumentList },
+  { to: "/productos-base", label: "Productos base", icon: HiSquares2X2 },
+  { to: "/marcas", label: "Marcas", icon: HiTag },
   {
     to: "/productos",
     label: "Productos",
@@ -47,17 +51,7 @@ const modulosNavegacion = [
     to: "/comparador-proveedores",
     label: "Comparador proveedores",
     icon: HiScale
-  },
-  {
-  to: "/compra-automatica",
-  label: "Compra automática",
-  icon: HiDocumentArrowUp
-  },
-  {
-  to: "/proformas-proveedor",
-  label: "Proformas proveedor",
-  icon: HiClipboardDocumentList
-}
+  }
 ];
 
 function Sidebar() {
@@ -78,7 +72,7 @@ function Sidebar() {
         <span className="sidebar__section-title">Módulos</span>
 
         <nav className="sidebar__nav" aria-label="Navegación principal">
-          {modulosNavegacion.map(({ to, label, icon: Icono }) => (
+          {modulosNavegacion.map(({ to, label, icon }) => (
             <NavLink
               key={to}
               to={to}
@@ -87,7 +81,7 @@ function Sidebar() {
               }
             >
               <span className="sidebar__icon" aria-hidden="true">
-                <Icono />
+                {createElement(icon)}
               </span>
 
               <span className="sidebar__label">{label}</span>

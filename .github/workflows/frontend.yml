@@ -1,0 +1,61 @@
+name: Frontend cotizaciones
+
+on:
+  pull_request:
+    paths: ['Control-Fertilizantes-Frontend/control-fertilizantes-app/**', 'Control-Fertilizantes-App/Control-Fertilizantes-Backend/**', 'database/**', 'scripts/Probar-Frontend.ps1', '.github/workflows/frontend.yml', 'global.json', 'NuGet.Config']
+  push:
+    branches: [main]
+    paths: ['Control-Fertilizantes-Frontend/control-fertilizantes-app/**', 'Control-Fertilizantes-App/Control-Fertilizantes-Backend/**', 'database/**', 'scripts/Probar-Frontend.ps1', '.github/workflows/frontend.yml', 'global.json', 'NuGet.Config']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  comprobar-flujo:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_ROLL_FORWARD: Major
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        with:
+          node-version: 24.14.0
+          cache: npm
+          cache-dependency-path: Control-Fertilizantes-Frontend/control-fertilizantes-app/package-lock.json
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6
+        with:
+          global-json-file: global.json
+      - name: Instalar, verificar y compilar el frontend
+        working-directory: Control-Fertilizantes-Frontend/control-fertilizantes-app
+        run: |
+          npm ci
+          npm run lint
+          npm test
+          npm run build
+      - name: Instalar Chromium para la prueba
+        working-directory: Control-Fertilizantes-Frontend/control-fertilizantes-app
+        run: npm exec -- playwright install --with-deps chromium
+      - name: Probar en el navegador con SQL Server temporal
+        shell: pwsh
+        run: ./database/scripts/Invoke-DockerDatabase.ps1 -Action Test -VerifyFrontend
+      - name: Guardar evidencia del navegador
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: verificacion-frontend-${{ github.sha }}
+          path: |
+            artifacts/frontend/**/verificacion.json
+            artifacts/frontend/**/navegador.log
+            artifacts/frontend/**/navegador-error.log
+            artifacts/frontend/**/error.png
+          if-no-files-found: ignore
+          retention-days: 7

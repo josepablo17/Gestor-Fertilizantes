@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param([ValidateSet('Init','Up','Down','Status','Logs','Test')][string]$Action='Up',
-      [switch]$VerifyBackend)
+      [switch]$VerifyBackend,
+      [switch]$VerifyFrontend)
 $ErrorActionPreference='Stop'
 $databaseRoot=Split-Path $PSScriptRoot -Parent
 $dockerDirectory=Join-Path $databaseRoot 'docker'
@@ -130,11 +131,13 @@ try{
     if($firstContainer -eq $secondContainer -or $firstVolume -ne $secondVolume){throw 'No se verifico la recreacion con el mismo volumen.'}
     Invoke-Compose -Arguments @('run','--rm','--no-deps','db-init')
     Invoke-Compose -Arguments @('run','--rm','--no-deps','verify','--verify-persistence')
-    if($VerifyBackend){
+    if($VerifyBackend -or $VerifyFrontend){
         $direccion=(Invoke-Compose -Arguments @('port','sqlserver','1433')|Out-String).Trim()
         if($direccion -notmatch '^127\.0\.0\.1:(\d+)$'){throw 'No se pudo obtener el puerto local de la prueba.'}
         $env:GF_API_TEST_CONNECTION_STRING="Server=127.0.0.1,$($Matches[1]);Database=$env:GF_DATABASE_NAME;User ID=$env:GF_APP_SQL_USER;Password=$env:GF_APP_SQL_PASSWORD;Encrypt=True;TrustServerCertificate=True;Connect Timeout=5"
-        & (Join-Path (Split-Path $databaseRoot -Parent) 'scripts/Probar-Backend.ps1') -ConSql
+        $raiz=Split-Path $databaseRoot -Parent
+        if($VerifyBackend){ & (Join-Path $raiz 'scripts/Probar-Backend.ps1') -ConSql }
+        if($VerifyFrontend){ & (Join-Path $raiz 'scripts/Probar-Frontend.ps1') }
     }
     $verification=Get-Content (Join-Path $artifactDirectory 'verification.json') -Raw|ConvertFrom-Json
     if($verification.Failed -ne 0 -or $verification.IntegrationTests -ne 89){throw 'Resultados SQL incompletos.'}
