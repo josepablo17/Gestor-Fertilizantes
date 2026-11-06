@@ -3,6 +3,7 @@ function FiltrosComparadorProveedor({
   presentaciones = [],
   filtros,
   setFiltros,
+  ocupado,
   onComparar,
   onLimpiar
 }) {
@@ -81,11 +82,12 @@ function FiltrosComparadorProveedor({
 
         <select
           id="moneda"
+          aria-label="Moneda"
           value={filtros.moneda}
           onChange={manejarCambioMoneda}
           className="select"
         >
-          <option value="">Todas las monedas</option>
+          <option value="">Seleccione una moneda</option>
           <option value="CRC">CRC</option>
           <option value="USD">USD</option>
         </select>
@@ -116,6 +118,7 @@ function FiltrosComparadorProveedor({
         <button
           type="button"
           className="btn btn--secondary"
+          disabled={ocupado}
           onClick={onLimpiar}
         >
           Limpiar filtros
@@ -124,6 +127,7 @@ function FiltrosComparadorProveedor({
         <button
           type="button"
           className="btn btn--primary"
+          disabled={ocupado}
           onClick={onComparar}
         >
           Comparar proveedores

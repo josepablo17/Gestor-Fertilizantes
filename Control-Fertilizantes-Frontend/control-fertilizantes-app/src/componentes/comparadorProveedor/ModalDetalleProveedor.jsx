@@ -1,12 +1,5 @@
-function formatearMoneda(valor) {
-  const numero = Number(valor ?? 0);
-
-  return new Intl.NumberFormat("es-CR", {
-    style: "currency",
-    currency: "CRC",
-    minimumFractionDigits: 2
-  }).format(numero);
-}
+import { formatearNumero, formatearCantidadComprada } from "../../utils/numeros.js";
+import { formatearMoneda } from "../../utils/moneda.js";
 
 function formatearFecha(fecha) {
   if (!fecha) return "Sin fecha";
@@ -14,7 +7,7 @@ function formatearFecha(fecha) {
   return new Date(fecha).toLocaleDateString("es-CR");
 }
 
-function ModalDetalleProveedor({ detalleProveedor, onCerrar }) {
+function ModalDetalleProveedor({ moneda, detalleProveedor, onCerrar }) {
   if (!detalleProveedor) return null;
 
   const historial = detalleProveedor.historial ?? [];
@@ -71,7 +64,7 @@ function ModalDetalleProveedor({ detalleProveedor, onCerrar }) {
                   <div className="stack" style={{ gap: "0.35rem" }}>
                     <span className="label">Último precio</span>
                     <strong>
-                      {formatearMoneda(detalleProveedor.ultimoPrecioUnitario)}
+                      {formatearMoneda(detalleProveedor.ultimoPrecioUnitario, moneda)}
                     </strong>
                   </div>
                 </div>
@@ -82,7 +75,7 @@ function ModalDetalleProveedor({ detalleProveedor, onCerrar }) {
                   <div className="stack" style={{ gap: "0.35rem" }}>
                     <span className="label">Promedio histórico</span>
                     <strong>
-                      {formatearMoneda(detalleProveedor.promedioHistorico)}
+                      {formatearMoneda(detalleProveedor.promedioHistorico, moneda)}
                     </strong>
                   </div>
                 </div>
@@ -102,7 +95,7 @@ function ModalDetalleProveedor({ detalleProveedor, onCerrar }) {
                   <div className="stack" style={{ gap: "0.35rem" }}>
                     <span className="label">Variación</span>
                     <strong>
-                      {Number(detalleProveedor.variacionPorcentual ?? 0).toFixed(2)}%
+                      {formatearNumero(detalleProveedor.variacionPorcentual)}%
                     </strong>
                   </div>
                 </div>
@@ -151,9 +144,9 @@ function ModalDetalleProveedor({ detalleProveedor, onCerrar }) {
                       {historial.map((item) => (
                         <tr key={item.idCompra}>
                           <td>{formatearFecha(item.fechaCompra)}</td>
-                          <td>{Number(item.cantidadComprada ?? 0).toFixed(2)}</td>
-                          <td>{formatearMoneda(item.precioTotal)}</td>
-                          <td>{formatearMoneda(item.precioUnitario)}</td>
+                          <td>{formatearCantidadComprada(item.cantidadComprada)}</td>
+                          <td>{formatearMoneda(item.precioTotal, moneda)}</td>
+                          <td>{formatearMoneda(item.precioUnitario, moneda)}</td>
                           <td>{item.moneda || "-"}</td>
                           <td>{item.observaciones || "-"}</td>
                         </tr>

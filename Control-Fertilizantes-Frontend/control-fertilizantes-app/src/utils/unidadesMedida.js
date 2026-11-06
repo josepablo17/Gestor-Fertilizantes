@@ -1,3 +1,4 @@
+import { formatearNumero } from "./numeros.js";
 export function formatearEstado(activo) {
     return activo ? "Activo" : "Inactivo";
 }
@@ -6,16 +7,7 @@ export function formatearUnidadBase(esUnidadBase) {
     return esUnidadBase ? "Sí" : "No";
 }
 
-export function formatearFactorConversion(factorConversion) {
-    if (factorConversion === null || factorConversion === undefined || factorConversion === "") {
-        return "-";
-    }
-
-    return Number(factorConversion).toLocaleString("es-CR", {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 4
-    });
-}
+export const formatearFactorConversion = formatearNumero;
 
 export function obtenerTextoResumen(total) {
     if (total === 0) {

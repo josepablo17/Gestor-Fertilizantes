@@ -9,7 +9,15 @@ export function consulta(parametros) {
   return query.size ? `?${query}` : "";
 }
 
-export async function solicitar(ruta, { metodo = "GET", datos, signal, pdf = false } = {}) {
+export class ErrorApi extends Error {
+  constructor(mensaje, estadoHttp = null) {
+    super(mensaje);
+    this.name = "ErrorApi";
+    this.estadoHttp = estadoHttp;
+  }
+}
+
+export async function solicitar(ruta, { metodo = "GET", datos, signal, pdf = false, decimalesExactos = true } = {}) {
   const multipart = datos instanceof FormData;
   let respuesta;
   try {
@@ -21,16 +29,20 @@ export async function solicitar(ruta, { metodo = "GET", datos, signal, pdf = fal
     });
   } catch (error) {
     if (error.name === "AbortError") throw error;
-    throw new Error("No se pudo conectar con el backend.");
+    throw new ErrorApi("No se pudo conectar con el backend.");
   }
 
   if (pdf && respuesta.ok && respuesta.headers.get("content-type")?.startsWith("application/pdf")) {
     return respuesta.blob();
   }
+  const texto = await respuesta.text();
   let resultado;
-  try { resultado = leerJson(await respuesta.text()); } catch { /* El proxy puede responder sin JSON. */ }
+  try { resultado = decimalesExactos ? leerJson(texto) : JSON.parse(texto); } catch { /* El proxy puede responder sin JSON. */ }
   if (!respuesta.ok || !resultado?.exito || pdf) {
-    throw new Error(resultado?.mensaje || `El servidor no devolvió la respuesta esperada (HTTP ${respuesta.status}).`);
+    throw new ErrorApi(
+      resultado?.mensaje || `El servidor no devolvió la respuesta esperada (HTTP ${respuesta.status}).`,
+      respuesta.status
+    );
   }
   return resultado.data;
 }

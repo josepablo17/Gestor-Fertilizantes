@@ -1,3 +1,4 @@
+import { formatearNumero } from "../../utils/numeros.js";
 import {
   formatearMoneda,
   obtenerMejorProveedor
@@ -100,7 +101,7 @@ function TablaComparativaProformas({
 
                               <div className="quote-comparison-cell__details">
                                 <span>
-                                  Cantidad: {linea.cantidad}{" "}
+                                  Cantidad: {formatearNumero(linea.cantidad)}{" "}
                                   {linea.unidadMedida}
                                 </span>
                                 <span>

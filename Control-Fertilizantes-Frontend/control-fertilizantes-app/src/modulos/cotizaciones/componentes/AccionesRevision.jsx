@@ -1,7 +1,7 @@
 import { useState } from "react";
-import Campo from "../comunes/Campo.jsx";
-import { Tarjeta } from "../comunes/Pagina.jsx";
-import { decimalOpcional } from "../../utils/datosApi.js";
+import Campo from "../../../componentes/comunes/Campo.jsx";
+import { Tarjeta } from "../../../componentes/comunes/Pagina.jsx";
+import { decimalOpcional } from "../../../utils/datosApi.js";
 
 const estadosConciliacion = [
   { value: "Conciliada", label: "Conciliada" },
@@ -35,7 +35,7 @@ export function Conciliacion({ resumen, guardar, ocupado }) {
     }}>
       <fieldset className="form-row" disabled={ocupado}>
         <Campo etiqueta="Resultado de la conciliación" valor={estado} cambiar={setEstado} opciones={estadosConciliacion} required />
-        <Campo etiqueta="Tolerancia (entre 0 y 1)" valor={tolerancia} cambiar={setTolerancia} inputMode="decimal" />
+        <Campo etiqueta="Tolerancia (entre 0 y 1)" valor={tolerancia} cambiar={setTolerancia} formatoNumerico="decimal" />
         <Campo etiqueta="Motivo de la conciliación" valor={motivo} cambiar={setMotivo} maxLength={1000} required />
       </fieldset>
       <div className="form-actions">

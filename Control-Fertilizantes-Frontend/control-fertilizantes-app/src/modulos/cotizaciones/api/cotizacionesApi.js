@@ -1,5 +1,6 @@
-import { consulta, solicitar } from "./cliente.js";
-import { idRuta } from "../utils/datosApi.js";
+import { listarCatalogo, productosElegibles } from "../../../api/catalogosApi.js";
+import { consulta, solicitar } from "../../../api/cliente.js";
+import { idRuta } from "../../../utils/datosApi.js";
 
 const solicitudes = "/solicitudes-cotizacion";
 const solicitud = (id) => `${solicitudes}/${idRuta(id)}`;
@@ -7,6 +8,16 @@ const destinatario = (id, destino) => `${solicitud(id)}/destinatarios/${idRuta(d
 const respuesta = (id) => `/respuestas-cotizacion/${idRuta(id)}`;
 const post = (ruta, datos) => solicitar(ruta, { metodo: "POST", datos });
 const put = (ruta, datos) => solicitar(ruta, { metodo: "PUT", datos });
+
+export async function cargarCatalogoCotizacion(signal) {
+  const [productos, presentaciones, proveedores] = await Promise.all([
+    productosElegibles(signal),
+    listarCatalogo("presentaciones", { soloActivos: true }, signal),
+    listarCatalogo("proveedores", { soloActivos: true }, signal),
+  ]);
+  const ids = new Set(productos.map((producto) => producto.idProducto));
+  return { productos, presentaciones: presentaciones.filter((p) => ids.has(p.idProducto)), proveedores };
+}
 
 export const listarSolicitudes = (filtros, signal) => solicitar(solicitudes + consulta(filtros), { signal });
 export const obtenerSolicitud = (id, signal) => solicitar(solicitud(id), { signal });
@@ -25,7 +36,7 @@ export function recibirRespuesta(id, destino, archivo) {
   return post(`${destinatario(id, destino)}/respuestas`, datos);
 }
 export const obtenerRespuesta = (id, signal) => solicitar(respuesta(id), { signal });
-export const descargarRespuestaPdf = (id) => solicitar(`${respuesta(id)}/documento`, { pdf: true });
+export const descargarRespuestaPdf = (id, signal) => solicitar(`${respuesta(id)}/documento`, { pdf: true, signal });
 export const ajustarCabecera = (id, datos) => put(`${respuesta(id)}/cabecera`, datos);
 export const guardarLineaRespuesta = (id, linea, datos) =>
   linea ? put(`${respuesta(id)}/lineas/${linea}`, datos) : post(`${respuesta(id)}/lineas`, datos);

@@ -56,15 +56,3 @@ export function filtrarPresentacionesProducto(
     return coincideBusqueda && coincideEstado && coincideProducto && coincideUnidadMedida;
   });
 }
-
-export function obtenerTextoResumen(total, filtrados) {
-  if (total === 0) {
-    return "No hay presentaciones de producto registradas.";
-  }
-
-  if (filtrados === total) {
-    return `Mostrando ${total} presentacion${total !== 1 ? "es" : ""} de producto.`;
-  }
-
-  return `Mostrando ${filtrados} de ${total} presentacion${total !== 1 ? "es" : ""} de producto.`;
-}

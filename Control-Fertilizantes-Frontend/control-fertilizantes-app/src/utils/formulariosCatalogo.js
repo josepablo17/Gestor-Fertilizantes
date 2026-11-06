@@ -1,4 +1,5 @@
 import { decimalOpcional, enteroOpcional, textoOpcional } from "./datosApi.js";
+import { numeroEditable } from "./numeros.js";
 
 const campo = (nombre, etiqueta, maxLength, otros) => ({ nombre, etiqueta, maxLength, ...otros });
 const nombre = campo("nombre", "Nombre", 150, { required: true });
@@ -41,8 +42,8 @@ export const formulariosCatalogo = {
 };
 
 export function valoresCatalogo(tipo, original) {
-  return Object.fromEntries(formulariosCatalogo[tipo].campos.map(({ nombre, casilla }) =>
-    [nombre, casilla ? Boolean(original?.[nombre]) : original?.[nombre] ?? ""]));
+  return Object.fromEntries(formulariosCatalogo[tipo].campos.map(({ nombre, casilla, escala }) =>
+    [nombre, casilla ? Boolean(original?.[nombre]) : escala ? numeroEditable(original?.[nombre]) : original?.[nombre] ?? ""]));
 }
 
 export function cuerpoCatalogo(tipo, valores) {

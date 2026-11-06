@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "test": "node --test pruebas/modelos.test.mjs",
+    "test": "node --test pruebas/cliente.test.mjs pruebas/modelos.test.mjs",
     "test:navegador": "node pruebas/flujo-cotizacion.mjs",
     "preview": "vite preview"
   },

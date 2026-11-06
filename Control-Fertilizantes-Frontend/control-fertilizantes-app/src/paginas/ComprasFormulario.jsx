@@ -1,98 +1,31 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import FormularioCompra from "../componentes/compras/FormularioCompras";
-import { obtenerCompraPorId } from "../api/compraApi";
-import { mostrarError } from "../utils/alertas";
-import Loader from "../componentes/Loader";
+import { useCallback } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { obtenerCompraPorId } from "../api/compraApi.js";
+import FormularioCompra from "../componentes/compras/FormularioCompras.jsx";
+import Pagina, { EstadoConsulta, Tarjeta } from "../componentes/comunes/Pagina.jsx";
+import useConsulta from "../hooks/useConsulta.js";
 
-function CompraFormulario() {
+export default function CompraFormulario() {
   const navigate = useNavigate();
   const { id } = useParams();
-
-  const [compraEditar, setCompraEditar] = useState(null);
-  const [cargando, setCargando] = useState(false);
-
-  const estaEditando = Boolean(id);
-
-  useEffect(() => {
-    if (estaEditando) {
-      cargarCompraPorId();
-    }
+  const cargar = useCallback(async (signal) => {
+    if (!id) return null;
+    const compra = await obtenerCompraPorId(id, signal);
+    if (!compra) throw new Error("No se encontró la compra.");
+    return compra;
   }, [id]);
+  const estado = useConsulta(cargar);
+  const volver = () => navigate("/compras");
 
-  const cargarCompraPorId = async () => {
-    try {
-      setCargando(true);
-
-      const compra = await obtenerCompraPorId(id);
-      setCompraEditar(compra);
-    } catch (error) {
-      await mostrarError(
-        "Ocurrió un error",
-        "No se pudo cargar la información de la compra."
-      );
-      navigate("/compras");
-      console.error(error);
-    } finally {
-      setCargando(false);
-    }
-  };
-
-  const manejarCompraGuardada = () => {
-    navigate("/compras");
-  };
-
-  const manejarCancelar = () => {
-    navigate("/compras");
-  };
-
-return (
-  <section className="page">
-    {/* HEADER */}
-    <header className="page__header">
-      <div className="page__header-content">
-        <h1 className="page__title">
-          {estaEditando ? "Editar compra" : "Nueva compra"}
-        </h1>
-        <p className="page__subtitle">
-          {estaEditando
-            ? "Actualiza la información de la compra seleccionada."
-            : "Completa el formulario para registrar una nueva compra."}
-        </p>
-      </div>
-
-      <div className="page__actions">
-        <button
-          type="button"
-          className="btn btn--secondary"
-          onClick={manejarCancelar}
-        >
-          Volver al listado
-        </button>
-      </div>
-    </header>
-
-    {/* BODY */}
-    <div className="page__body">
-      <section className="card">
-        <div className="card__body">
-          {cargando ? (
-            <Loader
-              texto="Cargando información de la compra..."
-              alto="260px"
-            />
-          ) : (
-            <FormularioCompra
-              onCompraGuardada={manejarCompraGuardada}
-              compraEditar={compraEditar}
-              onCancelarEdicion={manejarCancelar}
-            />
-          )}
-        </div>
-      </section>
-    </div>
-  </section>
-);
+  return (
+    <Pagina titulo={id ? "Editar compra" : "Nueva compra"}
+      descripcion={id ? "Actualiza la información de la compra seleccionada." : "Completa el formulario para registrar una nueva compra."}
+      acciones={<Link className="btn btn--secondary" to="/compras">Volver al listado</Link>}>
+      <Tarjeta>
+        <EstadoConsulta estado={estado}>
+          <FormularioCompra compraEditar={estado.datos} onCompraGuardada={volver} onCancelarEdicion={volver} />
+        </EstadoConsulta>
+      </Tarjeta>
+    </Pagina>
+  );
 }
-
-export default CompraFormulario;

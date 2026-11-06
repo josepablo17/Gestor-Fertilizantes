@@ -1,66 +1,30 @@
-import EstadoLista from "../../EstadoLista";
-import useUnidadesMedida from "../../hooks/useUnidadesMedida";
-import { obtenerTextoResumen } from "../../utils/unidadesMedida";
-import TablaUnidadesMedida from "./TablaUnidadesMedida";
+import { obtenerUnidadesMedida, desactivarUnidadMedida } from "../../api/unidadMedidaApi.js";
+import ContenidoListado from "../comunes/ContenidoListado.jsx";
+import { Mensajes } from "../comunes/Pagina.jsx";
+import useConsulta from "../../hooks/useConsulta.js";
+import useDesactivarRegistro from "../../hooks/useDesactivarRegistro.js";
+import { obtenerTextoResumen } from "../../utils/unidadesMedida.js";
+import TablaUnidadesMedida from "./TablaUnidadesMedida.jsx";
 
-function ListaUnidadesMedida({ recargar, onEditar, onUnidadMedidaDesactivada, onAgregar }) {
-    const {
-        unidadesMedida,
-        cargando,
-        error,
-        manejarDesactivar
-    } = useUnidadesMedida(recargar, onUnidadMedidaDesactivada);
+const sinRegistros = [];
 
-    return (
-        <section className="page-section">
-            {/* HEADER */}
-            <div className="page-section__header">
-                <div>
-                    <h2 className="page-section__title">Lista de unidades de medida</h2>
-                    <p className="page-section__subtitle">
-                        Consulta, edita y administra las unidades de medida registradas en el sistema.
-                    </p>
-                </div>
+export default function ListaUnidadesMedida() {
+  const estado = useConsulta(obtenerUnidadesMedida);
+  const unidades = estado.datos ?? sinRegistros;
+  const operacion = useDesactivarRegistro(desactivarUnidadMedida, estado.recargar);
+  const resumen = obtenerTextoResumen(unidades.length);
 
-                {onAgregar && (
-                    <button
-                        className="btn btn--primary btn--md"
-                        onClick={onAgregar}
-                        type="button"
-                    >
-                        Agregar unidad de medida
-                    </button>
-                )}
-            </div>
-
-            {/* CONTENIDO */}
-            {cargando ? (
-                <EstadoLista tipo="cargando" mensaje="Cargando unidades de medida..." />
-            ) : error ? (
-                <EstadoLista tipo="error" mensaje={error} />
-            ) : unidadesMedida.length === 0 ? (
-                <EstadoLista
-                    tipo="vacio"
-                    mensaje="No hay unidades de medida registradas"
-                    subtitulo="Cuando agregues unidades de medida, aparecerán aquí para administrarlas."
-                />
-            ) : (
-                <>
-                    {/* RESUMEN */}
-                    <div className="table__cell-muted" style={{ padding: "0 0 var(--space-3) 0" }}>
-                        {obtenerTextoResumen(unidadesMedida.length)}
-                    </div>
-
-                    {/* TABLA */}
-                    <TablaUnidadesMedida
-                        unidadesMedida={unidadesMedida}
-                        onEditar={onEditar}
-                        onDesactivar={manejarDesactivar}
-                    />
-                </>
-            )}
-        </section>
-    );
+  return (
+    <>
+      <Mensajes {...operacion} />
+      <ContenidoListado estado={estado}
+        mensajeVacio="No hay unidades de medida registradas"
+        detalleVacio="Cuando agregues unidades de medida, aparecerán aquí para administrarlas."
+        resumen={resumen}>
+        <TablaUnidadesMedida unidadesMedida={unidades}
+          ocupado={operacion.ocupado}
+          onDesactivar={(item) => operacion.desactivar(item.idUnidadMedida, item.nombre)} />
+      </ContenidoListado>
+    </>
+  );
 }
-
-export default ListaUnidadesMedida;

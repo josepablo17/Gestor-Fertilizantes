@@ -1,12 +1,5 @@
-function formatearMoneda(valor) {
-  const numero = Number(valor ?? 0);
-
-  return new Intl.NumberFormat("es-CR", {
-    style: "currency",
-    currency: "CRC",
-    minimumFractionDigits: 2
-  }).format(numero);
-}
+import { formatearNumero } from "../../utils/numeros.js";
+import { formatearMoneda } from "../../utils/moneda.js";
 
 function formatearFecha(fecha) {
   if (!fecha) return "Sin fecha";
@@ -44,7 +37,7 @@ function obtenerClaseTendencia(tendencia) {
   }
 }
 
-function TablaComparadorProveedor({ proveedores = [], onVerDetalle }) {
+function TablaComparadorProveedor({ moneda, proveedores = [], onVerDetalle }) {
   if (!proveedores.length) {
     return (
       <div className="tabla-comparador-vacia">
@@ -114,15 +107,15 @@ function TablaComparadorProveedor({ proveedores = [], onVerDetalle }) {
                     </div>
                   </td>
 
-                  <td>{formatearMoneda(proveedor.ultimoPrecioUnitario)}</td>
+                  <td>{formatearMoneda(proveedor.ultimoPrecioUnitario, moneda)}</td>
 
-                  <td>{formatearMoneda(proveedor.promedioHistorico)}</td>
+                  <td>{formatearMoneda(proveedor.promedioHistorico, moneda)}</td>
 
                   <td>{formatearFecha(proveedor.fechaUltimaCompra)}</td>
 
                   <td>{proveedor.cantidadCompras}</td>
 
-                  <td>{Number(proveedor.variacionPorcentual ?? 0).toFixed(2)}%</td>
+                  <td>{formatearNumero(proveedor.variacionPorcentual)}%</td>
 
                   <td>
                     <span
@@ -132,9 +125,7 @@ function TablaComparadorProveedor({ proveedores = [], onVerDetalle }) {
                           : "text-danger"
                       }
                     >
-                      {Number(
-                        proveedor.diferenciaVsPromedioPorcentual ?? 0
-                      ).toFixed(2)}
+                      {formatearNumero(proveedor.diferenciaVsPromedioPorcentual)}
                       %
                     </span>
                   </td>
@@ -147,7 +138,7 @@ function TablaComparadorProveedor({ proveedores = [], onVerDetalle }) {
 
                   <td>
                     <span className="badge">
-                      {Number(proveedor.puntajeTotal ?? 0).toFixed(2)}
+                      {formatearNumero(proveedor.puntajeTotal)}
                     </span>
                   </td>
 

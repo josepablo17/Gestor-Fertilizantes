@@ -1,58 +1,15 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import ListaPresentacionProductos from "../componentes/presentacionProductos/ListaPresentacionProductos";
-import "../estilos/index.css";
+import { Link } from "react-router-dom";
+import Pagina, { Tarjeta } from "../componentes/comunes/Pagina.jsx";
+import ListaPresentacionProductos from "../componentes/presentacionProductos/ListaPresentacionProductos.jsx";
 
-function PresentacionesProducto() {
-  const [recargarLista, setRecargarLista] = useState(false);
-  const navigate = useNavigate();
-
-  const manejarPresentacionDesactivada = () => {
-    setRecargarLista((valorAnterior) => !valorAnterior);
-  };
-
-  const irANuevaPresentacion = () => {
-    navigate("/presentacionProductos/nuevo");
-  };
-
-  const irAEditarPresentacion = (presentacion) => {
-    navigate(`/presentacionProductos/editar/${presentacion.idPresentacionProducto}`);
-  };
-
+export default function PresentacionProducto() {
   return (
-    <section className="page">
-      <header className="page__header">
-        <div className="page__header-content">
-          <h1 className="page__title">Gestión de presentaciones de producto</h1>
-          <p className="page__subtitle">
-            Administra las presentaciones registradas para cada producto en el sistema.
-          </p>
-        </div>
-
-        <div className="page__actions">
-          <button
-            type="button"
-            className="btn btn--primary btn--md"
-            onClick={irANuevaPresentacion}
-          >
-            Agregar presentación
-          </button>
-        </div>
-      </header>
-
-      <div className="page__body">
-        <section className="card">
-          <div className="card__body">
-            <ListaPresentacionProductos
-              recargar={recargarLista}
-              onEditar={irAEditarPresentacion}
-              onPresentacionDesactivada={manejarPresentacionDesactivada}
-            />
-          </div>
-        </section>
-      </div>
-    </section>
+    <Pagina titulo="Gestión de presentaciones de producto"
+      descripcion="Administra las presentaciones registradas para cada producto en el sistema."
+      acciones={<Link className="btn btn--primary btn--md" to="/presentacionProductos/nuevo">Agregar presentación</Link>}>
+      <Tarjeta titulo="Lista de presentaciones de producto">
+        <ListaPresentacionProductos />
+      </Tarjeta>
+    </Pagina>
   );
 }
-
-export default PresentacionesProducto;

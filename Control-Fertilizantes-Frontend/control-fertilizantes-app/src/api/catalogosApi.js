@@ -1,3 +1,4 @@
+import { formatearNumero } from "../utils/numeros.js";
 import { consulta, solicitar } from "./cliente.js";
 
 const rutas = {
@@ -35,16 +36,6 @@ export function cambiarActivoCatalogo(tipo, id, activo) {
 export const productosElegibles = (signal) => solicitar("/PresentacionProducto/ListarProductosDropdown", { signal });
 export const unidadesElegibles = (signal) => solicitar("/PresentacionProducto/ListarUnidadesMedidaDropdown", { signal });
 
-export async function cargarCatalogoCotizacion(signal) {
-  const [productos, presentaciones, proveedores] = await Promise.all([
-    productosElegibles(signal),
-    listarCatalogo("presentaciones", { soloActivos: true }, signal),
-    listarCatalogo("proveedores", { soloActivos: true }, signal),
-  ]);
-  const ids = new Set(productos.map((producto) => producto.idProducto));
-  return { productos, presentaciones: presentaciones.filter((p) => ids.has(p.idProducto)), proveedores };
-}
-
 export function etiquetaPresentacion(presentacion) {
-  return `${presentacion.descripcion} · ${presentacion.cantidad} ${presentacion.codigoUnidadMedida ?? ""}`;
+  return `${presentacion.descripcion} · ${formatearNumero(presentacion.cantidad)} ${presentacion.codigoUnidadMedida ?? ""}`;
 }

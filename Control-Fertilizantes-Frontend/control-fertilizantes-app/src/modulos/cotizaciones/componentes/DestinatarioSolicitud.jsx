@@ -1,13 +1,14 @@
 import { useCallback, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { descargarArchivo } from "../../api/cliente.js";
-import { descargarSolicitudPdf, generarSolicitudPdf, listarRespuestas, recibirRespuesta, registrarEnvio } from "../../api/cotizacionesApi.js";
-import useConsulta from "../../hooks/useConsulta.js";
-import useOperacion from "../../hooks/useOperacion.js";
-import { mostrarConfirmacion } from "../../utils/alertas.js";
-import { fechaHora } from "../../utils/datosApi.js";
-import Campo from "../comunes/Campo.jsx";
-import { EstadoConsulta, Mensajes, Tarjeta } from "../comunes/Pagina.jsx";
+import { descargarArchivo } from "../../../api/cliente.js";
+import { descargarSolicitudPdf, generarSolicitudPdf, listarRespuestas, recibirRespuesta, registrarEnvio } from "../api/cotizacionesApi.js";
+import useConsulta from "../../../hooks/useConsulta.js";
+import useOperacion from "../../../hooks/useOperacion.js";
+import { mostrarConfirmacion } from "../../../utils/alertas.js";
+import { fechaHora } from "../../../utils/datosApi.js";
+import Campo from "../../../componentes/comunes/Campo.jsx";
+import Paginador from "../../../componentes/comunes/Paginador.jsx";
+import { EstadoConsulta, EstadoVacio, Mensajes, Tarjeta } from "../../../componentes/comunes/Pagina.jsx";
 
 const maximoPdf = 10 * 1024 * 1024;
 
@@ -81,22 +82,21 @@ export default function DestinatarioSolicitud({ solicitud, destino, refrescar })
 }
 
 function RespuestasDestinatario({ id, idDestino }) {
+  const tamanoPagina = 20;
   const [pagina, setPagina] = useState(1);
-  const cargar = useCallback((signal) => listarRespuestas(id, idDestino, { pagina, tamanoPagina: 20 }, signal), [id, idDestino, pagina]);
+  const cargar = useCallback((signal) => listarRespuestas(id, idDestino, { pagina, tamanoPagina }, signal), [id, idDestino, pagina]);
   const estado = useConsulta(cargar);
   return <EstadoConsulta estado={estado}>
     {estado.datos && <>
-      {estado.datos.elementos.length === 0 ? <p>No hay respuestas en esta página.</p> : <ul>
+      {estado.datos.elementos.length === 0 ? <EstadoVacio mensaje="No hay respuestas en esta página." /> : <ul>
         {estado.datos.elementos.map((r) => <li key={r.idProformaProveedor}>
           <Link to={`/respuestas/${r.idProformaProveedor}`}>
             {r.numeroProforma || "Proforma sin número"} · versión {r.versionRespuesta} · {r.estado}
           </Link>
         </li>)}
       </ul>}
-      <div className="form-actions">
-        {pagina > 1 && <button className="btn btn--secondary" onClick={() => setPagina(pagina - 1)}>Anterior</button>}
-        {pagina * 20 < estado.datos.totalRegistros && <button className="btn btn--secondary" onClick={() => setPagina(pagina + 1)}>Siguiente</button>}
-      </div>
+      <Paginador paginaActual={pagina} totalPaginas={Math.ceil(estado.datos.totalRegistros / tamanoPagina)}
+        irAPagina={setPagina} etiqueta="Paginación de respuestas" />
     </>}
   </EstadoConsulta>;
 }

@@ -1,3 +1,4 @@
+import { formatearNumero } from "../../utils/numeros.js";
 function ResumenInteligenteCompras({ resumen }) {
   if (!resumen) {
     return (
@@ -211,10 +212,7 @@ function obtenerClaseTendencia(tendencia) {
 function formatearMoneda(valor) {
   if (valor === null || valor === undefined) return "N/A";
 
-  return Number(valor).toLocaleString("es-CR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
+  return formatearNumero(valor);
 }
 
 function formatearNumeroEntero(valor) {

@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { decimalOpcional, idRuta, leerJson } from "../src/utils/datosApi.js";
+import { decimalOpcional, enteroOpcional, idRuta, leerJson } from "../src/utils/datosApi.js";
+import { formatearCantidadComprada, formatearNumero, numeroEditable } from "../src/utils/numeros.js";
 import { cuerpoCatalogo, valoresCatalogo } from "../src/utils/formulariosCatalogo.js";
-import { cuerpoSolicitud, valoresSolicitud } from "../src/utils/formularioSolicitud.js";
-import { cuerpoCabecera, cuerpoLinea, valoresCabecera, valoresLinea } from "../src/utils/formularioRespuesta.js";
+import { cuerpoSolicitud, valoresSolicitud } from "../src/modulos/cotizaciones/utils/formularioSolicitud.js";
+import { cuerpoCabecera, cuerpoLinea, valoresCabecera, valoresLinea } from "../src/modulos/cotizaciones/utils/formularioRespuesta.js";
 
 test("conserva identificadores bigint e importes exactos al leer JSON", () => {
   const dato = leerJson('{"idSolicitudCotizacion":9007199254740993,"precio":999999999999.123456,"unidad":3}');
@@ -21,7 +22,7 @@ test("envía únicamente los campos aceptados por catálogos y conserva datos fi
     idProducto: 7, idUnidadMedida: 4, cantidad: "25.0000", cantidadNormalizada: 25, descripcion: "Saco", activo: true,
   });
   assert.deepEqual(cuerpoCatalogo("presentaciones", presentacion), {
-    idProducto: 7, idUnidadMedida: 4, cantidad: "25.0000", descripcion: "Saco",
+    idProducto: 7, idUnidadMedida: 4, cantidad: "25", descripcion: "Saco",
   });
   const proveedor = valoresCatalogo("proveedores", {
     nombre: "Proveedor", tipoIdentificacion: "Juridica", identificacionFiscal: "001", paisIdentificacion: "CR",
@@ -41,8 +42,19 @@ test("edita un borrador sin devolver las copias históricas ni los IDs de destin
   const datos = cuerpoSolicitud(borrador);
   assert.deepEqual(datos.proveedores, [7]);
   assert.deepEqual(datos.lineas[0], {
-    numeroLinea: 1, idProducto: 1, idPresentacionProducto: 2, cantidadEmpaques: "2.50", permiteAlternativas: false, observaciones: null,
+    numeroLinea: 1, idProducto: 1, idPresentacionProducto: 2, cantidadEmpaques: "2.5", permiteAlternativas: false, observaciones: null,
   });
+});
+
+test("presenta como máximo un decimal y mantiene los datos exactos al editar", () => {
+  assert.equal(formatearNumero("24.567800"), "24,6");
+  assert.equal(formatearNumero("25.0000"), "25");
+  assert.equal(formatearNumero("0.001000"), "< 0,1");
+  assert.equal(formatearCantidadComprada("2.0000"), "2");
+  assert.equal(formatearCantidadComprada("2.5000"), "Cantidad fraccionaria");
+  assert.equal(numeroEditable("24.567800"), "24.5678");
+  assert.throws(() => enteroOpcional("2e3"));
+  assert.throws(() => enteroOpcional("0x10"));
 });
 
 test("una oferta no cotizada no conserva importes y una cabecera no inventa ceros", () => {

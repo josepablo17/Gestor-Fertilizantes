@@ -63,7 +63,7 @@ function EditorCatalogo({ tipo, id, original, opciones }) {
           }
           return <Campo key={nombre} {...campo} opciones={lista} valor={valor}
             cambiar={(nuevo) => setValores((actual) => ({ ...actual, [nombre]: nuevo }))}
-            {...(escala ? { inputMode: "decimal" } : {})} />;
+            formatoNumerico={escala ? "decimal" : undefined} />;
         })}
       </fieldset>
       {tipo === "presentaciones" && <p>SQL calcula el contenido normalizado a partir de la unidad seleccionada.</p>}

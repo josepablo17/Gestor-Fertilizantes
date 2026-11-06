@@ -1,15 +1,15 @@
 import Swal from "sweetalert2";
 
 const configuracionBase = {
-  background: "#ffffff",
-  color: "#1f2937",
+  background: "var(--color-bg-elevated)",
+  color: "var(--color-text-primary)",
   customClass: {
     popup: "swal-popup-personalizado",
     title: "swal-titulo-personalizado",
     htmlContainer: "swal-texto-personalizado",
     actions: "swal-acciones-personalizadas",
-    confirmButton: "swal-boton-confirmar",
-    cancelButton: "swal-boton-cancelar"
+    confirmButton: "btn btn--primary",
+    cancelButton: "btn btn--secondary"
   },
   buttonsStyling: false
 };

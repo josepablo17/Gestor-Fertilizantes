@@ -1,10 +1,10 @@
 import { useCallback, useState } from "react";
-import Campo from "../comunes/Campo.jsx";
-import { EstadoConsulta } from "../comunes/Pagina.jsx";
-import { etiquetaPresentacion, listarCatalogo, productosElegibles } from "../../api/catalogosApi.js";
-import useConsulta from "../../hooks/useConsulta.js";
-import { basesImporte, cuerpoLinea, importesLinea, valoresLinea } from "../../utils/formularioRespuesta.js";
-import { mismoId } from "../../utils/datosApi.js";
+import Campo from "../../../componentes/comunes/Campo.jsx";
+import { EstadoConsulta } from "../../../componentes/comunes/Pagina.jsx";
+import { etiquetaPresentacion, listarCatalogo, productosElegibles } from "../../../api/catalogosApi.js";
+import useConsulta from "../../../hooks/useConsulta.js";
+import { basesImporte, cuerpoLinea, importesLinea, valoresLinea } from "../utils/formularioRespuesta.js";
+import { mismoId } from "../../../utils/datosApi.js";
 
 const tipoOfertas = [
   { value: "Solicitada", label: "Solicitada (misma presentación)" },
@@ -61,7 +61,7 @@ export default function EditorLineaRespuesta({ linea, solicitud, guardar, cerrar
       <Campo etiqueta="Estado de la oferta" valor={valores.estadoOferta} opciones={estadosOferta} required cambiar={asignar("estadoOferta")} />
       {!adicional && <Campo etiqueta="Renglón solicitado" valor={valores.idSolicitudDetalle} opciones={renglones}
         required cambiar={asignar("idSolicitudDetalle")} />}
-      <Campo etiqueta="Número de renglón del PDF" valor={valores.numeroLinea} type="number" min={1} step={1} cambiar={asignar("numeroLinea")} />
+      <Campo etiqueta="Número de renglón del PDF" valor={valores.numeroLinea} formatoNumerico="entero" cambiar={asignar("numeroLinea")} />
       <Campo etiqueta="Código del proveedor" valor={valores.codigo} maxLength={100} cambiar={asignar("codigo")} />
       <Campo etiqueta="Descripción en el PDF" valor={valores.descripcion} maxLength={500} cambiar={asignar("descripcion")} />
       {alternativa && <Campo etiqueta="Motivo de la alternativa" valor={valores.motivoAlternativa} required maxLength={1000} cambiar={asignar("motivoAlternativa")} />}
@@ -73,7 +73,7 @@ export default function EditorLineaRespuesta({ linea, solicitud, guardar, cerrar
         <Campo etiqueta="Base del total de línea" valor={valores.baseTotalLinea} required cambiar={asignar("baseTotalLinea")}
           opciones={[{ value: "SinDefinir", label: "Pendiente de definir" }, ...basesImporte]} />
         {importesLinea.map(([campo, etiqueta]) => <Campo key={campo} etiqueta={etiqueta} valor={valores[campo]}
-          inputMode="decimal" cambiar={asignar(campo)} />)}
+          formatoNumerico="decimal" cambiar={asignar(campo)} />)}
       </>}
       <Campo etiqueta="Observación del renglón" valor={valores.observacion} maxLength={1000} textoLargo cambiar={asignar("observacion")} />
       <Campo etiqueta="Motivo del ajuste de renglón" valor={motivo} cambiar={setMotivo} maxLength={1000} required />

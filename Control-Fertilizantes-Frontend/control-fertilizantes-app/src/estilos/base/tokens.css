@@ -2,84 +2,84 @@
   /* =========================================================
      COLORES PRINCIPALES
   ========================================================= */
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
+  --color-primary-50: #142018;
+  --color-primary-100: #203428;
+  --color-primary-200: #2b503a;
+  --color-primary-300: #447a59;
+  --color-primary-400: #68ba8c;
+  --color-primary-500: #82d3a2;
+  --color-primary-600: #b0e1bf;
+  --color-primary-700: #c8ebd3;
+  --color-primary-800: #d7f2df;
+  --color-primary-900: #eaf9ee;
 
   /* =========================================================
      COLORES NEUTROS
   ========================================================= */
-  --color-gray-50: #f8fafc;
-  --color-gray-100: #f1f5f9;
-  --color-gray-200: #e2e8f0;
-  --color-gray-300: #cbd5e1;
-  --color-gray-400: #94a3b8;
-  --color-gray-500: #64748b;
-  --color-gray-600: #475569;
-  --color-gray-700: #334155;
-  --color-gray-800: #1e293b;
-  --color-gray-900: #0f172a;
+  --color-gray-50: #151916;
+  --color-gray-100: #202622;
+  --color-gray-200: #2d3630;
+  --color-gray-300: #49574d;
+  --color-gray-400: #78867c;
+  --color-gray-500: #9daaa0;
+  --color-gray-600: #aebbb2;
+  --color-gray-700: #bcc8bf;
+  --color-gray-800: #d5ded8;
+  --color-gray-900: #edf3ee;
 
   /* =========================================================
      COLORES DE ESTADO
   ========================================================= */
-  --color-success-50: #f0fdf4;
-  --color-success-100: #dcfce7;
-  --color-success-200: #bbf7d0;
-  --color-success-500: #22c55e;
-  --color-success-600: #16a34a;
-  --color-success-700: #15803d;
+  --color-success-50: #14261a;
+  --color-success-100: #1e3525;
+  --color-success-200: #345d40;
+  --color-success-500: #6bb585;
+  --color-success-600: #90d6a6;
+  --color-success-700: #a9e4b9;
 
-  --color-warning-50: #fffbeb;
-  --color-warning-100: #fef3c7;
-  --color-warning-200: #fde68a;
-  --color-warning-500: #f59e0b;
-  --color-warning-600: #d97706;
-  --color-warning-700: #b45309;
+  --color-warning-50: #2c2315;
+  --color-warning-100: #35291a;
+  --color-warning-200: #594528;
+  --color-warning-500: #d8a759;
+  --color-warning-600: #e5b766;
+  --color-warning-700: #f5d08a;
 
-  --color-danger-50: #fef2f2;
-  --color-danger-100: #fee2e2;
-  --color-danger-200: #fecaca;
-  --color-danger-500: #ef4444;
-  --color-danger-600: #dc2626;
-  --color-danger-700: #b91c1c;
+  --color-danger-50: #301b1c;
+  --color-danger-100: #3e2325;
+  --color-danger-200: #66383d;
+  --color-danger-500: #d5767c;
+  --color-danger-600: #ef939a;
+  --color-danger-700: #ffb1b7;
 
-  --color-info-50: #ecfeff;
-  --color-info-100: #cffafe;
-  --color-info-200: #a5f3fc;
-  --color-info-500: #06b6d4;
-  --color-info-600: #0891b2;
-  --color-info-700: #0e7490;
+  --color-info-50: #14262a;
+  --color-info-100: #1e363c;
+  --color-info-200: #335661;
+  --color-info-500: #6ab9cb;
+  --color-info-600: #8ad1e1;
+  --color-info-700: #a7deeb;
 
   /* =========================================================
      COLORES SEMÁNTICOS DEL SISTEMA
   ========================================================= */
-  --color-bg-app: #f4f7fb;
-  --color-bg-surface: #ffffff;
-  --color-bg-muted: #f8fafc;
-  --color-bg-elevated: #ffffff;
+  --color-bg-app: #090b0a;
+  --color-bg-surface: #111412;
+  --color-bg-muted: #151916;
+  --color-bg-elevated: #202622;
   --color-surface: var(--color-bg-surface);
   --color-surface-secondary: var(--color-bg-muted);
 
-  --color-text-strong: var(--color-gray-900);
-  --color-text-primary: var(--color-gray-900);
-  --color-text-secondary: var(--color-gray-700);
-  --color-text-muted: var(--color-gray-500);
-  --color-text-inverse: #ffffff;
+  --color-text-strong: #f0f4f1;
+  --color-text-primary: #e2e9e4;
+  --color-text-secondary: #bcc8bf;
+  --color-text-muted: #9daaa0;
+  --color-text-inverse: #101913;
 
-  --color-border-subtle: var(--color-gray-100);
-  --color-border: var(--color-gray-200);
-  --color-border-strong: var(--color-gray-300);
+  --color-border-subtle: #212722;
+  --color-border: #2d3630;
+  --color-border-strong: #48554c;
   --color-border-focus: var(--color-primary-500);
 
-  --color-overlay: rgba(15, 23, 42, 0.45);
+  --color-overlay: rgba(0, 0, 0, 0.72);
 
   /* =========================================================
      TIPOGRAFÍA
@@ -130,19 +130,19 @@
   --radius-none: 0;
   --radius-sm: 0.375rem;
   --radius-md: 0.625rem;
-  --radius-lg: 0.875rem;
-  --radius-xl: 1rem;
-  --radius-2xl: 1.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.625rem;
+  --radius-2xl: 0.625rem;
   --radius-pill: 9999px;
 
   /* =========================================================
      SOMBRAS
   ========================================================= */
-  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.06);
-  --shadow-md: 0 8px 20px rgba(15, 23, 42, 0.08);
-  --shadow-lg: 0 16px 40px rgba(15, 23, 42, 0.1);
-  --shadow-xl: 0 24px 60px rgba(15, 23, 42, 0.14);
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow-md: 0 8px 22px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.45);
+  --shadow-xl: 0 24px 60px rgba(0, 0, 0, 0.55);
 
   /* =========================================================
      TRANSICIONES
@@ -154,8 +154,8 @@
   /* =========================================================
      FOCUS
   ========================================================= */
-  --focus-ring-width: 3px;
-  --focus-ring-color: rgba(59, 130, 246, 0.2);
+  --focus-ring-width: 2px;
+  --focus-ring-color: #79c598;
 
   /* =========================================================
      Z-INDEX
@@ -171,26 +171,26 @@
   /* =========================================================
      LAYOUT
   ========================================================= */
-  --sidebar-width: 272px;
-  --topbar-height: 72px;
+  --sidebar-width: 214px;
+  --topbar-height: 46px;
   --page-max-width: 1440px;
-  --content-padding: var(--space-6);
+  --content-padding: clamp(0.875rem, 2.3vw, 2rem);
 
   /* =========================================================
      COMPONENTES BASE
   ========================================================= */
-  --button-height-sm: 2rem;
-  --button-height-md: 2.5rem;
+  --button-height-sm: 1.875rem;
+  --button-height-md: 2.125rem;
   --button-height-lg: 3rem;
 
   --input-height-sm: 2.25rem;
-  --input-height-md: 2.75rem;
+  --input-height-md: 2.375rem;
   --input-height-lg: 3.25rem;
 
   --card-padding-sm: var(--space-4);
-  --card-padding-md: var(--space-5);
+  --card-padding-md: var(--space-4);
   --card-padding-lg: var(--space-6);
 
-  --table-cell-padding-y: 0.875rem;
-  --table-cell-padding-x: 1rem;
+  --table-cell-padding-y: 0.625rem;
+  --table-cell-padding-x: 0.875rem;
 }

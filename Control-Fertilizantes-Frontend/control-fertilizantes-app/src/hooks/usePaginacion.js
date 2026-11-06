@@ -23,14 +23,6 @@ function usePaginacion(items, itemsPorPagina, dependencias = []) {
     setSeleccion({ pagina: Math.max(1, Math.min(pagina, totalPaginas || 1)), dependencias });
   };
 
-  const irAnterior = () => {
-    irAPagina(paginaAjustada - 1);
-  };
-
-  const irSiguiente = () => {
-    irAPagina(paginaAjustada + 1);
-  };
-
   const obtenerPaginasVisibles = () => {
     const PAGINAS_INICIALES_VISIBLES = 4;
     const PAGINAS_CONTEXTO_VISIBLES = 5;
@@ -54,10 +46,8 @@ function usePaginacion(items, itemsPorPagina, dependencias = []) {
         (_, index) => totalPaginas - PAGINAS_CONTEXTO_VISIBLES + index + 1
       );
     } else {
-      paginas = Array.from(
-        { length: PAGINAS_CONTEXTO_VISIBLES },
-        (_, index) => paginaAjustada + index
-      );
+      const inicio = Math.min(paginaAjustada - 2, totalPaginas - PAGINAS_CONTEXTO_VISIBLES + 1);
+      paginas = Array.from({ length: PAGINAS_CONTEXTO_VISIBLES }, (_, index) => inicio + index);
     }
 
     return [...new Set([primeraPagina, ...paginas, ultimaPagina])];
@@ -70,8 +60,6 @@ function usePaginacion(items, itemsPorPagina, dependencias = []) {
     indiceFinal,
     itemsPaginados,
     irAPagina,
-    irAnterior,
-    irSiguiente,
     paginasVisibles: obtenerPaginasVisibles()
   };
 }

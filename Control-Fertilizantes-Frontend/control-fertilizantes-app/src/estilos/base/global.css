@@ -4,11 +4,13 @@
 
 html {
   font-size: 16px;
+  color-scheme: dark;
+  accent-color: var(--color-primary-500);
 }
 
 body {
   font-family: var(--font-family-base);
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-regular);
   line-height: var(--line-height-normal);
   background-color: var(--color-bg-app);

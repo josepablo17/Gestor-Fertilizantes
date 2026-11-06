@@ -1,3 +1,4 @@
+import { formatearMoneda as monedaLocal } from "../utils/moneda.js";
 import { useMemo, useState, useEffect } from "react";
 import EstadoLista from "../EstadoLista";
 
@@ -49,15 +50,7 @@ function CompraAutomatica() {
     };
   }, [vistaPrevia, lineas]);
 
-  const formatearMoneda = (valor) => {
-    const numero = Number(valor ?? 0);
-
-    return new Intl.NumberFormat("es-CR", {
-      style: "currency",
-      currency: "CRC",
-      minimumFractionDigits: 2,
-    }).format(numero);
-  };
+  const formatearMoneda = (valor) => monedaLocal(valor, "CRC");
 
   const formatearFecha = (fecha) => {
     if (!fecha) return "Sin fecha";

@@ -1,106 +1,44 @@
-import { NavLink } from "react-router-dom";
-import { createElement } from "react";
-import {
-  HiCube,
-  HiBuildingStorefront,
-  HiArchiveBox,
-  HiSquares2X2,
-  HiShoppingCart,
-  HiChartBar,
-  HiScale,
-  HiTag,
-  HiClipboardDocumentList
-} from "react-icons/hi2";
-import "../../estilos/layout/sidebar.css";
+import { createElement, useState } from "react";
+import { HiOutlineMagnifyingGlass } from "react-icons/hi2";
+import { Link } from "react-router-dom";
+import { gruposNavegacion } from "./navegacion.js";
 
-const modulosNavegacion = [
-  { to: "/solicitudes", label: "Solicitudes de cotización", icon: HiClipboardDocumentList },
-  { to: "/productos-base", label: "Productos base", icon: HiSquares2X2 },
-  { to: "/marcas", label: "Marcas", icon: HiTag },
-  {
-    to: "/productos",
-    label: "Productos",
-    icon: HiCube
-  },
-  {
-    to: "/proveedores",
-    label: "Proveedores",
-    icon: HiBuildingStorefront
-  },
-  {
-    to: "/unidadesMedida",
-    label: "Unidades de medida",
-    icon: HiArchiveBox
-  },
-  {
-    to: "/presentacionProductos",
-    label: "Presentaciones producto",
-    icon: HiSquares2X2
-  },
-  {
-    to: "/compras",
-    label: "Compras",
-    icon: HiShoppingCart
-  },
-  {
-    to: "/compras-inteligencia",
-    label: "Compras inteligentes",
-    icon: HiChartBar
-  },
-  {
-    to: "/comparador-proveedores",
-    label: "Comparador proveedores",
-    icon: HiScale
-  }
-];
+const sinAcentos = (texto) => texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-function Sidebar() {
+export default function Sidebar({ seccion, onNavegar }) {
+  const [busqueda, setBusqueda] = useState("");
+  const termino = sinAcentos(busqueda.trim());
+  const grupos = gruposNavegacion.map(({ titulo, enlaces }) => ({
+    titulo,
+    enlaces: enlaces.filter(({ texto }) => sinAcentos(texto).includes(termino)),
+  })).filter(({ enlaces }) => enlaces.length > 0);
+
   return (
-    <aside className="sidebar">
-      <div className="sidebar__brand">
-        <div className="sidebar__brand-mark">
-          <span>FC</span>
-        </div>
-
-        <div className="sidebar__brand-text">
-          <h1 className="sidebar__brand-title">FertiControl</h1>
-          <p className="sidebar__brand-subtitle">Sistema de gestión</p>
-        </div>
-      </div>
-
-      <div className="sidebar__section">
-        <span className="sidebar__section-title">Módulos</span>
-
-        <nav className="sidebar__nav" aria-label="Navegación principal">
-          {modulosNavegacion.map(({ to, label, icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                isActive ? "sidebar__link activo" : "sidebar__link"
-              }
-            >
-              <span className="sidebar__icon" aria-hidden="true">
-                {createElement(icon)}
-              </span>
-
-              <span className="sidebar__label">{label}</span>
-            </NavLink>
-          ))}
-        </nav>
-      </div>
-
-      <div className="sidebar__footer">
-        <div className="sidebar__footer-card">
-          <span className="sidebar__footer-title">Panel administrativo</span>
-          <p className="sidebar__footer-text">
-            Gestiona productos, proveedores, unidades de medida, presentaciones
-            y compras desde una sola plataforma.
-          </p>
-        </div>
-      </div>
+    <aside className="sidebar" id="menu-principal">
+      <Link className="sidebar__brand" to="/solicitudes" onClick={onNavegar}>
+        <span className="sidebar__brand-mark" aria-hidden="true">FC</span>
+        <span>FertiControl</span>
+      </Link>
+      <label className="sidebar__search">
+        <HiOutlineMagnifyingGlass aria-hidden="true" />
+        <input type="search" aria-label="Buscar módulo" placeholder="Buscar módulo…"
+          value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
+      </label>
+      <nav className="sidebar__nav" aria-label="Navegación principal">
+        {grupos.map(({ titulo, enlaces }) => (
+          <div className="sidebar__section" key={titulo}>
+            <div className="sidebar__section-title">{titulo}</div>
+            {enlaces.map(({ ruta, texto, icono }) => (
+              <Link key={ruta} to={ruta} className="sidebar__link"
+                aria-current={seccion === ruta ? "page" : undefined} onClick={onNavegar}>
+                {createElement(icono, { className: "sidebar__icon", "aria-hidden": true })}
+                <span>{texto}</span>
+              </Link>
+            ))}
+          </div>
+        ))}
+        {grupos.length === 0 && <p className="sidebar__empty" role="status">No se encontraron módulos.</p>}
+      </nav>
     </aside>
   );
 }
-
-export default Sidebar;

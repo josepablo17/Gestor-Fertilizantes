@@ -1,3 +1,4 @@
+import { formatearMoneda as monedaLocal } from "../../utils/moneda.js";
 export function obtenerValor(objeto, ...claves) {
   for (const clave of claves) {
     if (objeto?.[clave] !== undefined && objeto?.[clave] !== null) {
@@ -13,13 +14,7 @@ export function convertirNumero(valor) {
   return Number.isNaN(numero) ? 0 : numero;
 }
 
-export function formatearMoneda(valor, moneda = "CRC") {
-  return new Intl.NumberFormat("es-CR", {
-    style: "currency",
-    currency: moneda || "CRC",
-    minimumFractionDigits: 2
-  }).format(convertirNumero(valor));
-}
+export const formatearMoneda = (valor, moneda = "CRC") => monedaLocal(valor, moneda || "CRC");
 
 export function formatearFecha(fecha) {
   if (!fecha) return "Sin fecha";

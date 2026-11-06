@@ -1,4 +1,6 @@
-function TablaProductos({ productos, onEditar, onDesactivar }) {
+import AccionesRegistro from "../comunes/AccionesRegistro.jsx";
+
+function TablaProductos({ productos, onDesactivar, ocupado }) {
   return (
     <div className="table-wrapper">
       <table className="table">
@@ -50,25 +52,9 @@ function TablaProductos({ productos, onEditar, onDesactivar }) {
               </td>
 
               <td className="table__cell-nowrap">
-                <div className="table__actions">
-                  <button
-                    type="button"
-                    className="btn btn--secondary btn--sm"
-                    onClick={() => onEditar(producto)}
-                  >
-                    Editar
-                  </button>
-
-                  {producto.activo && (
-                    <button
-                      type="button"
-                      className="btn btn--danger btn--sm"
-                      onClick={() => onDesactivar(producto)}
-                    >
-                      Desactivar
-                    </button>
-                  )}
-                </div>
+                <AccionesRegistro rutaEdicion={`/productos/editar/${producto.idProducto}`}
+                  onCambiarEstado={producto.activo ? () => onDesactivar(producto) : undefined}
+                  ocupado={ocupado} />
               </td>
             </tr>
           ))}
