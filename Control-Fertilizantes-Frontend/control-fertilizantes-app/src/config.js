@@ -1,5 +1,5 @@
 const CONFIG = {
-  API_URL: "http://localhost:5018/api"
+  API_URL: (import.meta.env.VITE_API_URL || "/api").replace(/\/+$/, "")
 };
 
 export default CONFIG;

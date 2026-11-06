@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 function usePaginacion(items, itemsPorPagina, dependencias = []) {
-  const [paginaActual, setPaginaActual] = useState(1);
-
-  useEffect(() => {
-    setPaginaActual(1);
-  }, dependencias);
+  const [seleccion, setSeleccion] = useState(() => ({ pagina: 1, dependencias }));
+  const filtrosCambiaron = seleccion.dependencias.length !== dependencias.length ||
+    dependencias.some((filtro, indice) => !Object.is(filtro, seleccion.dependencias[indice]));
+  if (filtrosCambiaron) setSeleccion({ pagina: 1, dependencias });
+  const paginaActual = filtrosCambiaron ? 1 : seleccion.pagina;
 
   const totalPaginas = Math.ceil(items.length / itemsPorPagina);
 
@@ -20,15 +20,15 @@ function usePaginacion(items, itemsPorPagina, dependencias = []) {
   }, [items, indiceInicial, indiceFinal]);
 
   const irAPagina = (pagina) => {
-    setPaginaActual(Math.max(1, Math.min(pagina, totalPaginas || 1)));
+    setSeleccion({ pagina: Math.max(1, Math.min(pagina, totalPaginas || 1)), dependencias });
   };
 
   const irAnterior = () => {
-    setPaginaActual((prev) => Math.max(prev - 1, 1));
+    irAPagina(paginaAjustada - 1);
   };
 
   const irSiguiente = () => {
-    setPaginaActual((prev) => Math.min(prev + 1, totalPaginas || 1));
+    irAPagina(paginaAjustada + 1);
   };
 
   const obtenerPaginasVisibles = () => {
@@ -72,7 +72,6 @@ function usePaginacion(items, itemsPorPagina, dependencias = []) {
     irAPagina,
     irAnterior,
     irSiguiente,
-    setPaginaActual,
     paginasVisibles: obtenerPaginasVisibles()
   };
 }

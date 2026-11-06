@@ -9,7 +9,6 @@ function EvaluacionCompra({ evaluacion }) {
 
   const claseClasificacion = obtenerClaseClasificacion(evaluacion.clasificacionCompra);
   const claseVariacionPromedio = obtenerClaseVariacion(evaluacion.porcentajeVsPromedio);
-  const claseVariacionUltimo = obtenerClaseVariacion(evaluacion.porcentajeVsUltimo);
   const claseTendencia = obtenerClaseTendencia(evaluacion.tendenciaPrecio);
 
   const tituloImpacto = obtenerTituloImpacto(

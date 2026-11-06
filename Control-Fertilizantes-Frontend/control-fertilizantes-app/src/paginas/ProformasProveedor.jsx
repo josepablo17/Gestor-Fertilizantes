@@ -3,22 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { obtenerProformasProveedor } from "../api/proformaProveedorApi";
 import TablaProformasProveedor from "../componentes/proformasProveedor/TablaProformasProveedor";
 
-function formatearMoneda(valor) {
-  const numero = Number(valor ?? 0);
-
-  return new Intl.NumberFormat("es-CR", {
-    style: "currency",
-    currency: "CRC",
-    minimumFractionDigits: 2,
-  }).format(numero);
-}
-
-function formatearFecha(fecha) {
-  if (!fecha) return "Sin fecha";
-
-  return new Date(fecha).toLocaleDateString("es-CR");
-}
-
 function ProformasProveedor() {
   const navigate = useNavigate();
 
