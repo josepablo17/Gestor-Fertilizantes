@@ -1,11 +1,14 @@
 
-CREATE   PROCEDURE dbo.SP_Compra_Insertar @IdProducto int,@IdProveedor int,@IdPresentacionProducto int,@FechaCompra date,@CantidadComprada decimal(18,4),@PrecioTotal decimal(18,4),@Moneda nvarchar(10),@Observaciones nvarchar(500)=NULL AS
+CREATE   PROCEDURE dbo.SP_Compra_Insertar @IdProducto int,@IdProveedor int,@IdPresentacionProducto int,@FechaCompra date,@CantidadComprada decimal(18,4),@PrecioTotal decimal(18,4),@Moneda nvarchar(10),@Observaciones nvarchar(500)=NULL,
+ @DistribucionPresupuestoJson nvarchar(max)=NULL,@IdOperacionPresupuesto uniqueidentifier=NULL,
+ @MotivoPresupuesto nvarchar(500)=NULL,@MotivoExcesoPresupuesto nvarchar(500)=NULL AS
 BEGIN
  SET NOCOUNT ON;
  SET XACT_ABORT ON;
  DECLARE @TranInicial int=@@TRANCOUNT;
  IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION CompraReal;
  BEGIN TRY
+ IF @DistribucionPresupuestoJson IS NOT NULL EXEC dbo.usp_Presupuesto_Bloquear;
  IF @CantidadComprada IS NULL OR @CantidadComprada<=0 OR @PrecioTotal IS NULL OR @PrecioTotal<=0 OR @FechaCompra IS NULL OR @FechaCompra>CONVERT(date,GETDATE())
  THROW 52000,N'Compra requiere fecha no futura y cantidad e importe positivos.',1;
  SET @Moneda=UPPER(LTRIM(RTRIM(@Moneda)));
@@ -24,8 +27,10 @@ BEGIN
  DiferenciaPrecio=v.DiferenciaPrecio,PorcentajeCambioPrecio=v.PorcentajeCambioPrecio,TendenciaPrecio=v.TendenciaPrecio
  FROM dbo.Compras c JOIN dbo.vw_ComprasAnalisis v ON v.IdCompra=c.IdCompra
  WHERE c.IdProducto=@IdProducto AND c.IdPresentacionProducto=@IdPresentacionProducto AND c.Moneda=@Moneda;
- SELECT @Id AS IdCompraInsertada;
+ IF @DistribucionPresupuestoJson IS NOT NULL
+ EXEC dbo.usp_Presupuesto_ImputarCompra @Id,@DistribucionPresupuestoJson,@IdOperacionPresupuesto,@MotivoPresupuesto,@MotivoExcesoPresupuesto;
  IF @TranInicial=0 COMMIT;
+ SELECT @Id AS IdCompraInsertada;
  END TRY BEGIN CATCH
  IF XACT_STATE()<>0 AND @TranInicial=0 ROLLBACK; ELSE IF XACT_STATE()=1 ROLLBACK TRANSACTION CompraReal;
  THROW;

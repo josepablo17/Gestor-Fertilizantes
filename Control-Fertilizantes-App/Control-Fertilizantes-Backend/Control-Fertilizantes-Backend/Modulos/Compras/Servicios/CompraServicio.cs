@@ -38,6 +38,10 @@ namespace Control_Fertilizantes_Backend.Modulos.Compras.Servicios
             if (dto == null)
                 throw new ReglaNegocio("Los datos de la compra son obligatorios.", HttpStatusCode.BadRequest);
 
+            if (dto.ImputacionPresupuesto is not null && (dto.PrecioTotal > 99999999999999.9999m
+                || decimal.Round(dto.PrecioTotal, 4) != dto.PrecioTotal))
+                throw new ReglaNegocio("Indique un importe total con hasta 14 enteros y cuatro decimales para imputar la compra.");
+
             var compra = ConstruirCompra(
                 dto.IdProducto,
                 dto.IdProveedor,
@@ -49,7 +53,7 @@ namespace Control_Fertilizantes_Backend.Modulos.Compras.Servicios
                 dto.Observaciones
             );
 
-            return await _compraRepositorio.InsertarAsync(compra);
+            return await _compraRepositorio.InsertarAsync(compra, dto.ImputacionPresupuesto);
         }
 
         public async Task<bool> ActualizarAsync(CompraActualizarDTO dto)
@@ -88,12 +92,19 @@ namespace Control_Fertilizantes_Backend.Modulos.Compras.Servicios
             return historial.Select(MapearCompraListarDTO);
         }
 
-        public async Task<UltimoPrecioCompraDTO?> ObtenerUltimoPrecioAsync(int idProducto, int idPresentacionProducto)
+        public async Task<UltimoPrecioCompraDTO?> ObtenerUltimoPrecioAsync(int idProducto, int idPresentacionProducto,
+            string? moneda, DateOnly? fechaLimite, int? idCompraLimite, CancellationToken cancelacion)
         {
             ValidarId(idProducto, "El id del producto no es válido.");
             ValidarId(idPresentacionProducto, "El id de la presentación no es válido.");
 
-            var compra = await _compraRepositorio.ObtenerUltimoPrecioAsync(idProducto, idPresentacionProducto);
+            var monedaConsulta = LimpiarMoneda(moneda);
+            if (monedaConsulta is not ("CRC" or "USD"))
+                throw new ReglaNegocio("Indique CRC o USD para consultar compras.");
+            if (idCompraLimite is <= 0 || (idCompraLimite.HasValue && !fechaLimite.HasValue))
+                throw new ReglaNegocio("Para consultar el antecedente de una compra, indique su identificador y fecha.");
+            var compra = await _compraRepositorio.ObtenerUltimoPrecioAsync(idProducto, idPresentacionProducto,
+                monedaConsulta, fechaLimite, idCompraLimite, cancelacion);
 
             if (compra == null)
                 return null;

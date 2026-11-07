@@ -52,3 +52,12 @@ public sealed class ComparacionFila
     public bool EsMenorPrecioUnitario { get; init; }
     public bool EsMenorPrecioConCoberturaYVigencia { get; init; }
 }
+
+public sealed class ReferenciaCompraFila
+{
+    public long IdSolicitudCotizacionDetalle { get; init; }
+    public int IdCompra { get; init; }
+    public DateTime FechaCompra { get; init; }
+    public string? NombreProveedor { get; init; }
+    public decimal PrecioPorUnidadBase { get; init; }
+}

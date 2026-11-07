@@ -105,7 +105,7 @@ try {
         Write-Output $pruebas.Error.GetAwaiter().GetResult()
         throw "Falló la prueba de navegador. Evidencia: $evidencia"
     }
-    @{ Estado = 'Aprobado'; BaseTemporal = $base; Flujo = 'Catálogos, solicitud, PDF, revisión y comparación' } |
+    @{ Estado = 'Aprobado'; BaseTemporal = $base; Flujo = 'Catálogos, cotizaciones, compras y presupuestos' } |
         ConvertTo-Json | Set-Content -LiteralPath (Join-Path $evidencia 'verificacion.json') -Encoding utf8
 } finally {
     Cerrar-Proceso $pruebas 'navegador'

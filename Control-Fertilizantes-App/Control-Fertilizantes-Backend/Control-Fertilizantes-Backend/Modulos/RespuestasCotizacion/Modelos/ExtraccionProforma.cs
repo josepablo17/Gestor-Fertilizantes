@@ -3,4 +3,8 @@ namespace Control_Fertilizantes_Backend.Modulos.RespuestasCotizacion.Modelos;
 public sealed record CampoPdf(string Nombre, string? Valor);
 public sealed record AdvertenciaLectura(string Codigo, string Mensaje, string? Campo = null);
 public sealed record ExtraccionProforma(string VersionLector, string Metodo, string Estado, string? VersionPlantilla,
-    IReadOnlyList<CampoPdf> Campos, IReadOnlyList<AdvertenciaLectura> Advertencias);
+    IReadOnlyList<CampoPdf> Campos, IReadOnlyList<AdvertenciaLectura> Advertencias)
+{
+    internal const string PlantillaAnterior = "GF-SOL-1";
+    internal const string PlantillaCalculada = "GF-SOL-2";
+}

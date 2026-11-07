@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Control_Fertilizantes_Backend.Modulos.Presupuestos.DTOs.Entradas;
 
 namespace Control_Fertilizantes_Backend.Modulos.Compras.DTOs.Entradas
 {
@@ -28,5 +29,7 @@ namespace Control_Fertilizantes_Backend.Modulos.Compras.DTOs.Entradas
 
         [StringLength(500, ErrorMessage = "Las observaciones no pueden superar los 500 caracteres.")]
         public string? Observaciones { get; set; }
+
+        public ImputacionCompraDTO? ImputacionPresupuesto { get; set; }
     }
 }

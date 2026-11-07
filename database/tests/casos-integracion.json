@@ -526,8 +526,8 @@
     "BeforeEmit": ""
   },
   {
-    "Name": "Compras: moneda requerida en comparador historico",
-    "Sql": "EXEC dbo.SP_ComparadorProveedor_ObtenerComparativa @P,@PP,NULL;",
+    "Name": "Compras: moneda requerida para consultar el ultimo precio",
+    "Sql": "EXEC dbo.SP_Compra_UltimoPrecio @P,@PP,NULL;",
     "Errors": [
       52000
     ],
@@ -633,5 +633,115 @@
     ],
     "Setup": "",
     "BeforeEmit": ""
+  },
+  {
+    "Name": "Presupuesto: compra parcial distribuida entre dos fincas y liberación del remanente",
+    "Sql": "SET @DistribucionPres = (SELECT idPartidaPresupuesto,monto FROM (VALUES(@PartidaNorte,200000),(@PartidaSur,100000)) l(idPartidaPresupuesto,monto) FOR JSON PATH);\nEXEC dbo.usp_Compromiso_Registrar @FechaPres,N'CRC',@DistribucionPres,@OperacionPres,N'Pedido confirmado',@CompromisoPres OUTPUT;\nDECLARE @DetalleNorte bigint,@DetalleSur bigint;\nSELECT @DetalleNorte=IdCompromisoDetalle FROM dbo.CompromisosCompraDetalle WHERE IdCompromisoCompra=@CompromisoPres AND IdPartidaPresupuesto=@PartidaNorte;\nSELECT @DetalleSur=IdCompromisoDetalle FROM dbo.CompromisosCompraDetalle WHERE IdCompromisoCompra=@CompromisoPres AND IdPartidaPresupuesto=@PartidaSur;\nIF NOT EXISTS(SELECT 1 FROM dbo.vw_SaldosPresupuesto WHERE IdPartidaPresupuesto=@PartidaNorte AND Comprometido=200000 AND Ejecutado=0 AND Disponible=800000)\n THROW 51901,N'La reserva no descontó saldo disponible',1;\nEXEC dbo.SP_Compra_Insertar @P,@Proveedor,@PP,@FechaPres,2,180000,N'CRC';\nSELECT @CompraPres = MAX(IdCompra) FROM dbo.Compras;\nSET @DistribucionPres=(SELECT idPartidaPresupuesto,idCompromisoDetalle,monto FROM\n (VALUES(@PartidaNorte,@DetalleNorte,120000),(@PartidaSur,@DetalleSur,60000)) l(idPartidaPresupuesto,idCompromisoDetalle,monto) FOR JSON PATH);\nSET @OperacionPres=NEWID();\nEXEC dbo.usp_Presupuesto_ImputarCompra @CompraPres,@DistribucionPres,@OperacionPres,N'Primera compra parcial';\nIF NOT EXISTS(SELECT 1 FROM dbo.vw_SaldosPresupuesto WHERE IdPartidaPresupuesto=@PartidaNorte AND Comprometido=80000 AND Ejecutado=120000 AND Disponible=800000)\n THROW 51901,N'La ejecución parcial descontó el importe dos veces',1;\nEXEC dbo.SP_Compra_Insertar @P,@Proveedor,@PP,@FechaPres,2,80000,N'CRC';\nSELECT @CompraPres = MAX(IdCompra) FROM dbo.Compras;\nSET @DistribucionPres=(SELECT idPartidaPresupuesto,idCompromisoDetalle,monto FROM\n (VALUES(@PartidaNorte,@DetalleNorte,55000),(@PartidaSur,@DetalleSur,25000)) l(idPartidaPresupuesto,idCompromisoDetalle,monto) FOR JSON PATH);\nSET @OperacionPres=NEWID();\nEXEC dbo.usp_Presupuesto_ImputarCompra @CompraPres,@DistribucionPres,@OperacionPres,N'Última compra parcial';\nSET @OperacionPres=NEWID();\nEXEC dbo.usp_Compromiso_Finalizar @CompromisoPres,'Cerrado',@OperacionPres,N'Pedido finalizado';\nIF NOT EXISTS(SELECT 1 FROM dbo.vw_SaldosPresupuesto WHERE IdPartidaPresupuesto=@PartidaNorte AND Comprometido=0 AND Ejecutado=175000 AND Disponible=825000)\n OR NOT EXISTS(SELECT 1 FROM dbo.vw_SaldosPresupuesto WHERE IdPartidaPresupuesto=@PartidaSur AND Comprometido=0 AND Ejecutado=85000 AND Disponible=415000)\n THROW 51901,N'El cierre no liberó el remanente correcto',1;",
+    "Errors": null,
+    "Setup": "",
+    "BeforeEmit": "",
+    "UsaPresupuesto": true
+  },
+  {
+    "Name": "Presupuesto: rechaza una reserva que supera el saldo de una finca",
+    "Sql": "SET @DistribucionPres = (SELECT idPartidaPresupuesto,monto FROM (VALUES(@PartidaNorte,100),(@PartidaSur,500001)) l(idPartidaPresupuesto,monto) FOR JSON PATH);\nEXEC dbo.usp_Compromiso_Registrar @FechaPres,N'CRC',@DistribucionPres,@OperacionPres,N'Pedido confirmado',@CompromisoPres OUTPUT;",
+    "Errors": [
+      52010
+    ],
+    "Setup": "",
+    "BeforeEmit": "",
+    "UsaPresupuesto": true
+  },
+  {
+    "Name": "Presupuesto: una operación repetida no vuelve a reservar",
+    "Sql": "EXEC dbo.usp_Compromiso_Registrar @FechaPres,N'CRC',@DistribucionPres,@OperacionPres,N'Reintento',@CompromisoPres OUTPUT;",
+    "Errors": [
+      52009
+    ],
+    "Setup": "SET @DistribucionPres = (SELECT @PartidaNorte AS idPartidaPresupuesto, 300000 AS monto FOR JSON PATH);\nEXEC dbo.usp_Compromiso_Registrar @FechaPres,N'CRC',@DistribucionPres,@OperacionPres,N'Pedido confirmado',@CompromisoPres OUTPUT;",
+    "BeforeEmit": "",
+    "UsaPresupuesto": true
+  },
+  {
+    "Name": "Presupuesto: rechaza distribución que no coincide con el total de compra",
+    "Sql": "EXEC dbo.usp_Presupuesto_ImputarCompra @CompraPres,@DistribucionPres,@OperacionPres,N'Distribución incompleta';",
+    "Errors": [
+      52000
+    ],
+    "Setup": "EXEC dbo.SP_Compra_Insertar @P,@Proveedor,@PP,@FechaPres,2,100,N'CRC';\nSELECT @CompraPres = MAX(IdCompra) FROM dbo.Compras;\nSET @DistribucionPres = (SELECT @PartidaNorte AS idPartidaPresupuesto, 99 AS monto FOR JSON PATH);",
+    "BeforeEmit": "",
+    "UsaPresupuesto": true
+  },
+  {
+    "Name": "Presupuesto: rechaza imputación en moneda distinta",
+    "Sql": "EXEC dbo.usp_Presupuesto_ImputarCompra @CompraPres,@DistribucionPres,@OperacionPres,N'Moneda distinta';",
+    "Errors": [
+      52010
+    ],
+    "Setup": "EXEC dbo.SP_Compra_Insertar @P,@Proveedor,@PP,@FechaPres,2,100,N'USD';\nSELECT @CompraPres = MAX(IdCompra) FROM dbo.Compras;\nSET @DistribucionPres = (SELECT @PartidaNorte AS idPartidaPresupuesto, 100 AS monto FOR JSON PATH);",
+    "BeforeEmit": "",
+    "UsaPresupuesto": true
+  },
+  {
+    "Name": "Presupuesto: registra un exceso real con motivo y ajuste posterior",
+    "Sql": "EXEC dbo.SP_Compra_Insertar @P,@Proveedor,@PP,@FechaPres,2,510000,N'CRC';\nSELECT @CompraPres = MAX(IdCompra) FROM dbo.Compras;\nSET @DistribucionPres = (SELECT @PartidaSur AS idPartidaPresupuesto, 510000 AS monto FOR JSON PATH);\nEXEC dbo.usp_Presupuesto_ImputarCompra @CompraPres,@DistribucionPres,@OperacionPres,N'Compra realizada',N'Emergencia de la finca';\nIF NOT EXISTS(SELECT 1 FROM dbo.vw_SaldosPresupuesto WHERE IdPartidaPresupuesto=@PartidaSur AND Ejecutado=510000 AND Disponible=-10000)\n OR NOT EXISTS(SELECT 1 FROM dbo.MovimientosPresupuesto WHERE IdCompra=@CompraPres AND MotivoExceso=N'Emergencia de la finca')\n THROW 51901,N'El exceso no quedó registrado',1;\nSET @OperacionPres=NEWID();\nEXEC dbo.usp_Presupuesto_AjustarPartida @PartidaSur,20000,@OperacionPres,N'Ampliación aprobada';\nIF NOT EXISTS(SELECT 1 FROM dbo.vw_SaldosPresupuesto WHERE IdPartidaPresupuesto=@PartidaSur AND Aprobado=520000 AND Disponible=10000)\n THROW 51901,N'El ajuste no actualizó el aprobado',1;",
+    "Errors": null,
+    "Setup": "",
+    "BeforeEmit": "",
+    "UsaPresupuesto": true
+  },
+  {
+    "Name": "Presupuesto: la reversión devuelve el importe a una reserva abierta",
+    "Sql": "SET @DistribucionPres = (SELECT @PartidaNorte AS idPartidaPresupuesto, 300 AS monto FOR JSON PATH);\nEXEC dbo.usp_Compromiso_Registrar @FechaPres,N'CRC',@DistribucionPres,@OperacionPres,N'Pedido confirmado',@CompromisoPres OUTPUT;\nDECLARE @Detalle bigint=(SELECT IdCompromisoDetalle FROM dbo.CompromisosCompraDetalle WHERE IdCompromisoCompra=@CompromisoPres);\nEXEC dbo.SP_Compra_Insertar @P,@Proveedor,@PP,@FechaPres,2,120,N'CRC';\nSELECT @CompraPres = MAX(IdCompra) FROM dbo.Compras;\nSET @DistribucionPres=(SELECT @PartidaNorte AS idPartidaPresupuesto,@Detalle AS idCompromisoDetalle,120 AS monto FOR JSON PATH);\nSET @OperacionPres=NEWID();\nEXEC dbo.usp_Presupuesto_ImputarCompra @CompraPres,@DistribucionPres,@OperacionPres,N'Imputación original';\nSET @OperacionPres=NEWID();\nEXEC dbo.usp_Presupuesto_RevertirCompra @CompraPres,@OperacionPres,N'Corrección de distribución';\nIF EXISTS(SELECT 1 FROM dbo.vw_ComprasImputadasPresupuesto WHERE IdCompra=@CompraPres)\n OR NOT EXISTS(SELECT 1 FROM dbo.vw_SaldosCompromisoCompra WHERE IdCompromisoDetalle=@Detalle AND Pendiente=300 AND Ejecutado=0)\n THROW 51901,N'La reversión no restituyó el saldo reservado',1;\nEXEC dbo.SP_Compra_Actualizar @CompraPres,@P,@Proveedor,@PP,@FechaPres,2,125,N'CRC';",
+    "Errors": null,
+    "Setup": "",
+    "BeforeEmit": "",
+    "UsaPresupuesto": true
+  },
+  {
+    "Name": "Presupuesto: bloquea la modificación de importes de una compra imputada",
+    "Sql": "EXEC dbo.SP_Compra_Actualizar @CompraPres,@P,@Proveedor,@PP,@FechaPres,2,101,N'CRC';",
+    "Errors": [
+      52010
+    ],
+    "Setup": "EXEC dbo.SP_Compra_Insertar @P,@Proveedor,@PP,@FechaPres,2,100,N'CRC';\nSELECT @CompraPres = MAX(IdCompra) FROM dbo.Compras;\nSET @DistribucionPres = (SELECT @PartidaNorte AS idPartidaPresupuesto, 100 AS monto FOR JSON PATH);\nEXEC dbo.usp_Presupuesto_ImputarCompra @CompraPres,@DistribucionPres,@OperacionPres,N'Compra imputada';",
+    "BeforeEmit": "",
+    "UsaPresupuesto": true
+  },
+  {
+    "Name": "Presupuesto: rechaza períodos solapados para el mismo rubro, finca y moneda",
+    "Sql": "EXEC dbo.usp_Presupuesto_Aprobar @PresSolapado,@OperacionPres,N'Intento de doble presupuesto';",
+    "Errors": [
+      52010
+    ],
+    "Setup": "DECLARE @PresSolapado bigint;\nSET @DistribucionPres=(SELECT @Rubro AS idRubroPresupuesto,10 AS monto FOR JSON PATH);\nEXEC dbo.usp_Presupuesto_Crear N'Período solapado','20260901','20270101',N'CRC',@DistribucionPres,\n @OperacionPres,N'Borrador',@PresSolapado OUTPUT,@FincaNorte;\nSET @OperacionPres=NEWID();",
+    "BeforeEmit": "",
+    "UsaPresupuesto": true
+  },
+  {
+    "Name": "Presupuesto: rechaza importes JSON con precisión excesiva",
+    "Sql": "SET @DistribucionPres = (SELECT @PartidaNorte AS idPartidaPresupuesto, N'10.00001' AS monto FOR JSON PATH);\nEXEC dbo.usp_Compromiso_Registrar @FechaPres,N'CRC',@DistribucionPres,@OperacionPres,N'Pedido confirmado',@CompromisoPres OUTPUT;",
+    "Errors": [
+      52000
+    ],
+    "Setup": "",
+    "BeforeEmit": "",
+    "UsaPresupuesto": true
+  },
+  {
+    "Name": "Presupuesto: reserva solo una oferta vigente y revisada de la solicitud",
+    "Sql": "UPDATE dbo.ProformasProveedor SET FechaVencimiento='20261020' WHERE IdProformaProveedor=@Q;\nEXEC dbo.usp_Proforma_RevisarLinea @QD;\nEXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada',N'Oferta revisada';\nEXEC dbo.usp_Proforma_Validar @Q;\nSET @DistribucionPres=(SELECT @PartidaNorte AS idPartidaPresupuesto,@QD AS idProformaProveedorDetalle,200 AS monto FOR JSON PATH);\nEXEC dbo.usp_Compromiso_Registrar @FechaPres,N'CRC',@DistribucionPres,@OperacionPres,N'Oferta elegida',@CompromisoPres OUTPUT,@S1;\nIF NOT EXISTS(SELECT 1 FROM dbo.CompromisosCompraDetalle WHERE IdCompromisoCompra=@CompromisoPres AND IdProformaProveedorDetalle=@QD AND MontoReservado=200)\n THROW 51901,N'La reserva perdió el vínculo con la oferta',1;",
+    "Errors": null,
+    "Setup": "",
+    "BeforeEmit": "",
+    "UsaPresupuesto": true
+  },
+  {
+    "Name": "Presupuesto: rol de aplicación ejecuta el flujo sin permisos directos",
+    "Sql": "CREATE USER [PresupuestoPrueba] WITHOUT LOGIN;\nALTER ROLE [rol_gestor_api] ADD MEMBER [PresupuestoPrueba];\nSET @DistribucionPres=(SELECT @PartidaNorte AS idPartidaPresupuesto, 20 AS monto FOR JSON PATH);\nEXECUTE AS USER=N'PresupuestoPrueba';\nBEGIN TRY\n EXEC dbo.usp_Compromiso_Registrar @FechaPres,N'CRC',@DistribucionPres,@OperacionPres,N'Validar permisos',@CompromisoPres OUTPUT;\n EXEC dbo.usp_Presupuesto_Consultar @PresNorte;\nEND TRY BEGIN CATCH\n REVERT;\n THROW;\nEND CATCH;\nREVERT;",
+    "Errors": null,
+    "Setup": "",
+    "BeforeEmit": "",
+    "UsaPresupuesto": true
   }
 ]

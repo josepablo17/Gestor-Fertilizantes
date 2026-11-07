@@ -108,7 +108,7 @@ $documentos=@(foreach($pendiente in $pendientes){
 })
 $doc=$documentos[0]
 Assert-Solicitud ($doc.idDocumento -gt 0 -and $doc.idDocumento -eq $documentos[1].idDocumento -and
-    $doc.sha256 -ceq $documentos[1].sha256 -and $doc.versionPlantilla -ceq 'GF-SOL-1' -and
+    $doc.sha256 -ceq $documentos[1].sha256 -and $doc.versionPlantilla -ceq 'GF-SOL-2' -and
     $doc.tamanoBytes -gt 0 -and $null -eq $doc.rutaAlmacenamiento -and
     @(Get-ChildItem -LiteralPath $RutaDocumentos -Recurse -File -Filter '*.pdf').Count -eq 1) 'Las generaciones simultáneas conservan un original y su huella'
 Assert-Solicitud ((Get-PdfSolicitud $rutaPdf) -ceq $doc.sha256) 'Los bytes descargados coinciden con SHA-256'

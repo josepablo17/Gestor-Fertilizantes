@@ -74,6 +74,10 @@ export default function MatrizOfertas({ resultado }) {
       <p className="text-muted">
         {criterio.moneda} · {basesImporte.find((base) => base.value === criterio.baseTotalLinea)?.label} · Vigencia al {criterio.fechaReferencia}
       </p>
+      {filas.some(({ linea }) => linea.ultimaCompra) && <p className="text-muted">
+        El último precio pagado corresponde a la presentación solicitada y al importe registrado en Compras.
+        Su base fiscal no está registrada y queda fuera del ranking de ofertas.
+      </p>}
       {filas.length === 0 ? <EstadoVacio mensaje="No hay renglones para estos filtros." /> : (
         <div className="table-wrapper matriz-ofertas" role="region" aria-label="Comparación por producto y proveedor" tabIndex={0}>
           <table className="table matriz-ofertas__tabla" aria-label="Ofertas por producto y proveedor">
@@ -101,6 +105,14 @@ export default function MatrizOfertas({ resultado }) {
                     {linea.menorPrecioPorUnidadBase != null && <small>
                       Mínimo comparable {precioNormalizado(linea.menorPrecioPorUnidadBase, criterio.moneda, linea.unidadBase)}
                     </small>}
+                    {linea.ultimaCompra ? (
+                      <small className="matriz-ofertas__referencia">
+                        Último precio pagado {precioNormalizado(linea.ultimaCompra.precioPorUnidadBase, criterio.moneda, linea.unidadBase)}
+                        <br /><Link to={`/compras/editar/${linea.ultimaCompra.idCompra}`} aria-label={`Ver compra del ${linea.ultimaCompra.fechaCompra}`}>
+                          {linea.ultimaCompra.fechaCompra}
+                        </Link>{linea.ultimaCompra.nombreProveedor && ` · ${linea.ultimaCompra.nombreProveedor}`}
+                      </small>
+                    ) : <small className="text-muted">Sin compras previas en {criterio.moneda}</small>}
                   </th>
                   {[...proveedores.keys()].map((destino) => (
                     <td key={destino}>

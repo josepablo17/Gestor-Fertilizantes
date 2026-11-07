@@ -4,6 +4,7 @@ import { obtenerCompraPorId } from "../api/compraApi.js";
 import FormularioCompra from "../componentes/compras/FormularioCompras.jsx";
 import Pagina, { EstadoConsulta, Tarjeta } from "../componentes/comunes/Pagina.jsx";
 import useConsulta from "../hooks/useConsulta.js";
+import ImputacionCompra from "../modulos/presupuestos/componentes/ImputacionCompra.jsx";
 
 export default function CompraFormulario() {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ export default function CompraFormulario() {
           <FormularioCompra compraEditar={estado.datos} onCompraGuardada={volver} onCancelarEdicion={volver} />
         </EstadoConsulta>
       </Tarjeta>
+      {estado.datos && <ImputacionCompra key={id} compra={estado.datos} />}
     </Pagina>
   );
 }

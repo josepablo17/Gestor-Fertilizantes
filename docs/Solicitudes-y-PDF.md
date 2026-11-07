@@ -43,11 +43,12 @@ Ejemplo de cuerpo para crear o reemplazar un borrador (sustituir los IDs por los
 
 El máximo es de 100 renglones y 50 proveedores por solicitud. La cantidad expresa empaques (hasta cuatro decimales). SQL copia la presentación, el contenido, la unidad y los datos comerciales del catálogo. El nombre del proveedor en el PDF se toma al generar el original. Una vez generado, descargarlo o volver a solicitar su generación conserva los bytes originales y deja el envío pendiente hasta registrarlo explícitamente.
 
-## Contrato del formulario GF-SOL-1
+## Contrato del formulario GF-SOL-2
 
 - Campos AcroForm ocultos de solo lectura: `gf_plantilla`, `gf_solicitud_id`, `gf_solicitud_version`, `gf_destinatario_id` y `gf_proveedor_id`. Cada renglón tiene `linea_{id}_id`. Los IDs se guardan como texto. En recepción deben verificarse contra SQL: los campos ocultos se pueden modificar fuera de un lector habitual.
-- Los campos editables llevan el prefijo `cabecera_` o `linea_{id}_`. El proveedor indica número y vigencia de proforma, moneda, cantidad ofrecida, precio por empaque, descuento, impuesto, total y base del total por renglón, ajustes globales y condiciones. Los importes comienzan vacíos. Una alternativa se describe en la observación de su renglón.
-- El PDF no calcula importes. En la futura comparación, usar la misma moneda y base de precio por kg o litro, con ajustes globales aparte. No convertir peso a volumen. Si el proveedor devuelve una proforma propia, el módulo de recepción la conserva para revisión manual.
+- Los campos llevan el prefijo `cabecera_` o `linea_{id}_`. La moneda (CRC o USD), el estado de la oferta y la base del total usan listas con etiquetas legibles. Las fechas se guardan como AAAA-MM-DD. Para cantidades e importes se admite coma o punto decimal, sin separadores de miles. Una alternativa se describe en la observación de su renglón.
+- Los visores compatibles con JavaScript de AcroForm calculan los totales de línea, el subtotal neto, el IVA del documento y el total. El IVA del documento suma el impuesto de línea y el IVA adicional declarado. El subtotal ya descuenta los descuentos de línea. El total aplica al subtotal solo los ajustes globales. Los ajustes opcionales vacíos equivalen a cero cuando se puede calcular la oferta.
+- El servidor recalcula los importes al recibir el PDF y conserva los valores originales como evidencia. Los documentos GF-SOL-1 registrados siguen admitiéndose con captura de importes. Las proformas externas se conservan para revisión manual.
 
 ## Almacenamiento local
 

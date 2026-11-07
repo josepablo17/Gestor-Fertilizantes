@@ -12,4 +12,7 @@ public sealed record LineaComparadaDTO(
     decimal ContenidoTotalSolicitado,
     decimal? MenorPrecioPorUnidadBase,
     decimal? MenorPrecioConCoberturaYVigencia,
-    IReadOnlyList<OfertaComparadaDTO> Ofertas);
+    IReadOnlyList<OfertaComparadaDTO> Ofertas,
+    ReferenciaCompraDTO? UltimaCompra);
+
+public sealed record ReferenciaCompraDTO(int IdCompra, DateOnly FechaCompra, string? NombreProveedor, decimal PrecioPorUnidadBase);

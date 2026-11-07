@@ -2,7 +2,7 @@
 
 La fuente del esquema es **`GestorFertilizantes.Database/GestorFertilizantes.Database.sqlproj`**. Compila las definiciones declarativas a un DACPAC que crea una base vacía o calcula la actualización de una existente. Destino: SQL Server 2022, compatibilidad 160, collation `SQL_Latin1_General_CP1_CI_AS`.
 
-Incluye 16 tablas de negocio, 84 procedimientos, 14 triggers, 2 vistas, 1 función y 1 secuencia, con sus llaves, índices y restricciones. Los archivos de tabla contienen también sus índices y triggers.
+Incluye 24 tablas, 96 procedimientos, 16 triggers, 5 vistas, 2 funciones y 1 secuencia, con sus llaves, índices y restricciones. Los archivos de tabla contienen también sus índices y triggers.
 
 ## Estructura
 
@@ -16,11 +16,11 @@ database/
     packages.lock.json                     Referencia master de SQL Server 2022
     dbo/{Tables,StoredProcedures,...}/      Definiciones actuales
     ExtendedProperties.sql                 Versiones históricas de tablas/SP
-    Scripts/PostDeployment.sql             Cinco unidades técnicas idempotentes
+    Scripts/PostDeployment.sql             Unidades técnicas y retiro de procedimientos obsoletos
     Security/rol_gestor_api.sql             Rol y permisos de ejecución explícitos
   Profiles/Portable.publish.xml            Reglas sin conexiones ni contraseñas
   scripts/Invoke-Database.ps1               Build / Plan / Publish / Test
-  tests/                                   Datos propios y 89 casos SQL
+  tests/                                   Datos propios y casos de integración SQL
   tools/                                   Preparación del usuario SQL de ejecución
   contracts/                               Referencia de integración con backend
   archive/                                 Migraciones previas congeladas
@@ -72,7 +72,7 @@ La semilla instala KG, G, L, ML y UND si faltan, y rechaza discrepancias de dime
 
 Usa el servidor y credenciales de la variable, pero crea otra base `GF_DB_TEST_<guid>`. Comprueba que no existe antes de desplegar y elimina únicamente ese nombre generado por la misma ejecución. Nunca ejecuta las fixtures en la base indicada en la conexión.
 
-Comprueba creación desde cero, objetos/collation/restricciones, cinco unidades técnicas y ausencia de filas de negocio; ejecuta 89 casos con catálogos sintéticos revertidos por caso. Después persiste una solicitud, metadatos PDF, extracción, respuesta validada y auditoría en esa base temporal, redespliega el mismo DACPAC y verifica hashes idénticos de todas las filas, conservación de la secuencia, cero operaciones pendientes y limpieza completada.
+Comprueba la creación desde cero, el esquema y las cinco unidades técnicas. Ejecuta los casos SQL con datos sintéticos revertidos por caso y verifica reservas presupuestarias concurrentes con dos sesiones. Después redespliega el DACPAC y comprueba que se conserven las filas y la secuencia.
 
 Evidencia: `artifacts/verification`. No ejecutar las fixtures SQL directamente. Las pruebas verifican SQL, no PDFs físicos, API o interfaz.
 

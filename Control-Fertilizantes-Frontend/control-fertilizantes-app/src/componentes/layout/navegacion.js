@@ -1,12 +1,13 @@
 import {
-  HiOutlineArchiveBox, HiOutlineBuildingStorefront, HiOutlineChartBar, HiOutlineClipboardDocumentList,
-  HiOutlineCube, HiOutlineScale, HiOutlineShoppingCart, HiOutlineSquares2X2, HiOutlineTag
+  HiOutlineArchiveBox, HiOutlineBuildingStorefront, HiOutlineClipboardDocumentList,
+  HiOutlineCube, HiOutlineScale, HiOutlineShoppingCart, HiOutlineSquares2X2, HiOutlineTag, HiOutlineWallet
 } from "react-icons/hi2";
 
 export const gruposNavegacion = [
   { titulo: "Operación", enlaces: [
     { ruta: "/solicitudes", texto: "Solicitudes de cotización", icono: HiOutlineClipboardDocumentList },
     { ruta: "/compras", texto: "Compras", icono: HiOutlineShoppingCart },
+    { ruta: "/presupuestos", texto: "Presupuestos", icono: HiOutlineWallet },
   ] },
   { titulo: "Catálogos", enlaces: [
     { ruta: "/productos", texto: "Productos", icono: HiOutlineCube },
@@ -15,10 +16,6 @@ export const gruposNavegacion = [
     { ruta: "/presentacionProductos", texto: "Presentaciones producto", icono: HiOutlineArchiveBox },
     { ruta: "/unidadesMedida", texto: "Unidades de medida", icono: HiOutlineScale },
     { ruta: "/proveedores", texto: "Proveedores", icono: HiOutlineBuildingStorefront },
-  ] },
-  { titulo: "Análisis", enlaces: [
-    { ruta: "/compras-inteligencia", texto: "Compras inteligentes", icono: HiOutlineChartBar },
-    { ruta: "/comparador-proveedores", texto: "Comparador proveedores", icono: HiOutlineScale },
   ] },
 ];
 

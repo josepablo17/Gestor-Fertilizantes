@@ -12,8 +12,7 @@ namespace Control_Fertilizantes_Backend.Infraestructura.Pdf;
 
 public sealed class LectorRespuestaPdf(ILogger<LectorRespuestaPdf> logger) : ILectorRespuestaPdf
 {
-    private const string Version = "GF-LECTOR-1";
-    private const string Plantilla = "GF-SOL-1";
+    private const string Version = "GF-LECTOR-2";
     private const int MaximoCampos = 1000;
     private const int MaximoCaracteresPorCampo = 4000;
     private static readonly string[] CamposCabecera = ["numeroProforma", "fechaProforma", "fechaVencimiento", "moneda",
@@ -42,8 +41,13 @@ public sealed class LectorRespuestaPdf(ILogger<LectorRespuestaPdf> logger) : ILe
             var estructuraInvalida = formulario!.Elements.ContainsKey("/XFA");
             var tieneOtraLinea = false;
             var identidades = Identidades(solicitud, destino);
+            var version = campos.Elements.Select(Resolver).OfType<PdfDictionary>()
+                .Where(x => Cadena(x, "/T") == "gf_plantilla").Select(x => Cadena(x, "/V")).FirstOrDefault();
+            var plantillaCalculada = version == ExtraccionProforma.PlantillaCalculada;
             var esperados = identidades.Keys.Concat(CamposCabecera.Select(x => "cabecera_" + x))
                 .Concat(solicitud.Lineas.SelectMany(x => CamposLinea.Select(k => Prefijo(x) + k))).ToHashSet(StringComparer.Ordinal);
+            esperados.Add("gf_plantilla");
+            if (plantillaCalculada) esperados.Add("cabecera_ivaAdicional");
             foreach (var item in campos.Elements)
             {
                 var diccionario = Resolver(item) as PdfDictionary;
@@ -57,7 +61,7 @@ public sealed class LectorRespuestaPdf(ILogger<LectorRespuestaPdf> logger) : ILe
                 }
                 var valor = Cadena(diccionario, "/V");
                 // Una identidad conocida y contradictoria nunca puede pasar al flujo manual.
-                if (nombre != "gf_plantilla" && identidades.TryGetValue(nombre, out var identidad) &&
+                if (identidades.TryGetValue(nombre, out var identidad) &&
                     !string.IsNullOrWhiteSpace(valor) && !string.Equals(valor, identidad, StringComparison.Ordinal))
                     throw new ReglaNegocio("El formulario identifica otra solicitud, versión, línea o proveedor.", HttpStatusCode.Conflict);
                 if (valor?.Length > MaximoCaracteresPorCampo)
@@ -66,25 +70,26 @@ public sealed class LectorRespuestaPdf(ILogger<LectorRespuestaPdf> logger) : ILe
                     continue;
                 }
                 datos.Add(new(nombre, valor));
-                if (item is not PdfReference referencia || diccionario.Elements.GetName("/FT") != "/Tx" ||
+                var esLista = plantillaCalculada && (nombre == "cabecera_moneda" ||
+                    nombre.EndsWith("_estadoOferta", StringComparison.Ordinal) || nombre.EndsWith("_baseTotalLinea", StringComparison.Ordinal));
+                if (item is not PdfReference referencia || diccionario.Elements.GetName("/FT") != (esLista ? "/Ch" : "/Tx") ||
                     diccionario.Elements.GetName("/Subtype") != "/Widget" ||
                     (diccionario.Elements.ContainsKey("/V") && valor is null))
                     estructuraInvalida = true;
                 else if (!referencias.TryAdd(nombre, referencia.ObjectID)) estructuraInvalida = true;
             }
-            var version = datos.FirstOrDefault(x => x.Nombre == "gf_plantilla")?.Valor;
-            if (version != Plantilla)
+            if (version is not (ExtraccionProforma.PlantillaAnterior or ExtraccionProforma.PlantillaCalculada))
                 return Manual("PlantillaDesconocida", "No se reconoció una plantilla compatible. Capture la oferta manualmente.", datos);
             if (tieneOtraLinea)
                 throw new ReglaNegocio("El formulario contiene un renglón ajeno a la solicitud.", HttpStatusCode.Conflict);
-            if (plantillaEnviada != Plantilla)
-                return Manual("PlantillaNoVerificada", "No hay una plantilla original compatible registrada para este destinatario.", datos, Plantilla);
+            if (plantillaEnviada != version)
+                return Manual("PlantillaNoVerificada", "No hay una plantilla original compatible registrada para este destinatario.", datos, version);
             if (estructuraInvalida || referencias.Count != esperados.Count ||
                 identidades.Any(x => !datos.Any(d => d.Nombre == x.Key && d.Valor == x.Value)) ||
                 !WidgetsCoinciden(pdf, referencias))
-                return Manual("FormularioIncompleto", "Hay campos faltantes, ambiguos o desvinculados. Revise el PDF y capture la oferta.", datos, Plantilla);
+                return Manual("FormularioIncompleto", "Hay campos faltantes, ambiguos o desvinculados. Revise el PDF y capture la oferta.", datos, version);
 
-            return new(Version, "AcroForm", "Completada", Plantilla, datos, []);
+            return new(Version, "AcroForm", "Completada", version, datos, []);
         }
         catch (ReglaNegocio) { throw; }
         catch (Exception error) when (error is PdfReaderException or InvalidOperationException or
@@ -102,7 +107,6 @@ public sealed class LectorRespuestaPdf(ILogger<LectorRespuestaPdf> logger) : ILe
     {
         var ids = new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            ["gf_plantilla"] = Plantilla,
             ["gf_solicitud_id"] = solicitud.IdSolicitudCotizacion.ToString(CultureInfo.InvariantCulture),
             ["gf_solicitud_version"] = solicitud.VersionSolicitud.ToString(CultureInfo.InvariantCulture),
             ["gf_destinatario_id"] = destino.IdSolicitudCotizacionProveedor.ToString(CultureInfo.InvariantCulture),

@@ -9,15 +9,15 @@ El cliente abre la solicitud emitida y selecciona al proveedor del que recibió 
 - `GET /api/respuestas-cotizacion/{idRespuesta}`: devuelve cabecera y renglones editables, metadatos del archivo, extracción original y cambios.
 - `GET /api/respuestas-cotizacion/{idRespuesta}/documento`: descarga los bytes originales y verifica su SHA-256. Si no coinciden, devuelve un conflicto que pide restaurar el archivo.
 
-Si el PDF conserva el formulario GF-SOL-1, el lector comprueba que exista una plantilla original registrada para el destinatario y coteja solicitud, versión, proveedor y renglones. Lee los valores de AcroForm. Si los identificadores contradicen la selección, rechaza la carga. Si no encuentra un formulario compatible (por ejemplo, una proforma propia, impresa o aplanada), conserva el archivo y deja los renglones solicitados listos para captura manual, sin precios ni cantidades ofrecidas.
+Si el PDF conserva el formulario GF-SOL-1 o GF-SOL-2, el lector comprueba que la versión de la plantilla coincida con la registrada para el destinatario y coteja solicitud, versión, proveedor y renglones. Lee los valores de AcroForm. Si los identificadores contradicen la selección, rechaza la carga. Si no encuentra un formulario compatible (por ejemplo, una proforma propia, impresa o aplanada), conserva el archivo y deja los renglones solicitados listos para captura manual, sin precios ni cantidades ofrecidas.
 
 La carga no valida la respuesta ni registra una compra. SQL actualiza el destinatario como respondido si ya había un envío registrado; una recepción nunca inventa una fecha de envío.
 
 ## Interpretar la extracción
 
 - `importacion.camposOriginales` conserva los valores leídos como cadenas, incluso cuando no se pudieron interpretar. `importacion.advertencias` muestra qué campos requieren atención. Los datos de trabajo se devuelven en `cabecera` y `lineas`. Las correcciones no escriben en la extracción.
-- Los campos vacíos siguen siendo nulos. Para importes automáticos, usar punto decimal y omitir símbolos y separadores de miles. Los formatos ambiguos, la precisión excesiva y las fechas inválidas quedan pendientes. Un cero escrito y válido se conserva como cero.
-- El lector usa importes de una línea solo si está marcada `Cotizada`. Si contiene una observación, deja pendiente la asociación con la presentación, porque el proveedor pudo ofrecer otra. Las alternativas se resuelven explícitamente; el lector no adivina equivalencias ni calcula descuentos, impuestos o totales.
+- GF-SOL-2 admite coma o punto decimal. GF-SOL-1 usa punto. Los formatos ambiguos, la precisión excesiva y las fechas inválidas quedan pendientes. Un cero escrito y válido se conserva como cero. Los ajustes opcionales vacíos de GF-SOL-2 equivalen a cero para el cálculo.
+- El lector usa importes de una línea solo si está marcada `Cotizada`. Si contiene una observación, deja pendiente la asociación con la presentación, porque el proveedor pudo ofrecer otra. En GF-SOL-2, el servidor recalcula los totales a partir de los datos válidos y registra una advertencia si difieren del valor guardado en el PDF.
 - Para archivos externos, el contenido visible lo interpreta quien revisa. No se usa OCR ni IA y no se intenta adivinar la estructura del proveedor.
 
 ## Corregir y validar

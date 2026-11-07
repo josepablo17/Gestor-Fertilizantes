@@ -11,8 +11,8 @@ using Control_Fertilizantes_Backend.Infraestructura.Persistencia.Repositorios.Ca
 using Control_Fertilizantes_Backend.Infraestructura.Persistencia.Repositorios.Catalogos.Proveedores;
 using Control_Fertilizantes_Backend.Infraestructura.Persistencia.Repositorios.Catalogos.UnidadesMedida;
 using Control_Fertilizantes_Backend.Infraestructura.Persistencia.Repositorios.Compras;
-using Control_Fertilizantes_Backend.Infraestructura.Persistencia.Repositorios.Compras.Analisis;
-using Control_Fertilizantes_Backend.Infraestructura.Persistencia.Repositorios.Compras.ComparacionHistorica;
+using Control_Fertilizantes_Backend.Infraestructura.Persistencia.Repositorios.Presupuestos;
+using Control_Fertilizantes_Backend.Modulos.Presupuestos.Contratos;
 using Control_Fertilizantes_Backend.Infraestructura.Persistencia.Repositorios.Importaciones;
 using Control_Fertilizantes_Backend.Infraestructura.Persistencia.Repositorios.Proformas;
 using Control_Fertilizantes_Backend.Modulos.Catalogos.Presentaciones.Contratos;
@@ -23,10 +23,6 @@ using Control_Fertilizantes_Backend.Modulos.Catalogos.Proveedores.Contratos;
 using Control_Fertilizantes_Backend.Modulos.Catalogos.Proveedores.Servicios;
 using Control_Fertilizantes_Backend.Modulos.Catalogos.UnidadesMedida.Contratos;
 using Control_Fertilizantes_Backend.Modulos.Catalogos.UnidadesMedida.Servicios;
-using Control_Fertilizantes_Backend.Modulos.Compras.Analisis.Contratos;
-using Control_Fertilizantes_Backend.Modulos.Compras.Analisis.Servicios;
-using Control_Fertilizantes_Backend.Modulos.Compras.ComparacionHistorica.Contratos;
-using Control_Fertilizantes_Backend.Modulos.Compras.ComparacionHistorica.Servicios;
 using Control_Fertilizantes_Backend.Modulos.Compras.Contratos;
 using Control_Fertilizantes_Backend.Modulos.Compras.Servicios;
 using Control_Fertilizantes_Backend.Modulos.Importaciones.Contratos;
@@ -95,10 +91,7 @@ public static class RegistroDependencias
     {
         servicios.AddScoped<ICompraRepositorio, CompraRepositorio>();
         servicios.AddScoped<ICompraServicio, CompraServicio>();
-        servicios.AddScoped<ICompraInteligenciaRepositorio, CompraInteligenciaRepositorio>();
-        servicios.AddScoped<ICompraInteligenciaServicio, CompraInteligenciaServicio>();
-        servicios.AddScoped<IComparadorProveedorRepositorio, ComparadorProveedorRepositorio>();
-        servicios.AddScoped<IComparadorProveedorServicio, ComparadorProveedorServicio>();
+        servicios.AddScoped<IPresupuestoRepositorio, PresupuestoRepositorio>();
     }
 
     private static void AgregarImportaciones(IServiceCollection servicios)

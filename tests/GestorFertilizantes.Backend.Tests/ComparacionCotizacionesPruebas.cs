@@ -27,14 +27,15 @@ public class ComparacionCotizacionesPruebas
 
     private sealed class ComparacionSinPrecision : IComparacionCotizacionesRepositorio
     {
-        public Task<IReadOnlyList<ComparacionFila>> CompararAsync(CriterioComparacion criterio, CancellationToken cancelacion) =>
-            Task.FromResult<IReadOnlyList<ComparacionFila>>([
+        public Task<(IReadOnlyList<ComparacionFila>, IReadOnlyList<ReferenciaCompraFila>)> CompararAsync(
+            CriterioComparacion criterio, CancellationToken cancelacion) =>
+            Task.FromResult<(IReadOnlyList<ComparacionFila>, IReadOnlyList<ReferenciaCompraFila>)>(([
                 new() {
                     IdSolicitudCotizacionDetalle = 7, TipoBaseSolicitado = "PESO", TipoBaseOfrecido = "PESO",
                     IdProformaProveedor = 3, IdProformaProveedorDetalle = 5, EstadoOferta = "Cotizada",
                     CondicionComparacion = "Comparable", EsComparable = true, Vigente = true,
                     ContenidoTotalOfrecido = 0m, ContenidoTotalSolicitado = 0m, CubreCantidadSolicitada = true
                 }
-            ]);
+            ], []));
     }
 }

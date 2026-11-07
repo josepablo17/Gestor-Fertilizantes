@@ -95,112 +95,6 @@
         }
       }
     },
-    "/api/ComparadorProveedor/Comparar": {
-      "get": {
-        "tags": [
-          "ComparadorProveedor"
-        ],
-        "parameters": [
-          {
-            "name": "idProducto",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "idPresentacionProducto",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "moneda",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "mesesAnalisis",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "soloAutorizados",
-            "in": "query",
-            "schema": {
-              "type": "boolean",
-              "default": false
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/ComparadorProveedor/DetalleProveedor": {
-      "get": {
-        "tags": [
-          "ComparadorProveedor"
-        ],
-        "parameters": [
-          {
-            "name": "idProducto",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "idPresentacionProducto",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "idProveedor",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "moneda",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "mesesAnalisis",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/api/Compra/ListarCompra": {
       "get": {
         "tags": [
@@ -342,6 +236,30 @@
               "type": "integer",
               "format": "int32"
             }
+          },
+          {
+            "name": "moneda",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fechaLimite",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "idCompraLimite",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
           }
         ],
         "responses": {
@@ -407,119 +325,6 @@
             }
           }
         },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/CompraInteligencia/HistorialPrecios": {
-      "get": {
-        "tags": [
-          "CompraInteligencia"
-        ],
-        "parameters": [
-          {
-            "name": "idProducto",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "idPresentacionProducto",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/CompraInteligencia/ResumenInteligentePrecios": {
-      "get": {
-        "tags": [
-          "CompraInteligencia"
-        ],
-        "parameters": [
-          {
-            "name": "idProducto",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "idPresentacionProducto",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/CompraInteligencia/EvaluarCompra/{idCompra}": {
-      "get": {
-        "tags": [
-          "CompraInteligencia"
-        ],
-        "parameters": [
-          {
-            "name": "idCompra",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/api/CompraInteligencia/Alertas": {
-      "get": {
-        "tags": [
-          "CompraInteligencia"
-        ],
-        "parameters": [
-          {
-            "name": "idProducto",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          },
-          {
-            "name": "idPresentacionProducto",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -1042,6 +847,777 @@
               "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UnidadMedidaDropdownDTOIEnumerableApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/presupuestos": {
+      "get": {
+        "tags": [
+          "Presupuestos"
+        ],
+        "parameters": [
+          {
+            "name": "idFinca",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "moneda",
+            "in": "query",
+            "schema": {
+              "pattern": "CRC|USD",
+              "type": "string"
+            }
+          },
+          {
+            "name": "estado",
+            "in": "query",
+            "schema": {
+              "pattern": "Borrador|Aprobado|Cerrado",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresupuestoResumenDTOIReadOnlyListApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresupuestoResumenDTOIReadOnlyListApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresupuestoResumenDTOIReadOnlyListApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Presupuestos"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrearPresupuestoDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrearPresupuestoDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CrearPresupuestoDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/presupuestos/{id}": {
+      "get": {
+        "tags": [
+          "Presupuestos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresupuestoDetalleDTOApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresupuestoDetalleDTOApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresupuestoDetalleDTOApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/presupuestos/catalogos": {
+      "get": {
+        "tags": [
+          "Presupuestos"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogosPresupuestoDTOApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogosPresupuestoDTOApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogosPresupuestoDTOApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/presupuestos/fincas": {
+      "post": {
+        "tags": [
+          "Presupuestos"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CatalogoPresupuestoDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CatalogoPresupuestoDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CatalogoPresupuestoDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Int32ApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Int32ApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Int32ApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/presupuestos/rubros": {
+      "post": {
+        "tags": [
+          "Presupuestos"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CatalogoPresupuestoDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CatalogoPresupuestoDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CatalogoPresupuestoDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Int32ApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Int32ApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Int32ApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/presupuestos/{id}/aprobar": {
+      "post": {
+        "tags": [
+          "Presupuestos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperacionPresupuestoDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperacionPresupuestoDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperacionPresupuestoDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/presupuestos/{id}/cerrar": {
+      "post": {
+        "tags": [
+          "Presupuestos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperacionPresupuestoDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperacionPresupuestoDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperacionPresupuestoDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/presupuestos/partidas/{id}/ajustes": {
+      "post": {
+        "tags": [
+          "Presupuestos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AjustarPartidaDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AjustarPartidaDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/AjustarPartidaDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/presupuestos/compromisos": {
+      "post": {
+        "tags": [
+          "Presupuestos"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistrarCompromisoDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistrarCompromisoDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistrarCompromisoDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Int64ApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Int64ApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Int64ApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/presupuestos/compromisos/{id}/finalizar": {
+      "post": {
+        "tags": [
+          "Presupuestos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FinalizarCompromisoDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FinalizarCompromisoDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/FinalizarCompromisoDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/presupuestos/opciones": {
+      "get": {
+        "tags": [
+          "Presupuestos"
+        ],
+        "parameters": [
+          {
+            "name": "fecha",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "moneda",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "pattern": "CRC|USD",
+              "type": "string"
+            }
+          },
+          {
+            "name": "idProducto",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "idPresentacionProducto",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "idProveedor",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpcionesImputacionDTOApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpcionesImputacionDTOApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpcionesImputacionDTOApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/presupuestos/compras/{id}": {
+      "get": {
+        "tags": [
+          "Presupuestos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImputacionActivaDTOIReadOnlyListApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImputacionActivaDTOIReadOnlyListApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImputacionActivaDTOIReadOnlyListApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/presupuestos/compras/{id}/imputar": {
+      "post": {
+        "tags": [
+          "Presupuestos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImputacionCompraDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImputacionCompraDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImputacionCompraDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/presupuestos/compras/{id}/revertir": {
+      "post": {
+        "tags": [
+          "Presupuestos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperacionPresupuestoDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperacionPresupuestoDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OperacionPresupuestoDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
                 }
               }
             }
@@ -3237,6 +3813,28 @@
         },
         "additionalProperties": false
       },
+      "AjustarPartidaDTO": {
+        "required": [
+          "motivo"
+        ],
+        "type": "object",
+        "properties": {
+          "idOperacion": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "motivo": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string"
+          },
+          "ajuste": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
       "AjustesGlobalesDTO": {
         "type": "object",
         "properties": {
@@ -3524,6 +4122,62 @@
         },
         "additionalProperties": false
       },
+      "CatalogoPresupuestoDTO": {
+        "required": [
+          "codigo",
+          "nombre"
+        ],
+        "type": "object",
+        "properties": {
+          "codigo": {
+            "maxLength": 30,
+            "minLength": 0,
+            "type": "string"
+          },
+          "nombre": {
+            "maxLength": 150,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatalogosPresupuestoDTO": {
+        "type": "object",
+        "properties": {
+          "fincas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FincaPresupuestoDTO"
+            },
+            "nullable": true
+          },
+          "rubros": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RubroPresupuestoDTO"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CatalogosPresupuestoDTOApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/CatalogosPresupuestoDTO"
+          }
+        },
+        "additionalProperties": false
+      },
       "ClienteSolicitudDTO": {
         "required": [
           "nombre"
@@ -3714,6 +4368,56 @@
             "minLength": 0,
             "type": "string",
             "nullable": true
+          },
+          "imputacionPresupuesto": {
+            "$ref": "#/components/schemas/ImputacionCompraDTO"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CompromisoPresupuestoDTO": {
+        "type": "object",
+        "properties": {
+          "idCompromisoCompra": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "idCompromisoDetalle": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "idPartidaPresupuesto": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "idProformaProveedorDetalle": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "fechaCompromiso": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "estado": {
+            "type": "string",
+            "nullable": true
+          },
+          "montoReservado": {
+            "type": "number",
+            "format": "double"
+          },
+          "pendiente": {
+            "type": "number",
+            "format": "double"
+          },
+          "ejecutado": {
+            "type": "number",
+            "format": "double"
+          },
+          "motivoCierre": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -3764,6 +4468,58 @@
               "$ref": "#/components/schemas/ProformaPdfLineaValidadaDTO"
             },
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CrearPresupuestoDTO": {
+        "required": [
+          "moneda",
+          "motivo",
+          "nombre",
+          "partidas"
+        ],
+        "type": "object",
+        "properties": {
+          "idOperacion": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "motivo": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string"
+          },
+          "nombre": {
+            "maxLength": 150,
+            "minLength": 0,
+            "type": "string"
+          },
+          "fechaInicio": {
+            "type": "string",
+            "format": "date"
+          },
+          "fechaFin": {
+            "type": "string",
+            "format": "date"
+          },
+          "moneda": {
+            "minLength": 1,
+            "pattern": "CRC|USD",
+            "type": "string"
+          },
+          "idFinca": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "partidas": {
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartidaInicialDTO"
+            }
           }
         },
         "additionalProperties": false
@@ -3901,6 +4657,51 @@
           },
           "data": {
             "$ref": "#/components/schemas/DocumentoRespuestaDTO"
+          }
+        },
+        "additionalProperties": false
+      },
+      "FinalizarCompromisoDTO": {
+        "required": [
+          "estado",
+          "motivo"
+        ],
+        "type": "object",
+        "properties": {
+          "idOperacion": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "motivo": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string"
+          },
+          "estado": {
+            "minLength": 1,
+            "pattern": "Cerrado|Cancelado",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "FincaPresupuestoDTO": {
+        "type": "object",
+        "properties": {
+          "idFinca": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "codigo": {
+            "type": "string",
+            "nullable": true
+          },
+          "nombre": {
+            "type": "string",
+            "nullable": true
+          },
+          "activa": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false
@@ -4090,6 +4891,147 @@
         },
         "additionalProperties": false
       },
+      "ImputacionActivaDTO": {
+        "type": "object",
+        "properties": {
+          "idPresupuesto": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "presupuesto": {
+            "type": "string",
+            "nullable": true
+          },
+          "finca": {
+            "type": "string",
+            "nullable": true
+          },
+          "rubro": {
+            "type": "string",
+            "nullable": true
+          },
+          "estado": {
+            "type": "string",
+            "nullable": true
+          },
+          "monto": {
+            "type": "number",
+            "format": "double"
+          },
+          "idCompromisoDetalle": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ImputacionActivaDTOIReadOnlyListApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImputacionActivaDTO"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ImputacionCompraDTO": {
+        "required": [
+          "distribucion",
+          "motivo"
+        ],
+        "type": "object",
+        "properties": {
+          "idOperacion": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "motivo": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string"
+          },
+          "motivoExceso": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "distribucion": {
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ImputacionPartidaDTO"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "ImputacionPartidaDTO": {
+        "type": "object",
+        "properties": {
+          "idPartidaPresupuesto": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "monto": {
+            "type": "number",
+            "format": "double"
+          },
+          "idCompromisoDetalle": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "Int32ApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Int64ApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "additionalProperties": false
+      },
       "LineaComparadaDTO": {
         "type": "object",
         "properties": {
@@ -4145,6 +5087,9 @@
               "$ref": "#/components/schemas/OfertaComparadaDTO"
             },
             "nullable": true
+          },
+          "ultimaCompra": {
+            "$ref": "#/components/schemas/ReferenciaCompraDTO"
           }
         },
         "additionalProperties": false
@@ -4486,6 +5431,71 @@
         },
         "additionalProperties": false
       },
+      "MovimientoPresupuestoDTO": {
+        "type": "object",
+        "properties": {
+          "idMovimientoPresupuesto": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "idOperacion": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "idPartidaPresupuesto": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "tipo": {
+            "type": "string",
+            "nullable": true
+          },
+          "cambioAprobado": {
+            "type": "number",
+            "format": "double"
+          },
+          "cambioComprometido": {
+            "type": "number",
+            "format": "double"
+          },
+          "cambioEjecutado": {
+            "type": "number",
+            "format": "double"
+          },
+          "idCompra": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "idCompromisoDetalle": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "idMovimientoRevertido": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "motivoExceso": {
+            "type": "string",
+            "nullable": true
+          },
+          "motivo": {
+            "type": "string",
+            "nullable": true
+          },
+          "fechaRegistro": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "usuarioSql": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "ObjectApiRespuesta": {
         "type": "object",
         "properties": {
@@ -4612,6 +5622,176 @@
           },
           "esMenorPrecioConCoberturaYVigencia": {
             "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OpcionCompromisoDTO": {
+        "type": "object",
+        "properties": {
+          "idCompromisoDetalle": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "idCompromisoCompra": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "idPartidaPresupuesto": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "pendiente": {
+            "type": "number",
+            "format": "double"
+          },
+          "fechaCompromiso": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "producto": {
+            "type": "string",
+            "nullable": true
+          },
+          "proveedor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OpcionPartidaDTO": {
+        "type": "object",
+        "properties": {
+          "idPartidaPresupuesto": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "idPresupuesto": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "presupuesto": {
+            "type": "string",
+            "nullable": true
+          },
+          "finca": {
+            "type": "string",
+            "nullable": true
+          },
+          "rubro": {
+            "type": "string",
+            "nullable": true
+          },
+          "disponible": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OpcionesImputacionDTO": {
+        "type": "object",
+        "properties": {
+          "partidas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpcionPartidaDTO"
+            },
+            "nullable": true
+          },
+          "compromisos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpcionCompromisoDTO"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OpcionesImputacionDTOApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/OpcionesImputacionDTO"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OperacionPresupuestoDTO": {
+        "required": [
+          "motivo"
+        ],
+        "type": "object",
+        "properties": {
+          "idOperacion": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "motivo": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PartidaInicialDTO": {
+        "type": "object",
+        "properties": {
+          "idRubroPresupuesto": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "monto": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PartidaPresupuestoDTO": {
+        "type": "object",
+        "properties": {
+          "idPartidaPresupuesto": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "idRubroPresupuesto": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rubro": {
+            "type": "string",
+            "nullable": true
+          },
+          "montoInicial": {
+            "type": "number",
+            "format": "double"
+          },
+          "aprobado": {
+            "type": "number",
+            "format": "double"
+          },
+          "comprometido": {
+            "type": "number",
+            "format": "double"
+          },
+          "ejecutado": {
+            "type": "number",
+            "format": "double"
+          },
+          "disponible": {
+            "type": "number",
+            "format": "double"
           }
         },
         "additionalProperties": false
@@ -4794,6 +5974,188 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/PresentacionProductoListarDTO"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PresupuestoCabeceraDTO": {
+        "type": "object",
+        "properties": {
+          "idPresupuesto": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nombre": {
+            "type": "string",
+            "nullable": true
+          },
+          "idFinca": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "finca": {
+            "type": "string",
+            "nullable": true
+          },
+          "fechaInicio": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fechaFin": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "moneda": {
+            "type": "string",
+            "nullable": true
+          },
+          "estado": {
+            "type": "string",
+            "nullable": true
+          },
+          "fechaCreacion": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fechaAprobacion": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "fechaCierre": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "motivoCierre": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PresupuestoDetalleDTO": {
+        "type": "object",
+        "properties": {
+          "presupuesto": {
+            "$ref": "#/components/schemas/PresupuestoCabeceraDTO"
+          },
+          "partidas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartidaPresupuestoDTO"
+            },
+            "nullable": true
+          },
+          "movimientos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MovimientoPresupuestoDTO"
+            },
+            "nullable": true
+          },
+          "compromisos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompromisoPresupuestoDTO"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "PresupuestoDetalleDTOApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/PresupuestoDetalleDTO"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PresupuestoResumenDTO": {
+        "type": "object",
+        "properties": {
+          "idPresupuesto": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nombre": {
+            "type": "string",
+            "nullable": true
+          },
+          "idFinca": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "finca": {
+            "type": "string",
+            "nullable": true
+          },
+          "fechaInicio": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "fechaFin": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "moneda": {
+            "type": "string",
+            "nullable": true
+          },
+          "estado": {
+            "type": "string",
+            "nullable": true
+          },
+          "montoInicial": {
+            "type": "number",
+            "format": "double"
+          },
+          "aprobado": {
+            "type": "number",
+            "format": "double"
+          },
+          "comprometido": {
+            "type": "number",
+            "format": "double"
+          },
+          "ejecutado": {
+            "type": "number",
+            "format": "double"
+          },
+          "disponible": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PresupuestoResumenDTOIReadOnlyListApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PresupuestoResumenDTO"
             },
             "nullable": true
           }
@@ -5600,6 +6962,89 @@
         },
         "additionalProperties": false
       },
+      "ReferenciaCompraDTO": {
+        "type": "object",
+        "properties": {
+          "idCompra": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fechaCompra": {
+            "type": "string",
+            "format": "date"
+          },
+          "nombreProveedor": {
+            "type": "string",
+            "nullable": true
+          },
+          "precioPorUnidadBase": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RegistrarCompromisoDTO": {
+        "required": [
+          "distribucion",
+          "moneda",
+          "motivo"
+        ],
+        "type": "object",
+        "properties": {
+          "idOperacion": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "motivo": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string"
+          },
+          "fechaCompromiso": {
+            "type": "string",
+            "format": "date"
+          },
+          "moneda": {
+            "minLength": 1,
+            "pattern": "CRC|USD",
+            "type": "string"
+          },
+          "idSolicitudCotizacion": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true
+          },
+          "distribucion": {
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReservaPartidaDTO"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReservaPartidaDTO": {
+        "type": "object",
+        "properties": {
+          "idPartidaPresupuesto": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "monto": {
+            "type": "number",
+            "format": "double"
+          },
+          "idProformaProveedorDetalle": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "RespuestaCotizacionDTO": {
         "type": "object",
         "properties": {
@@ -5754,6 +7199,27 @@
           },
           "data": {
             "$ref": "#/components/schemas/RespuestaResumenDTOPaginaRespuesta"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RubroPresupuestoDTO": {
+        "type": "object",
+        "properties": {
+          "idRubroPresupuesto": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "codigo": {
+            "type": "string",
+            "nullable": true
+          },
+          "nombre": {
+            "type": "string",
+            "nullable": true
+          },
+          "activo": {
+            "type": "boolean"
           }
         },
         "additionalProperties": false

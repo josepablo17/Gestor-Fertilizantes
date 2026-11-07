@@ -140,9 +140,10 @@ try{
         if($VerifyFrontend){ & (Join-Path $raiz 'scripts/Probar-Frontend.ps1') }
     }
     $verification=Get-Content (Join-Path $artifactDirectory 'verification.json') -Raw|ConvertFrom-Json
-    if($verification.Failed -ne 0 -or $verification.IntegrationTests -ne 89){throw 'Resultados SQL incompletos.'}
-    [ordered]@{Project=$project;Database=$env:GF_DATABASE_NAME;IntegrationTests=89;Linux=$true;FreshInitialization=$true;ContainerRecreated=$true;SameNamedVolume=$true;AllRowsPreserved=$true;SequenceNotReset=$true;ReappliedDacpac=$true}|ConvertTo-Json|Set-Content (Join-Path $artifactDirectory 'docker-verification.json') -Encoding utf8
-    Write-Output 'OK: inicializacion, 89 pruebas Linux, recreacion del contenedor y redespliegue conservando historia.'
+    $casos=(Get-Content (Join-Path $databaseRoot 'tests/casos-integracion.json') -Raw|ConvertFrom-Json).Count
+    if($verification.Failed -ne 0 -or $verification.IntegrationTests -ne $casos){throw 'Resultados SQL incompletos.'}
+    [ordered]@{Project=$project;Database=$env:GF_DATABASE_NAME;IntegrationTests=$casos;Linux=$true;FreshInitialization=$true;ContainerRecreated=$true;SameNamedVolume=$true;AllRowsPreserved=$true;SequenceNotReset=$true;ReappliedDacpac=$true}|ConvertTo-Json|Set-Content (Join-Path $artifactDirectory 'docker-verification.json') -Encoding utf8
+    Write-Output "OK: inicializacion, $casos pruebas Linux, recreacion del contenedor y redespliegue conservando historia."
 }catch{
     if($owned){
         try{Invoke-Compose -Arguments @('logs','--no-color','--tail','160','sqlserver')|Out-File (Join-Path $artifactDirectory 'sqlserver-diagnostic.log') -Encoding utf8}catch{}

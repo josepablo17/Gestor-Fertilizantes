@@ -13,3 +13,11 @@ IF EXISTS(SELECT 1 FROM @Unidades s JOIN dbo.UnidadesMedida u ON u.Codigo=s.Codi
 INSERT dbo.UnidadesMedida(Codigo,Nombre,TipoBase,FactorConversion,EsUnidadBase)
 SELECT s.Codigo,s.Nombre,s.TipoBase,s.FactorConversion,s.EsUnidadBase FROM @Unidades s
 WHERE NOT EXISTS(SELECT 1 FROM dbo.UnidadesMedida u WITH(UPDLOCK,HOLDLOCK) WHERE u.Codigo=s.Codigo);
+
+-- Retirar solo los procedimientos de los modulos reemplazados, tambien en instalaciones existentes.
+DROP PROCEDURE IF EXISTS dbo.SP_ComparadorProveedor_ObtenerComparativa;
+DROP PROCEDURE IF EXISTS dbo.SP_ComparadorProveedor_ObtenerDetalleHistoricoProveedor;
+DROP PROCEDURE IF EXISTS dbo.SP_Compra_AlertasPorProducto;
+DROP PROCEDURE IF EXISTS dbo.SP_Compra_EvaluarCompra;
+DROP PROCEDURE IF EXISTS dbo.SP_Compra_HistorialPreciosPorProducto;
+DROP PROCEDURE IF EXISTS dbo.SP_Compra_ResumenInteligentePrecios;
