@@ -1,7 +1,7 @@
 
 CREATE   PROCEDURE dbo.usp_Cotizaciones_CompararSolicitud
  @IdSolicitudCotizacion bigint,@Moneda varchar(10),@BaseTotalLinea varchar(30),@FechaReferencia date,
- @IncluirAlternativas bit=1,@IdSolicitudCotizacionDetalle bigint=NULL,@TipoBase nvarchar(20)=NULL
+ @IncluirAlternativas bit=1,@IdSolicitudCotizacionDetalle bigint=NULL,@TipoBase nvarchar(20)=NULL,@IncluirReferenciaCompra bit=0
 AS
 BEGIN
  SET NOCOUNT ON;
@@ -58,6 +58,17 @@ BEGIN
  SELECT *,CONVERT(bit,CASE WHEN EsComparable=1 AND PrecioPorUnidadBase=MenorPrecioPorUnidadBase THEN 1 ELSE 0 END) AS EsMenorPrecioUnitario,
  CONVERT(bit,CASE WHEN EsComparable=1 AND CubreCantidadSolicitada=1 AND Vigente=1 AND PrecioPorUnidadBase=MenorPrecioConCoberturaYVigencia THEN 1 ELSE 0 END) AS EsMenorPrecioConCoberturaYVigencia
  FROM Minimos ORDER BY NumeroLinea,CASE WHEN PrecioPorUnidadBase IS NULL THEN 1 ELSE 0 END,PrecioPorUnidadBase,IdProveedor,IdProformaProveedorDetalle;
+
+ IF @IncluirReferenciaCompra=1
+ BEGIN
+  SELECT s.IdSolicitudCotizacionDetalle,h.IdCompra,h.FechaCompra,h.NombreProveedor,h.PrecioPorUnidadBase
+  FROM dbo.SolicitudesCotizacionDetalle s
+  CROSS APPLY dbo.fn_Compra_UltimoPrecio(s.IdProducto,s.IdPresentacionProducto,@Moneda,@FechaReferencia,NULL) h
+  WHERE s.IdSolicitudCotizacion=@IdSolicitudCotizacion
+   AND (@IdSolicitudCotizacionDetalle IS NULL OR s.IdSolicitudCotizacionDetalle=@IdSolicitudCotizacionDetalle)
+   AND (@TipoBase IS NULL OR s.TipoBaseOriginal=@TipoBase)
+   AND h.PrecioPorUnidadBase IS NOT NULL;
+ END;
 END;
 
 GO

@@ -1,0 +1,20 @@
+import { consulta, solicitar } from "../../../api/cliente.js";
+import { idRuta } from "../../../utils/datosApi.js";
+
+const ruta = "/presupuestos";
+const enviar = (sufijo, datos) => solicitar(ruta + sufijo, { metodo: "POST", datos });
+export const listarPresupuestos = (filtros, signal) => solicitar(ruta + consulta(filtros), { signal });
+export const consultarPresupuesto = (id, signal) => solicitar(`${ruta}/${idRuta(id)}`, { signal });
+export const obtenerCatalogos = (signal) => solicitar(`${ruta}/catalogos`, { signal });
+export const crearFinca = (datos) => enviar("/fincas", datos);
+export const crearRubro = (datos) => enviar("/rubros", datos);
+export const crearPresupuesto = (datos) => enviar("", datos);
+export const aprobarPresupuesto = (id, datos) => enviar(`/${idRuta(id)}/aprobar`, datos);
+export const cerrarPresupuesto = (id, datos) => enviar(`/${idRuta(id)}/cerrar`, datos);
+export const ajustarPartida = (id, datos) => enviar(`/partidas/${idRuta(id)}/ajustes`, datos);
+export const registrarCompromiso = (datos) => enviar("/compromisos", datos);
+export const finalizarCompromiso = (id, datos) => enviar(`/compromisos/${idRuta(id)}/finalizar`, datos);
+export const obtenerOpciones = (filtros, signal) => solicitar(`${ruta}/opciones` + consulta(filtros), { signal });
+export const consultarImputacion = (id, signal) => solicitar(`${ruta}/compras/${idRuta(id)}`, { signal });
+export const imputarCompra = (id, datos) => enviar(`/compras/${idRuta(id)}/imputar`, datos);
+export const revertirImputacion = (id, datos) => enviar(`/compras/${idRuta(id)}/revertir`, datos);

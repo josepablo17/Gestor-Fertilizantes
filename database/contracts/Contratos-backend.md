@@ -17,6 +17,25 @@ El backend debe llamar a los procedimientos con parámetros tipados y `CommandTy
 
 Un borrador de solicitud se guarda por reemplazo completo: los IDs de sus líneas y destinatarios pueden cambiar hasta emitir. Tras emitir, usar `usp_Solicitud_CrearRevision` para una nueva versión; no regenerar el PDF de una solicitud existente alterando sus datos.
 
+## Presupuestos y compromisos
+
+Un presupuesto tiene período inclusivo, moneda CRC o USD y una finca opcional. Una finca nula indica alcance general. Cada partida corresponde a un rubro y su saldo disponible es el aprobado menos el compromiso pendiente y el importe ejecutado.
+
+| Operación | Contrato SQL |
+| --- | --- |
+| Preparar catálogos | `usp_Finca_Guardar`, `usp_RubroPresupuesto_Guardar` y `usp_Presupuesto_ListarCatalogos`. |
+| Crear y aprobar | `usp_Presupuesto_Crear` recibe partidas `[{"idRubroPresupuesto":1,"monto":"1000000"}]` y devuelve el ID de borrador por parámetro `OUTPUT`. `usp_Presupuesto_Aprobar` registra los importes iniciales y evita períodos solapados para la misma finca o alcance general, moneda y rubro. |
+| Ajustar y cerrar | `usp_Presupuesto_AjustarPartida` aumenta o reduce el importe aprobado. `usp_Presupuesto_Cerrar` requiere que el compromiso pendiente sea cero. |
+| Reservar | `usp_Compromiso_Registrar` acepta una distribución con `idPartidaPresupuesto` y `monto`. Si se indica una solicitud, cada renglón lleva también `idProformaProveedorDetalle` de una oferta vigente y revisada de esa solicitud. El monto incluye los ajustes comerciales que correspondan al pedido. |
+| Ejecutar | `usp_Presupuesto_ImputarCompra` recibe el ID de una compra real y una distribución con `idPartidaPresupuesto`, `monto` y `idCompromisoDetalle` opcional. Cada partida puede figurar una vez. La suma debe coincidir con el importe total de la compra. Una compra que excede el saldo requiere `@MotivoExceso`. |
+| Liberar y corregir | `usp_Compromiso_Finalizar` libera el remanente. Con compras ejecutadas se usa `Cerrado`. `usp_Presupuesto_RevertirCompra` deja una contrapartida y devuelve la reserva consumida cuando el compromiso sigue abierto. |
+| Consultar | `usp_Presupuesto_Listar` devuelve saldos por presupuesto. `usp_Presupuesto_Consultar` devuelve, en orden, cabecera, partidas con saldo, movimientos y compromisos. `usp_Presupuesto_OpcionesImputacion` devuelve primero las partidas aprobadas por fecha y moneda y luego los detalles de compromisos compatibles con la compra. `usp_Presupuesto_ConsultarCompra` devuelve las imputaciones activas de la compra. |
+| Crear compra con imputación | `SP_Compra_Insertar` acepta `@DistribucionPresupuestoJson`, `@IdOperacionPresupuesto`, `@MotivoPresupuesto` y `@MotivoExcesoPresupuesto` opcionales. Cuando se suministra la distribución, la compra y el gasto quedan en una transacción. |
+
+Cada operación presupuestaria recibe un GUID y un motivo. Repetir un GUID produce el error 52009. La escritura es transaccional y el saldo se comprueba dentro del bloqueo presupuestario. Las fechas y monedas deben coincidir con el presupuesto. Los importes JSON aceptan hasta cuatro decimales significativos con punto decimal. El historial registra la cuenta SQL que ejecutó la operación.
+
+El backend podrá registrar una compra e imputarla dentro de una sola transacción. Para corregir el importe, fecha, proveedor o producto de una compra ya imputada, primero debe revertir su distribución.
+
 ## JSON de solicitud
 
 Los nombres distinguen mayúsculas y minúsculas. Sustituir los IDs del ejemplo por IDs relacionados del catálogo real. `cantidadEmpaques` es número de sacos/bidones/etc., **no** su contenido en kg/litros.
@@ -146,46 +165,16 @@ La conciliación comprueba exclusivamente `Total = Subtotal - Descuento + IVA + 
 
 Las firmas siguientes se extraen de la instancia aplicada. La definición completa y los metadatos de parámetros están en `contratos.json`; los valores predeterminados de procedimientos T-SQL se leen de la firma, pues `sys.parameters` no los publica de forma fiable.
 
-### SP_ComparadorProveedor_ObtenerComparativa
-
-```sql
-CREATE   PROCEDURE dbo.SP_ComparadorProveedor_ObtenerComparativa @IdProducto int,@IdPresentacionProducto int,@Moneda nvarchar(10),@MesesAnalisis int=NULL,@SoloAutorizados bit=0
-```
-
-### SP_ComparadorProveedor_ObtenerDetalleHistoricoProveedor
-
-```sql
-CREATE   PROCEDURE dbo.SP_ComparadorProveedor_ObtenerDetalleHistoricoProveedor @IdProducto int,@IdPresentacionProducto int,@IdProveedor int,@Moneda nvarchar(10),@MesesAnalisis int=NULL
-```
-
 ### SP_Compra_Actualizar
 
 ```sql
 CREATE   PROCEDURE dbo.SP_Compra_Actualizar @IdCompra bigint,@IdProducto int,@IdProveedor int,@IdPresentacionProducto int,@FechaCompra date,@CantidadComprada decimal(18,4),@PrecioTotal decimal(18,4),@Moneda nvarchar(10),@Observaciones nvarchar(500)=NULL
 ```
 
-### SP_Compra_AlertasPorProducto
-
-```sql
-CREATE   PROCEDURE dbo.SP_Compra_AlertasPorProducto @IdProducto int,@IdPresentacionProducto int,@Moneda nvarchar(10)
-```
-
-### SP_Compra_EvaluarCompra
-
-```sql
-CREATE   PROCEDURE dbo.SP_Compra_EvaluarCompra @IdCompra bigint
-```
-
 ### SP_Compra_HistorialPorProducto
 
 ```sql
 CREATE   PROCEDURE dbo.SP_Compra_HistorialPorProducto @IdProducto int,@Moneda nvarchar(10)=NULL
-```
-
-### SP_Compra_HistorialPreciosPorProducto
-
-```sql
-CREATE   PROCEDURE dbo.SP_Compra_HistorialPreciosPorProducto @IdProducto int,@IdPresentacionProducto int,@Moneda nvarchar(10)
 ```
 
 ### SP_Compra_Insertar
@@ -204,12 +193,6 @@ CREATE   PROCEDURE dbo.SP_Compra_Listar @Moneda nvarchar(10)=NULL,@Pagina int=1,
 
 ```sql
 CREATE   PROCEDURE dbo.SP_Compra_ObtenerPorId @IdCompra bigint
-```
-
-### SP_Compra_ResumenInteligentePrecios
-
-```sql
-CREATE   PROCEDURE dbo.SP_Compra_ResumenInteligentePrecios @IdProducto int,@IdPresentacionProducto int,@Moneda nvarchar(10)
 ```
 
 ### SP_Compra_UltimoPrecio

@@ -1,27 +1,16 @@
 CREATE ROLE [rol_gestor_api] AUTHORIZATION [dbo];
 GO
 -- Solo contratos publicos; sin permisos de tablas, esquema o administracion.
-GRANT EXECUTE ON OBJECT::[dbo].[SP_ComparadorProveedor_ObtenerComparativa] TO [rol_gestor_api];
-GO
-GRANT EXECUTE ON OBJECT::[dbo].[SP_ComparadorProveedor_ObtenerDetalleHistoricoProveedor] TO [rol_gestor_api];
 GO
 GRANT EXECUTE ON OBJECT::[dbo].[SP_Compra_Actualizar] TO [rol_gestor_api];
 GO
-GRANT EXECUTE ON OBJECT::[dbo].[SP_Compra_AlertasPorProducto] TO [rol_gestor_api];
-GO
-GRANT EXECUTE ON OBJECT::[dbo].[SP_Compra_EvaluarCompra] TO [rol_gestor_api];
-GO
 GRANT EXECUTE ON OBJECT::[dbo].[SP_Compra_HistorialPorProducto] TO [rol_gestor_api];
-GO
-GRANT EXECUTE ON OBJECT::[dbo].[SP_Compra_HistorialPreciosPorProducto] TO [rol_gestor_api];
 GO
 GRANT EXECUTE ON OBJECT::[dbo].[SP_Compra_Insertar] TO [rol_gestor_api];
 GO
 GRANT EXECUTE ON OBJECT::[dbo].[SP_Compra_Listar] TO [rol_gestor_api];
 GO
 GRANT EXECUTE ON OBJECT::[dbo].[SP_Compra_ObtenerPorId] TO [rol_gestor_api];
-GO
-GRANT EXECUTE ON OBJECT::[dbo].[SP_Compra_ResumenInteligentePrecios] TO [rol_gestor_api];
 GO
 GRANT EXECUTE ON OBJECT::[dbo].[SP_Compra_UltimoPrecio] TO [rol_gestor_api];
 GO
@@ -167,4 +156,35 @@ GRANT EXECUTE ON OBJECT::[dbo].[usp_Solicitud_RegistrarEnvio] TO [rol_gestor_api
 GO
 
 GRANT EXECUTE ON OBJECT::dbo.usp_Solicitud_AsignarDocumento TO rol_gestor_api;
+GO
+
+GRANT EXECUTE ON OBJECT::dbo.usp_Finca_Guardar TO rol_gestor_api;
+GO
+GRANT EXECUTE ON OBJECT::dbo.usp_RubroPresupuesto_Guardar TO rol_gestor_api;
+GO
+GRANT EXECUTE ON OBJECT::dbo.usp_Presupuesto_ListarCatalogos TO rol_gestor_api;
+GO
+GRANT EXECUTE ON OBJECT::dbo.usp_Presupuesto_Listar TO rol_gestor_api;
+GO
+GRANT EXECUTE ON OBJECT::dbo.usp_Presupuesto_Crear TO rol_gestor_api;
+GO
+GRANT EXECUTE ON OBJECT::dbo.usp_Presupuesto_Aprobar TO rol_gestor_api;
+GO
+GRANT EXECUTE ON OBJECT::dbo.usp_Presupuesto_AjustarPartida TO rol_gestor_api;
+GO
+GRANT EXECUTE ON OBJECT::dbo.usp_Presupuesto_Cerrar TO rol_gestor_api;
+GO
+GRANT EXECUTE ON OBJECT::dbo.usp_Presupuesto_Consultar TO rol_gestor_api;
+GO
+GRANT EXECUTE ON OBJECT::dbo.usp_Compromiso_Registrar TO rol_gestor_api;
+GO
+GRANT EXECUTE ON OBJECT::dbo.usp_Compromiso_Finalizar TO rol_gestor_api;
+GO
+GRANT EXECUTE ON OBJECT::dbo.usp_Presupuesto_ImputarCompra TO rol_gestor_api;
+GO
+GRANT EXECUTE ON OBJECT::dbo.usp_Presupuesto_RevertirCompra TO rol_gestor_api;
+GO
+GRANT EXECUTE ON OBJECT::dbo.usp_Presupuesto_OpcionesImputacion TO rol_gestor_api;
+GO
+GRANT EXECUTE ON OBJECT::dbo.usp_Presupuesto_ConsultarCompra TO rol_gestor_api;
 GO

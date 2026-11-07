@@ -17,6 +17,11 @@ BEGIN
  DECLARE @Precio decimal(18,6)=TRY_CONVERT(decimal(18,6),@PrecioTotal/@CantidadComprada);
  IF @Precio IS NULL OR @Precio<=0 THROW 52000,N'Precio por empaque fuera de rango.',1;
  IF NOT EXISTS(SELECT 1 FROM dbo.Compras WITH(UPDLOCK,HOLDLOCK) WHERE IdCompra=@IdCompra) THROW 52004,N'Compra no existe.',1;
+ IF EXISTS(SELECT 1 FROM dbo.vw_ComprasImputadasPresupuesto WHERE IdCompra=@IdCompra)
+ AND EXISTS(SELECT 1 FROM dbo.Compras WHERE IdCompra=@IdCompra AND
+ (IdProducto<>@IdProducto OR IdProveedor<>@IdProveedor OR IdPresentacionProducto<>@IdPresentacionProducto
+ OR FechaCompra<>@FechaCompra OR CantidadComprada<>@CantidadComprada OR PrecioTotal<>@PrecioTotal OR Moneda<>@Moneda))
+ THROW 52010,N'Revierta la imputación presupuestaria antes de cambiar los datos de la compra.',1;
  DECLARE @ProductoAnterior int,@PresentacionAnterior int,@MonedaAnterior nvarchar(10);
  SELECT @ProductoAnterior=IdProducto,@PresentacionAnterior=IdPresentacionProducto,@MonedaAnterior=Moneda FROM dbo.Compras WHERE IdCompra=@IdCompra;
  UPDATE dbo.Compras SET IdProducto=@IdProducto,IdProveedor=@IdProveedor,IdPresentacionProducto=@IdPresentacionProducto,FechaCompra=@FechaCompra,

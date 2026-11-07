@@ -1,150 +1,41 @@
-import { formatearNumero } from "../../utils/numeros.js";
-function CompraInformacionReferencia({
-  ultimoPrecio,
-  cargandoUltimoPrecio,
-  estaEditando,
-  compraEditar,
-  formatearMonto
-}) {
-  const formatearFecha = (fecha) => {
-    if (!fecha) {
-      return "No disponible";
-    }
+import { useCallback } from "react";
+import { obtenerUltimoPrecioCompra } from "../../api/compraApi.js";
+import useConsulta from "../../hooks/useConsulta.js";
+import { decimalOpcional } from "../../utils/datosApi.js";
+import { formatearMoneda } from "../../utils/moneda.js";
+import { EstadoConsulta, Tarjeta } from "../comunes/Pagina.jsx";
 
-    return new Date(fecha).toLocaleDateString("es-CR");
-  };
-
-  const formatearPorcentaje = (valor) => {
-    if (valor === null || valor === undefined) {
-      return "No disponible";
-    }
-
-    return `${formatearNumero(valor)}%`;
-  };
-
-  const obtenerClaseTendencia = (tendencia) => {
-    const valor = tendencia?.toLowerCase();
-
-    if (valor === "bajó" || valor === "disminucion" || valor === "disminución") {
-      return "badge badge--success";
-    }
-
-    if (valor === "subió" || valor === "aumento") {
-      return "badge badge--neutral";
-    }
-
-    return "badge badge--neutral";
-  };
-
-  if (!ultimoPrecio && !estaEditando) {
+function precioPorEmpaque(cantidad, precio) {
+  const empaques = Number(cantidad);
+  if (!Number.isSafeInteger(empaques) || empaques <= 0) return null;
+  try {
+    const total = decimalOpcional(precio, 4, true);
+    return total === null ? null : Number(total) / empaques;
+  } catch {
     return null;
   }
-
-  return (
-    <section className="card">
-      <div className="card__header">
-        <div>
-          <h3 className="card__title">Información de referencia</h3>
-          <p className="card__subtitle">
-            Historial útil para comparar esta compra con registros anteriores.
-          </p>
-        </div>
-      </div>
-
-      <div className="card__body">
-        {cargandoUltimoPrecio ? (
-          <p className="table__cell-muted">Cargando último precio registrado...</p>
-        ) : ultimoPrecio ? (
-          <div className="form__grid">
-            <div className="form__group">
-              <span className="label">Último proveedor</span>
-              <div className="table__cell-strong">
-                {ultimoPrecio.nombreProveedor || "No disponible"}
-              </div>
-            </div>
-
-            <div className="form__group">
-              <span className="label">Última fecha</span>
-              <div className="table__cell-strong">
-                {formatearFecha(ultimoPrecio.fechaCompra)}
-              </div>
-            </div>
-
-            <div className="form__group">
-              <span className="label">Último precio total</span>
-              <div className="table__cell-strong">
-                {formatearMonto(ultimoPrecio.precioTotal, ultimoPrecio.moneda)}
-              </div>
-            </div>
-
-            <div className="form__group">
-              <span className="label">Último precio unitario</span>
-              <div className="table__cell-strong">
-                {formatearMonto(
-                  ultimoPrecio.precioUnitarioCalculado,
-                  ultimoPrecio.moneda
-                )}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <p className="table__cell-muted">
-            No hay un precio anterior registrado para esta combinación.
-          </p>
-        )}
-
-        {estaEditando && (
-          <div className="form__grid">
-            <div className="form__group">
-              <span className="label">Precio unitario calculado</span>
-              <div className="table__cell-strong">
-                {formatearMonto(
-                  compraEditar?.precioUnitarioCalculado,
-                  compraEditar?.moneda
-                )}
-              </div>
-            </div>
-
-            <div className="form__group">
-              <span className="label">Precio unitario anterior</span>
-              <div className="table__cell-strong">
-                {formatearMonto(
-                  compraEditar?.precioUnitarioAnterior,
-                  compraEditar?.moneda
-                )}
-              </div>
-            </div>
-
-            <div className="form__group">
-              <span className="label">Diferencia de precio</span>
-              <div className="table__cell-strong">
-                {formatearMonto(
-                  compraEditar?.diferenciaPrecio,
-                  compraEditar?.moneda
-                )}
-              </div>
-            </div>
-
-            <div className="form__group">
-              <span className="label">Porcentaje de cambio</span>
-              <div className="table__cell-strong">
-                {formatearPorcentaje(compraEditar?.porcentajeCambioPrecio)}
-              </div>
-            </div>
-
-            <div className="form__group">
-              <span className="label">Tendencia</span>
-              <div>
-                <span className={obtenerClaseTendencia(compraEditar?.tendenciaPrecio)}>
-                  {compraEditar?.tendenciaPrecio || "No disponible"}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </section>
-  );
 }
 
-export default CompraInformacionReferencia;
+export default function CompraInformacionReferencia({ compra }) {
+  const { idProducto, idPresentacionProducto, moneda, fechaCompra, idCompra } = compra;
+  const consultar = Boolean(idProducto && idPresentacionProducto && moneda && fechaCompra);
+  const cargar = useCallback((signal) => consultar ? obtenerUltimoPrecioCompra({
+    idProducto, idPresentacionProducto, moneda, fechaLimite: fechaCompra, idCompraLimite: idCompra || undefined,
+  }, signal) : null, [consultar, idProducto, idPresentacionProducto, moneda, fechaCompra, idCompra]);
+  const estado = useConsulta(cargar);
+  const ultimo = estado.datos;
+  const actual = moneda ? precioPorEmpaque(compra.cantidadComprada, compra.precioTotal) : null;
+
+  return <Tarjeta titulo="Referencia de compras">
+    {actual !== null && <p>Esta compra por empaque <strong>{formatearMoneda(actual, moneda)}</strong></p>}
+    {!consultar ? <p className="text-muted">Selecciona el producto, la presentación, la moneda y la fecha para consultar el historial.</p>
+      : <EstadoConsulta estado={estado}>
+        {ultimo ? <>
+          <p>Último precio pagado por empaque <strong>{formatearMoneda(ultimo.precioUnitarioCalculado, moneda)}</strong></p>
+          <p className="text-muted">
+            {ultimo.fechaCompra.split("T")[0]}{ultimo.nombreProveedor && ` · ${ultimo.nombreProveedor}`}
+          </p>
+        </> : <p className="text-muted">Sin compras previas para esta presentación en {moneda} hasta la fecha seleccionada.</p>}
+      </EstadoConsulta>}
+  </Tarjeta>;
+}

@@ -9,6 +9,7 @@ namespace Control_Fertilizantes_Backend.Modulos.Compras.Contratos
         Task<int> InsertarAsync(CompraCrearDTO compraCrearDTO);
         Task<bool> ActualizarAsync(CompraActualizarDTO compraActualizarDTO);
         Task<IEnumerable<CompraListarDTO>> HistorialPorProductoAsync(int idProducto);
-        Task<UltimoPrecioCompraDTO?> ObtenerUltimoPrecioAsync(int idProducto, int idPresentacionProducto);
+        Task<UltimoPrecioCompraDTO?> ObtenerUltimoPrecioAsync(int idProducto, int idPresentacionProducto,
+            string? moneda, DateOnly? fechaLimite, int? idCompraLimite, CancellationToken cancelacion);
     }
 }

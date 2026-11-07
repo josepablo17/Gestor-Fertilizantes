@@ -20,14 +20,19 @@ public sealed class ComparacionCotizacionesServicio(IComparacionCotizacionesRepo
 
         var criterio = new CriterioComparacion(idSolicitud, entrada.Moneda, entrada.BaseTotalLinea, fecha,
             entrada.IncluirAlternativas, entrada.IdSolicitudCotizacionDetalle, entrada.TipoBase);
-        var filas = await repositorio.CompararAsync(criterio, cancelacion);
+        var (filas, referencias) = await repositorio.CompararAsync(criterio, cancelacion);
+        var referenciasPorLinea = referencias.ToDictionary(fila => fila.IdSolicitudCotizacionDetalle);
         var lineas = filas.GroupBy(fila => fila.IdSolicitudCotizacionDetalle).Select(grupo =>
         {
             var linea = grupo.First();
+            var referencia = referenciasPorLinea.TryGetValue(linea.IdSolicitudCotizacionDetalle, out var compra)
+                ? new ReferenciaCompraDTO(compra.IdCompra, DateOnly.FromDateTime(compra.FechaCompra), compra.NombreProveedor, compra.PrecioPorUnidadBase)
+                : null;
             return new LineaComparadaDTO(linea.IdSolicitudCotizacionDetalle, linea.NumeroLinea, linea.ProductoSolicitado,
                 linea.MarcaSolicitada, linea.PresentacionSolicitada, linea.TipoBaseSolicitado, Unidad(linea.TipoBaseSolicitado),
                 linea.CantidadEmpaquesSolicitada, linea.ContenidoTotalSolicitado, linea.MenorPrecioPorUnidadBase,
-                linea.ContenidoTotalSolicitado > 0 ? linea.MenorPrecioConCoberturaYVigencia : null, grupo.Select(Oferta).ToArray());
+                linea.ContenidoTotalSolicitado > 0 ? linea.MenorPrecioConCoberturaYVigencia : null,
+                grupo.Select(Oferta).ToArray(), referencia);
         }).ToArray();
         var documentos = filas.Where(fila => fila.IdProformaProveedor.HasValue)
             .DistinctBy(fila => fila.IdProformaProveedor).Select(Documento).ToArray();

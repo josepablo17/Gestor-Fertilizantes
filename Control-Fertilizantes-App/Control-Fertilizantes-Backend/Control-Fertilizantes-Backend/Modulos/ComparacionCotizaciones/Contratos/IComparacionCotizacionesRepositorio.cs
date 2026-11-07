@@ -4,5 +4,6 @@ namespace Control_Fertilizantes_Backend.Modulos.ComparacionCotizaciones.Contrato
 
 public interface IComparacionCotizacionesRepositorio
 {
-    Task<IReadOnlyList<ComparacionFila>> CompararAsync(CriterioComparacion criterio, CancellationToken cancelacion);
+    Task<(IReadOnlyList<ComparacionFila> Ofertas, IReadOnlyList<ReferenciaCompraFila> Referencias)> CompararAsync(
+        CriterioComparacion criterio, CancellationToken cancelacion);
 }

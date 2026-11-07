@@ -14,6 +14,15 @@
   gap: var(--space-5);
 }
 
+.presupuesto-distribucion {
+  padding: 0;
+  margin: 0;
+}
+
+.presupuesto-distribucion > legend {
+  margin-bottom: var(--space-3);
+}
+
 .form-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

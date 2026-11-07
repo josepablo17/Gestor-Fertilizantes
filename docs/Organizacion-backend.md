@@ -2,6 +2,8 @@
 
 Esta guía documenta la organización inicial del paso 2. El estado posterior y la adaptación de los seis catálogos están en [catálogos del backend](Catalogos-backend.md).
 
+Los módulos históricos Compras inteligentes y Comparador de proveedores se retiraron después de esta etapa. La referencia de precios usa Compras y la [comparación de cotizaciones por solicitud](Comparacion-de-cotizaciones.md).
+
 Se mantiene una solución, una API y los nombres de negocio en español. El código se organiza por módulo; SQL y el lector PDF quedan en infraestructura. Esta etapa conserva rutas, tipos públicos, propiedades JSON, validaciones y lógica actuales. La adaptación funcional a los procedimientos nuevos sigue pendiente.
 
 ## Dónde buscar

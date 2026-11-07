@@ -1,7 +1,11 @@
 using Control_Fertilizantes_Backend.Modulos.Compras.Contratos;
 using Control_Fertilizantes_Backend.Modulos.Compras.Modelos;
+using Control_Fertilizantes_Backend.Infraestructura.Persistencia.Repositorios.Presupuestos;
+using Control_Fertilizantes_Backend.Modulos.Presupuestos.DTOs.Entradas;
 using Dapper;
+using Microsoft.Data.SqlClient;
 using System.Data;
+using System.Text.Json;
 
 namespace Control_Fertilizantes_Backend.Infraestructura.Persistencia.Repositorios.Compras
 {
@@ -42,7 +46,7 @@ namespace Control_Fertilizantes_Backend.Infraestructura.Persistencia.Repositorio
             return resultado;
         }
 
-        public async Task<int> InsertarAsync(Compra compra)
+        public async Task<int> InsertarAsync(Compra compra, ImputacionCompraDTO? imputacion = null)
         {
             using var conexion = _conexionBD.ObtenerConexion();
 
@@ -56,13 +60,23 @@ namespace Control_Fertilizantes_Backend.Infraestructura.Persistencia.Repositorio
             parametros.Add("@Moneda", compra.Moneda);
             parametros.Add("@Observaciones", compra.Observaciones);
 
-            var idInsertado = await conexion.ExecuteScalarAsync<int>(
-                "SP_Compra_Insertar",
-                parametros,
-                commandType: CommandType.StoredProcedure
-            );
+            if (imputacion is not null)
+            {
+                parametros.Add("@DistribucionPresupuestoJson", JsonSerializer.Serialize(imputacion.Distribucion, JsonSerializerOptions.Web));
+                parametros.Add("@IdOperacionPresupuesto", imputacion.IdOperacion);
+                parametros.Add("@MotivoPresupuesto", imputacion.Motivo);
+                parametros.Add("@MotivoExcesoPresupuesto", imputacion.MotivoExceso);
+            }
 
-            return idInsertado;
+            try
+            {
+                return await conexion.ExecuteScalarAsync<int>("SP_Compra_Insertar", parametros,
+                    commandType: CommandType.StoredProcedure);
+            }
+            catch (SqlException error) when (imputacion is not null && ErroresPresupuestoSql.EsErrorConocido(error))
+            {
+                throw ErroresPresupuestoSql.Traducir(error);
+            }
         }
 
         public async Task<bool> ActualizarAsync(Compra compra)
@@ -80,13 +94,16 @@ namespace Control_Fertilizantes_Backend.Infraestructura.Persistencia.Repositorio
             parametros.Add("@Moneda", compra.Moneda);
             parametros.Add("@Observaciones", compra.Observaciones);
 
-            var filasAfectadas = await conexion.QueryFirstAsync<int>(
-                "SP_Compra_Actualizar",
-                parametros,
-                commandType: CommandType.StoredProcedure
-            );
-
-            return filasAfectadas > 0;
+            try
+            {
+                var filasAfectadas = await conexion.QueryFirstAsync<int>("SP_Compra_Actualizar", parametros,
+                    commandType: CommandType.StoredProcedure);
+                return filasAfectadas > 0;
+            }
+            catch (SqlException error) when (error.Number == 52010)
+            {
+                throw ErroresPresupuestoSql.Traducir(error);
+            }
         }
 
         public async Task<IEnumerable<Compra>> HistorialPorProductoAsync(int idProducto)
@@ -105,21 +122,20 @@ namespace Control_Fertilizantes_Backend.Infraestructura.Persistencia.Repositorio
             return resultado;
         }
 
-        public async Task<Compra?> ObtenerUltimoPrecioAsync(int idProducto, int idPresentacionProducto)
+        public async Task<Compra?> ObtenerUltimoPrecioAsync(int idProducto, int idPresentacionProducto,
+            string moneda, DateOnly? fechaLimite, int? idCompraLimite, CancellationToken cancelacion)
         {
             using var conexion = _conexionBD.ObtenerConexion();
 
             var parametros = new DynamicParameters();
             parametros.Add("@IdProducto", idProducto);
             parametros.Add("@IdPresentacionProducto", idPresentacionProducto);
+            parametros.Add("@Moneda", moneda);
+            parametros.Add("@FechaLimite", fechaLimite?.ToDateTime(TimeOnly.MinValue), DbType.Date);
+            parametros.Add("@IdCompraLimite", idCompraLimite);
 
-            var resultado = await conexion.QueryFirstOrDefaultAsync<Compra>(
-                "SP_Compra_UltimoPrecio",
-                parametros,
-                commandType: CommandType.StoredProcedure
-            );
-
-            return resultado;
+            return await conexion.QueryFirstOrDefaultAsync<Compra>(new CommandDefinition(
+                "SP_Compra_UltimoPrecio", parametros, commandType: CommandType.StoredProcedure, cancellationToken: cancelacion));
         }
     }
 }

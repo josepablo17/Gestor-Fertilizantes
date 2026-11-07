@@ -27,12 +27,14 @@ La guía de [comparación por solicitud](docs/Comparacion-de-cotizaciones.md) ex
 
 Para usar el flujo desde el navegador, consulta la [guía del frontend](docs/Frontend-cotizaciones.md).
 
+En **Presupuestos**, registra las fincas y los rubros, crea un presupuesto para el período y apruébalo. En la comparación de una solicitud puedes reservar saldo con una oferta vigente. En **Compras**, puedes repartir el importe entre partidas y aplicar los compromisos correspondientes. El detalle del presupuesto muestra los saldos y el historial de movimientos.
+
 ## Verificación
 
     ./scripts/Probar-Backend.ps1
-    ./database/scripts/Invoke-DockerDatabase.ps1 -Action Test -VerifyBackend
+    ./database/scripts/Invoke-DockerDatabase.ps1 -Action Test -VerifyBackend -VerifyFrontend
 
-La primera orden restaura en modo bloqueado, compila sin advertencias, ejecuta las pruebas unitarias y cinco comprobaciones HTTP sin SQL. La segunda verifica el DACPAC, 89 casos SQL, persistencia en Docker y la API con permisos reales de su usuario limitado. Usa una base, un usuario y un volumen temporales propios; deja la evidencia de pruebas en `artifacts`.
+La primera orden restaura en modo bloqueado, compila y ejecuta las pruebas unitarias y las comprobaciones HTTP sin SQL. La segunda verifica el DACPAC, los casos de integración SQL, la persistencia en Docker, la API con la cuenta de ejecución y el recorrido en el navegador. Usa una base, un usuario y un volumen temporales y guarda sus resultados en `artifacts`. Para la prueba de navegador, instala antes las dependencias del frontend con `npm ci` y el Chromium de Playwright con `npx playwright install chromium`.
 
 Las 14 advertencias previas de nulabilidad se corrigieron sin supresiones. Todas las advertencias se tratan como errores. Los archivos generados bin/obj están fuera de Git. Los cambios deliberados de paquetes requieren actualizar su packages.lock.json y comprobar la restauración --locked-mode.
 
@@ -40,7 +42,7 @@ La API y las pruebas fijan System.Security.Cryptography.Pkcs 10.0.14 para correg
 
 ## Base de datos
 
-El DACPAC 1.0.2.0 permite asociar el PDF original a un destinatario antes de registrar el envío. El rol `rol_gestor_api` tiene permisos EXECUTE sobre 83 procedimientos públicos. No concede acceso directo a tablas ni administración. Usuarios, contraseñas y SIDs se preparan fuera del DACPAC.
+El DACPAC permite asociar el PDF original a un destinatario antes de registrar el envío. El acceso del rol `rol_gestor_api` se limita a ejecutar 92 procedimientos públicos. Los usuarios, las contraseñas y los SIDs se preparan fuera del DACPAC.
 
 Docker usa SDK 10.0.403 y runtime 10.0.14 sobre Ubuntu Noble, fijados por digest. SqlPackage 170.5.96, distribuido para net8.0, se ejecuta sobre runtime 10 mediante DOTNET_ROLL_FORWARD=Major. No es necesario instalar runtime 8 o 9 en las imágenes.
 
@@ -49,7 +51,7 @@ Consultar [guía SQL](database/README.md), [guía Docker](database/docker/README
 ## Integración continua
 
 - Backend .NET 10: restauración bloqueada, compilación, pruebas unitarias y comprobaciones HTTP.
-- Database DACPAC: compilación SQL, 89 casos, conservación de datos y ciclo Compose con recreación del contenedor; integra además las pruebas de permisos y de la API.
+- Database DACPAC: compilación SQL, casos de integración, conservación de datos y recreación del contenedor. Incluye pruebas de permisos y de la API.
 
 Referencias: [cambios de .NET 10](https://learn.microsoft.com/dotnet/core/compatibility/10), [imágenes sobre Ubuntu](https://learn.microsoft.com/dotnet/core/compatibility/containers/10.0/default-images-use-ubuntu).
 La estructura por módulos, clasificación de DTOs y deudas funcionales están en [organización del backend](docs/Organizacion-backend.md).

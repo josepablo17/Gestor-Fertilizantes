@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { lazy, Suspense } from "react";
 import LayoutPrivado from "./componentes/layout/LayoutPrivado";
 import Productos from "./paginas/Productos";
 import Proveedores from "./paginas/Proveedores";
@@ -14,9 +13,8 @@ import SolicitudFormulario from "./modulos/cotizaciones/paginas/SolicitudFormula
 import SolicitudDetalle from "./modulos/cotizaciones/paginas/SolicitudDetalle";
 import RespuestaCotizacion from "./modulos/cotizaciones/paginas/RespuestaCotizacion";
 import ComparacionSolicitud from "./modulos/cotizaciones/paginas/ComparacionSolicitud";
-
-const CompraInteligencia = lazy(() => import("./paginas/CompraInteligencia"));
-const ComparadorProveedor = lazy(() => import("./paginas/ComparadorProveedor"));
+import Presupuestos from "./modulos/presupuestos/paginas/Presupuestos";
+import PresupuestoDetalle from "./modulos/presupuestos/paginas/PresupuestoDetalle";
 
 function App() {
   return (
@@ -51,8 +49,10 @@ function App() {
           <Route path="compras" element={<Compras/>}/>
           <Route path="compras/nuevo" element={<ComprasFormulario/>}/>
           <Route path="compras/editar/:id" element={<ComprasFormulario/>}/>
-          <Route path="/compras-inteligencia" element={<Suspense fallback={<p>Cargando…</p>}><CompraInteligencia /></Suspense>} />
-          <Route path="/comparador-proveedores" element={<Suspense fallback={<p>Cargando…</p>}><ComparadorProveedor /></Suspense>} />
+          <Route path="presupuestos" element={<Presupuestos />} />
+          <Route path="presupuestos/:id" element={<PresupuestoDetalle />} />
+          <Route path="compras-inteligencia" element={<Navigate to="/compras" replace />} />
+          <Route path="comparador-proveedores" element={<Navigate to="/solicitudes" replace />} />
           <Route path="compra-automatica" element={<Navigate to="/solicitudes" replace />} />
           <Route path="proformas-proveedor" element={<Navigate to="/solicitudes" replace />} />
           <Route path="proformas-proveedor/:idProformaProveedor" element={<RespuestaCotizacion />} />

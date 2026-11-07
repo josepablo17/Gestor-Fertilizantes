@@ -1,7 +1,11 @@
-import { formatearNumero } from "../../utils/numeros.js";
+import { useState } from "react";
 import useFormularioCompra from "../../hooks/useCompraFormulario";
 import CompraCamposFormulario from "./CompraCamposFormulario";
 import CompraInformacionReferencia from "./CompraInformacionReferencia";
+import Campo from "../comunes/Campo.jsx";
+import { CamposImputacion } from "../../modulos/presupuestos/componentes/ImputacionCompra.jsx";
+import useIdOperacion from "../../modulos/presupuestos/hooks/useIdOperacion.js";
+import { nuevaImputacion, prepararImputacion } from "../../modulos/presupuestos/utils/presupuesto.js";
 
 function FormularioCompra({
   onCompraGuardada,
@@ -14,8 +18,7 @@ function FormularioCompra({
     proveedores,
     presentacionesFiltradas,
     cargandoCatalogos,
-    ultimoPrecio,
-    cargandoUltimoPrecio,
+    guardando,
     estaEditando,
     manejarCambio,
     manejarSubmit,
@@ -25,14 +28,12 @@ function FormularioCompra({
     onCompraGuardada,
     onCancelarEdicion
   });
-
-  const formatearMonto = (monto, moneda) => {
-    if (monto === null || monto === undefined || monto === "") {
-      return "No disponible";
-    }
-
-    return `${moneda || ""} ${formatearNumero(monto)}`.trim();
-  };
+  const [imputacion, setImputacion] = useState(null);
+  const { conOperacion } = useIdOperacion();
+  const criterios = JSON.stringify([compra.idProducto, compra.idPresentacionProducto, compra.idProveedor, compra.fechaCompra, compra.moneda]);
+  const puedeConservar = imputacion && (imputacion.criterios === criterios ||
+    imputacion.datos.filas.every((fila) => !fila.idPartidaPresupuesto));
+  const datosImputacion = puedeConservar ? imputacion.datos : null;
 
  return (
   <>
@@ -49,7 +50,13 @@ function FormularioCompra({
       </div>
     </div>
 
-    <form className="form" onSubmit={manejarSubmit}>
+    <form className="form" onSubmit={(e) => manejarSubmit(e, imputacion
+      ? (payload) => {
+        if (!datosImputacion) throw new Error("Revisa la distribución para los datos actuales de la compra.");
+        return conOperacion(prepararImputacion(datosImputacion, compra.precioTotal), JSON.stringify(payload));
+      }
+      : null)}>
+      <fieldset className="form presupuesto-distribucion" disabled={guardando}>
       <CompraCamposFormulario
         compra={compra}
         productos={productos}
@@ -59,13 +66,19 @@ function FormularioCompra({
         onChange={manejarCambio}
       />
 
-      <CompraInformacionReferencia
-        ultimoPrecio={ultimoPrecio}
-        cargandoUltimoPrecio={cargandoUltimoPrecio}
-        estaEditando={estaEditando}
-        compraEditar={compraEditar}
-        formatearMonto={formatearMonto}
-      />
+      <CompraInformacionReferencia compra={compra} />
+      {!estaEditando && <>
+        <Campo etiqueta="Imputar esta compra a presupuesto" casilla valor={Boolean(imputacion)}
+          cambiar={(activar) => setImputacion(activar ? { criterios, datos: nuevaImputacion() } : null)} />
+        {datosImputacion && <CamposImputacion compra={compra} datos={datosImputacion}
+          cambiar={(datos) => setImputacion({ criterios, datos })} ocupado={guardando} />}
+        {imputacion && !datosImputacion && <div>
+          <p>Cambiaron los datos de la compra. Vuelve a distribuir su importe.</p>
+          <button type="button" className="btn btn--secondary"
+            onClick={() => setImputacion({ criterios, datos: nuevaImputacion() })}>Reiniciar distribución</button>
+        </div>}
+      </>}
+      </fieldset>
 
       <div className="form-actions">
         {estaEditando && (
@@ -73,6 +86,7 @@ function FormularioCompra({
             type="button"
             className="btn btn--secondary"
             onClick={manejarCancelar}
+            disabled={guardando}
           >
             Cancelar
           </button>
@@ -81,7 +95,7 @@ function FormularioCompra({
         <button
           type="submit"
           className="btn btn--primary"
-          disabled={cargandoCatalogos}
+          disabled={cargandoCatalogos || guardando || Boolean(imputacion && !datosImputacion)}
         >
           {estaEditando ? "Actualizar compra" : "Guardar compra"}
         </button>

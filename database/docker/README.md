@@ -65,7 +65,7 @@ El ciclo comprueba:
 
 1. Compilación de las imágenes y creación del volumen/SQL Server.
 2. Inicialización real con el servicio `db-init`.
-3. Las 89 pruebas SQL sobre Linux, con otra base aleatoria que el ejecutor crea y elimina.
+3. Los casos de integración SQL sobre Linux, en una base temporal que el ejecutor crea y elimina.
 4. Una historia persistida de solicitud, archivos representados por metadatos, extracción, respuesta validada y auditoría.
 5. Eliminación del contenedor SQL y creación de otro que reutiliza el mismo volumen.
 6. Reaplicación del DACPAC mediante `db-init`, comparación de hashes de todas las filas y verificación de que la secuencia no retroceda ni genere un código existente.

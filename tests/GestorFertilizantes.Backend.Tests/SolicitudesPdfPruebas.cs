@@ -72,9 +72,18 @@ public class SolicitudesPdfPruebas
             Assert.NotEmpty(apariencia.Value);
         }
         Assert.Equal("9007199254740993", valores["gf_solicitud_id"].Elements.GetString("/V"));
-        Assert.Equal("GF-SOL-1", valores["gf_plantilla"].Elements.GetString("/V"));
+        Assert.Equal("GF-SOL-2", valores["gf_plantilla"].Elements.GetString("/V"));
         Assert.Equal(1, valores["gf_solicitud_id"].Elements.GetInteger("/Ff"));
         Assert.False(valores.ContainsKey("precioNormalizado"));
+        Assert.Equal("/Ch", valores["cabecera_moneda"].Elements.GetName("/FT"));
+        Assert.Equal("/Ch", valores["linea_3001_estadoOferta"].Elements.GetName("/FT"));
+        Assert.Equal("/Ch", valores["linea_3001_baseTotalLinea"].Elements.GetName("/FT"));
+        var estadoInicial = valores["linea_3001_estadoOferta"].Elements.GetArray("/Opt")!.Elements[0];
+        Assert.Equal("Sin cotizar", Assert.IsType<PdfSharp.Pdf.PdfString>(Assert.IsType<PdfSharp.Pdf.PdfArray>(estadoInicial).Elements[1]).Value);
+        Assert.Contains("yyyy-mm-dd", valores["cabecera_fechaProforma"].Elements.GetDictionary("/AA")!
+            .Elements.GetDictionary("/K")!.Elements.GetString("/JS"));
+        Assert.Equal(1, valores["cabecera_total"].Elements.GetInteger("/Ff"));
+        Assert.Equal(solicitud.Lineas.Count + 3, formulario.Elements.GetArray("/CO")!.Elements.Count);
         foreach (var linea in solicitud.Lineas)
         {
             Assert.Equal("SinCotizar", valores[$"linea_{linea.IdSolicitudCotizacionDetalle}_estadoOferta"].Elements.GetString("/V"));

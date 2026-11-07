@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Control_Fertilizantes_Backend.Comun.Respuestas;
 using Control_Fertilizantes_Backend.Modulos.Compras.Contratos;
 using Control_Fertilizantes_Backend.Modulos.Compras.DTOs.Entradas;
@@ -81,14 +82,17 @@ namespace Control_Fertilizantes_Backend.Modulos.Compras.Controladores
         }
 
         [HttpGet("ObtenerUltimoPrecio")]
-        public async Task<IActionResult> ObtenerUltimoPrecio([FromQuery] int idProducto, [FromQuery] int idPresentacionProducto)
+        public async Task<IActionResult> ObtenerUltimoPrecio([FromQuery] int idProducto, [FromQuery] int idPresentacionProducto,
+            [FromQuery, Required] string? moneda, [FromQuery] DateOnly? fechaLimite,
+            [FromQuery] int? idCompraLimite, CancellationToken cancelacion)
         {
-            var ultimoPrecio = await _compraServicio.ObtenerUltimoPrecioAsync(idProducto, idPresentacionProducto);
+            var ultimoPrecio = await _compraServicio.ObtenerUltimoPrecioAsync(idProducto, idPresentacionProducto,
+                moneda, fechaLimite, idCompraLimite, cancelacion);
 
             if (ultimoPrecio == null)
             {
                 return NotFound(ApiRespuesta<object>.CrearError(
-                    "No se encontró historial de precios para el producto y presentación indicados."
+                    "No se encontraron compras anteriores para la presentación, moneda y fecha indicadas."
                 ));
             }
 

@@ -99,6 +99,14 @@ try{
         $checks.Add([ordered]@{Caso='Validacion HTTP de producto sin datos';Estado='Aprobado'})
     }finally{$content.Dispose();if($response){$response.Dispose();$response=$null}}
 
+    $content=[Net.Http.StringContent]::new('{"codigo":"","nombre":""}',[Text.Encoding]::UTF8,'application/json')
+    try{
+        $response=$client.PostAsync("$address/api/presupuestos/rubros",$content).GetAwaiter().GetResult()
+        $body=$response.Content.ReadAsStringAsync().GetAwaiter().GetResult() | ConvertFrom-Json
+        if([int]$response.StatusCode -ne 400 -or $body.exito -ne $false){throw 'El rubro incompleto no produjo HTTP 400.'}
+        $checks.Add([ordered]@{Caso='Validacion HTTP de catalogo de presupuesto sin datos';Estado='Aprobado'})
+    }finally{$content.Dispose();if($response){$response.Dispose();$response=$null}}
+
     try{
         $response=$client.GetAsync("$address/api/Producto/ObtenerProducto/0").GetAwaiter().GetResult()
         $body=$response.Content.ReadAsStringAsync().GetAwaiter().GetResult() | ConvertFrom-Json

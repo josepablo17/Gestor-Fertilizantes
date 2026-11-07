@@ -21,6 +21,8 @@ public static class PreparadorBorradorRespuesta
 
         var campos = extraccion.Campos.ToDictionary(x => x.Nombre, x => x.Valor, StringComparer.Ordinal);
         var advertencias = extraccion.Advertencias.ToList();
+        var calcular = extraccion.VersionPlantilla == ExtraccionProforma.PlantillaCalculada;
+        bool TieneValor(string campo) => Limpiar(campos.GetValueOrDefault(campo)) is not null;
         string? Texto(string campo, int maximo)
         {
             var valor = Limpiar(campos.GetValueOrDefault(campo));
@@ -42,17 +44,31 @@ public static class PreparadorBorradorRespuesta
         {
             var valor = Limpiar(campos.GetValueOrDefault(campo));
             if (valor is null) return null;
+            if (calcular) valor = valor.Replace(',', '.');
             var partes = Regex.Match(valor, @"\A([0-9]+)(?:\.([0-9]+))?\z");
             if (partes.Success && partes.Groups[1].Value.TrimStart('0').Length <= precision - escala &&
                 partes.Groups[2].Value.TrimEnd('0').Length <= escala &&
                 decimal.TryParse(valor, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var numero) &&
                 (!positivo || numero > 0) && (!maximo.HasValue || numero <= maximo))
                 return numero;
-            Aviso("DecimalInvalido", "El valor requiere revisión. Use punto decimal, sin separadores de miles ni símbolos.", campo);
+            Aviso("DecimalInvalido", "El valor requiere revisión. Escriba un número dentro del rango, sin separadores de miles ni símbolos.", campo);
             return null;
         }
 
         void Aviso(string codigo, string mensaje, string? campo = null) => advertencias.Add(new(codigo, mensaje, campo));
+
+        decimal? ImporteCalculado(string campo, decimal importe)
+        {
+            if (importe is < 0 or >= 100_000_000_000_000m)
+            {
+                Aviso("CalculoFueraDeRango", "El importe calculado está fuera del rango admitido.", campo);
+                return null;
+            }
+            var guardado = Numero(campo, 18, 4);
+            if (guardado.HasValue && guardado.Value != importe)
+                Aviso("ImporteRecalculado", "El importe guardado difiere del cálculo. Revise el PDF original.", campo);
+            return importe;
+        }
 
         cabecera.NumeroProforma = Texto("cabecera_numeroProforma", 50);
         cabecera.FechaProforma = Fecha("cabecera_fechaProforma");
@@ -63,18 +79,21 @@ public static class PreparadorBorradorRespuesta
             Aviso("FechaInconsistente", "El vencimiento es anterior a la fecha de la proforma.", "cabecera_fechaVencimiento");
         }
         var moneda = Texto("cabecera_moneda", 3);
-        if (moneda is not null && !Regex.IsMatch(moneda, @"\A[A-Z]{3}\z"))
-            Aviso("MonedaInvalida", "Indique una moneda de tres letras mayúsculas.", "cabecera_moneda");
+        if (moneda is not null && (calcular ? moneda is not ("CRC" or "USD") : !Regex.IsMatch(moneda, @"\A[A-Z]{3}\z")))
+            Aviso("MonedaInvalida", calcular ? "Seleccione CRC o USD." : "Indique una moneda de tres letras mayúsculas.", "cabecera_moneda");
         else cabecera.Moneda = moneda;
-        cabecera.Subtotal = Numero("cabecera_subtotal", 18, 4);
+        cabecera.Subtotal = calcular ? null : Numero("cabecera_subtotal", 18, 4);
         cabecera.Descuento = Numero("cabecera_descuento", 18, 4);
-        cabecera.Iva = Numero("cabecera_iva", 18, 4);
+        cabecera.Iva = calcular ? null : Numero("cabecera_iva", 18, 4);
         cabecera.OtrosCargos = Numero("cabecera_otrosCargos", 18, 4);
-        cabecera.Total = Numero("cabecera_total", 18, 4);
+        cabecera.Total = calcular ? null : Numero("cabecera_total", 18, 4);
         cabecera.CondicionesPago = Texto("cabecera_condicionesPago", 1000);
         cabecera.CondicionesEntrega = Texto("cabecera_condicionesEntrega", 1000);
 
         var lineas = new List<LineaGuardarRespuesta>();
+        decimal subtotal = 0, ivaLineas = 0;
+        var resumenCompleto = true;
+        var hayCotizada = false;
         foreach (var pedida in solicitud.Lineas)
         {
             var p = FormattableString.Invariant($"linea_{pedida.IdSolicitudCotizacionDetalle}_");
@@ -87,7 +106,11 @@ public static class PreparadorBorradorRespuesta
             };
             var estado = Texto(p + "estadoOferta", 20);
             if (estado is "Cotizada" or "NoDisponible" or "SinCotizar") linea.EstadoOferta = estado;
-            else Aviso("EstadoOfertaInvalido", "Revise el estado de la oferta.", p + "estadoOferta");
+            else
+            {
+                Aviso("EstadoOfertaInvalido", "Revise el estado de la oferta.", p + "estadoOferta");
+                resumenCompleto = false;
+            }
 
             if (estado == "Cotizada")
             {
@@ -95,10 +118,32 @@ public static class PreparadorBorradorRespuesta
                 linea.PrecioUnitario = Numero(p + "precioUnitario", 18, 6);
                 linea.DescuentoPorcentaje = Numero(p + "descuentoPorcentaje", 5, 2, maximo: 100);
                 linea.ImpuestoMonto = Numero(p + "impuestoMonto", 18, 4);
-                linea.TotalLinea = Numero(p + "totalLinea", 18, 4);
+                if (!calcular) linea.TotalLinea = Numero(p + "totalLinea", 18, 4);
                 var baseTotal = Texto(p + "baseTotalLinea", 30);
                 if (baseTotal is "Bruto" or "NetoSinImpuestos" or "ConImpuestos") linea.BaseTotalLinea = baseTotal;
                 else Aviso("BaseSinConfirmar", "Revise si el total incluye descuentos o impuestos.", p + "baseTotalLinea");
+                if (calcular)
+                {
+                    hayCotizada = true;
+                    if (linea.CantidadEmpaques is decimal cantidad && linea.PrecioUnitario is decimal precio &&
+                        linea.BaseTotalLinea != "SinDefinir" &&
+                        (linea.DescuentoPorcentaje.HasValue || !TieneValor(p + "descuentoPorcentaje")) &&
+                        (linea.ImpuestoMonto.HasValue || !TieneValor(p + "impuestoMonto")))
+                    {
+                        var bruto = cantidad * precio;
+                        var neto = RedondearImporte(bruto * (1 - (linea.DescuentoPorcentaje ?? 0) / 100));
+                        var iva = linea.ImpuestoMonto ?? 0;
+                        linea.TotalLinea = ImporteCalculado(p + "totalLinea", linea.BaseTotalLinea switch
+                        {
+                            "Bruto" => RedondearImporte(bruto),
+                            "ConImpuestos" => neto + iva,
+                            _ => neto
+                        });
+                        subtotal += neto;
+                        ivaLineas += iva;
+                    }
+                    resumenCompleto &= linea.TotalLinea.HasValue;
+                }
                 if (linea.CantidadEmpaques is null || linea.PrecioUnitario is null || linea.TotalLinea is null)
                     Aviso("OfertaIncompleta", "La oferta cotizada requiere cantidad, precio por empaque y total.", p + "estadoOferta");
                 if (Limpiar(campos.GetValueOrDefault(p + "observaciones")) is null)
@@ -111,10 +156,24 @@ public static class PreparadorBorradorRespuesta
                 Aviso("ImportesSinOferta", "Hay cantidades o importes en un renglón sin marcar como cotizado. Se conservaron solo como evidencia.", p + "estadoOferta");
             lineas.Add(linea);
         }
+        if (calcular && hayCotizada && resumenCompleto)
+        {
+            var ivaAdicional = Numero("cabecera_ivaAdicional", 18, 4);
+            cabecera.Subtotal = ImporteCalculado("cabecera_subtotal", subtotal);
+            if (ivaAdicional.HasValue || !TieneValor("cabecera_ivaAdicional"))
+                cabecera.Iva = ImporteCalculado("cabecera_iva", ivaLineas + (ivaAdicional ?? 0));
+            if (!TieneValor("cabecera_descuento")) cabecera.Descuento = 0;
+            if (!TieneValor("cabecera_otrosCargos")) cabecera.OtrosCargos = 0;
+            if (cabecera.Subtotal is decimal baseNeta && cabecera.Descuento is decimal descuento &&
+                cabecera.Iva is decimal iva && cabecera.OtrosCargos is decimal cargos)
+                cabecera.Total = ImporteCalculado("cabecera_total", baseNeta - descuento + iva + cargos);
+        }
         if (lineas.All(x => x.EstadoOferta == "SinCotizar"))
             Aviso("SinDatosDeOferta", "No hay renglones marcados como cotizados o no disponibles. Verifique si el proveedor completó el formulario.");
         return new(cabecera, lineas, extraccion with { Estado = advertencias.Count == 0 ? "Completada" : "Parcial", Advertencias = advertencias });
     }
+
+    private static decimal RedondearImporte(decimal valor) => Math.Round(valor, 4, MidpointRounding.AwayFromZero);
 
     public static void CopiarPresentacion(LineaGuardarRespuesta linea, SolicitudLinea pedida)
     {

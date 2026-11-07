@@ -1,14 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   insertarCompra,
-  actualizarCompra,
-  obtenerUltimoPrecioCompra
+  actualizarCompra
 } from "../api/compraApi";
 import { obtenerProductos } from "../api/productosApi";
 import { obtenerProveedores } from "../api/proveedorApi";
 import { obtenerPresentacionesProducto } from "../api/presentacionProductoApi";
 import { mostrarError, mostrarExito } from "../utils/alertas";
 import { decimalOpcional } from "../utils/datosApi.js";
+import { numeroEditable } from "../utils/numeros.js";
 
 const compraInicial = {
   idCompra: 0,
@@ -32,8 +32,8 @@ function useFormularioCompra({
   const [proveedores, setProveedores] = useState([]);
   const [presentaciones, setPresentaciones] = useState([]);
   const [cargandoCatalogos, setCargandoCatalogos] = useState(true);
-  const [ultimoPrecio, setUltimoPrecio] = useState(null);
-  const [cargandoUltimoPrecio, setCargandoUltimoPrecio] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const bloqueoGuardado = useRef(false);
 
   const estaEditando = compraEditar !== null;
 
@@ -51,8 +51,8 @@ function useFormularioCompra({
         fechaCompra: compraEditar.fechaCompra
           ? compraEditar.fechaCompra.split("T")[0]
           : "",
-        cantidadComprada: compraEditar.cantidadComprada || "",
-        precioTotal: compraEditar.precioTotal || "",
+        cantidadComprada: numeroEditable(compraEditar.cantidadComprada),
+        precioTotal: numeroEditable(compraEditar.precioTotal),
         moneda: compraEditar.moneda || "",
         observaciones: compraEditar.observaciones || ""
       });
@@ -60,14 +60,6 @@ function useFormularioCompra({
       setCompra(compraInicial);
     }
   }, [compraEditar]);
-
-  useEffect(() => {
-    if (compra.idProducto && compra.idPresentacionProducto) {
-      cargarUltimoPrecio(compra.idProducto, compra.idPresentacionProducto);
-    } else {
-      setUltimoPrecio(null);
-    }
-  }, [compra.idProducto, compra.idPresentacionProducto]);
 
   const cargarCatalogos = async () => {
     try {
@@ -106,30 +98,13 @@ function useFormularioCompra({
     }
   };
 
-  const cargarUltimoPrecio = async (idProducto, idPresentacionProducto) => {
-    try {
-      setCargandoUltimoPrecio(true);
-
-      const data = await obtenerUltimoPrecioCompra(
-        idProducto,
-        idPresentacionProducto
-      );
-
-      setUltimoPrecio(data);
-    } catch (error) {
-      console.error(error);
-      setUltimoPrecio(null);
-    } finally {
-      setCargandoUltimoPrecio(false);
-    }
-  };
-
   const manejarCambio = (e) => {
     const { name, value } = e.target;
 
     setCompra((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
+      ...(name === "idProducto" ? { idPresentacionProducto: "" } : {})
     }));
   };
 
@@ -189,14 +164,10 @@ function useFormularioCompra({
     return true;
   };
 
-  const manejarSubmit = async (e) => {
+  const manejarSubmit = async (e, prepararPresupuesto) => {
     e.preventDefault();
 
-    const formularioValido = validarFormulario();
-
-    if (!formularioValido) {
-      return;
-    }
+    if (bloqueoGuardado.current || !validarFormulario()) return;
 
     const payload = {
       idCompra: estaEditando ? Number(compra.idCompra) : undefined,
@@ -205,11 +176,13 @@ function useFormularioCompra({
       idPresentacionProducto: Number(compra.idPresentacionProducto),
       fechaCompra: compra.fechaCompra,
       cantidadComprada: Number(compra.cantidadComprada),
-      precioTotal: Number(decimalOpcional(compra.precioTotal, 4, true)),
+      precioTotal: decimalOpcional(compra.precioTotal, 4, true),
       moneda: compra.moneda.trim(),
       observaciones: compra.observaciones.trim()
     };
 
+    bloqueoGuardado.current = true;
+    setGuardando(true);
     try {
       if (estaEditando) {
         await actualizarCompra(payload);
@@ -219,6 +192,7 @@ function useFormularioCompra({
         );
       } else {
         delete payload.idCompra;
+        if (prepararPresupuesto) payload.imputacionPresupuesto = prepararPresupuesto(payload);
         await insertarCompra(payload);
         await mostrarExito(
           "Compra guardada",
@@ -227,7 +201,6 @@ function useFormularioCompra({
       }
 
       setCompra(compraInicial);
-      setUltimoPrecio(null);
 
       if (onCompraGuardada) {
         onCompraGuardada();
@@ -235,17 +208,19 @@ function useFormularioCompra({
     } catch (error) {
       await mostrarError(
         "Ocurrió un error",
-        estaEditando
+        error.message || (estaEditando
           ? "No se pudo actualizar la compra."
-          : "No se pudo registrar la compra."
+          : "No se pudo registrar la compra.")
       );
       console.error(error);
+    } finally {
+      bloqueoGuardado.current = false;
+      setGuardando(false);
     }
   };
 
   const manejarCancelar = () => {
     setCompra(compraInicial);
-    setUltimoPrecio(null);
 
     if (onCancelarEdicion) {
       onCancelarEdicion();
@@ -270,8 +245,7 @@ function useFormularioCompra({
     presentaciones,
     presentacionesFiltradas,
     cargandoCatalogos,
-    ultimoPrecio,
-    cargandoUltimoPrecio,
+    guardando,
     estaEditando,
     manejarCambio,
     manejarSubmit,

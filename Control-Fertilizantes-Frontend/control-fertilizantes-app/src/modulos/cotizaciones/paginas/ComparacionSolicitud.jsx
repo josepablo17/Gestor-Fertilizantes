@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Campo from "../../../componentes/comunes/Campo.jsx";
 import MatrizOfertas from "../componentes/MatrizOfertas.jsx";
+import ReservaDesdeCotizacion from "../../presupuestos/componentes/ReservaDesdeCotizacion.jsx";
 import Pagina, { EstadoConsulta, Tarjeta } from "../../../componentes/comunes/Pagina.jsx";
 import useConsulta from "../../../hooks/useConsulta.js";
 import { compararSolicitud, obtenerSolicitud } from "../api/cotizacionesApi.js";
@@ -68,6 +69,7 @@ function Comparador({ id, solicitud }) {
 function ResultadoComparacion({ resultado }) {
   return <>
     <MatrizOfertas resultado={resultado} />
+    <ReservaDesdeCotizacion key={JSON.stringify(resultado.criterio)} resultado={resultado} />
     <Tarjeta titulo="Ajustes globales por proforma">
       {resultado.documentos.length === 0 ? <p>No hay proformas validadas en estos resultados.</p> : <div className="table-wrapper">
         <table className="table"><thead><tr><th>Proforma</th><th>Moneda</th><th>Vence</th><th>Descuento</th><th>IVA</th>

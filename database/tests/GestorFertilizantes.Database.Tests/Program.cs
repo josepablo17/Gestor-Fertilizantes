@@ -87,6 +87,7 @@ try
     await VerifyEmptyBusinessData(connection);
 
     var fixture = await LoadFixture(root);
+    var fixturePresupuesto = await File.ReadAllTextAsync(Path.Combine(root, "tests", "presupuesto-pruebas.sql"));
     var cases = JsonSerializer.Deserialize<TestCase[]>(await File.ReadAllTextAsync(Path.Combine(root, "tests", "casos-integracion.json")))
                 ?? throw new InvalidOperationException("No hay casos de prueba.");
     foreach (var test in cases)
@@ -99,6 +100,7 @@ try
         try
         {
             var body = fixture.Replace("-- TEST_BEFORE_EMIT", test.BeforeEmit ?? "", StringComparison.Ordinal) +
+                       (test.UsaPresupuesto ? "\n" + fixturePresupuesto : "") +
                        "\n" + test.Setup + "\nRAISERROR('TEST_ACTION_START',10,1) WITH NOWAIT;\n" + test.Sql;
             await using var command = new SqlCommand(body, connection, transaction) { CommandTimeout = 60 };
             await command.ExecuteNonQueryAsync();
@@ -129,6 +131,24 @@ try
     // and audit, then prove that republishing preserves EVERY row byte-for-byte.
     Console.WriteLine("Actualizacion sobre datos historicos de prueba...");
     await CreateHistory(connection, fixture);
+    await VerifyConcurrentBudget(connection, targetSettings.ConnectionString, fixturePresupuesto);
+    string[] procedimientosRetirados =
+    [
+        "SP_ComparadorProveedor_ObtenerComparativa",
+        "SP_ComparadorProveedor_ObtenerDetalleHistoricoProveedor",
+        "SP_Compra_AlertasPorProducto",
+        "SP_Compra_EvaluarCompra",
+        "SP_Compra_HistorialPreciosPorProducto",
+        "SP_Compra_ResumenInteligentePrecios"
+    ];
+    await using (var legado = new SqlCommand("", connection))
+    {
+        foreach (var nombre in procedimientosRetirados)
+        {
+            legado.CommandText = $"CREATE PROCEDURE dbo.[{nombre}] AS RETURN 0;";
+            await legado.ExecuteNonQueryAsync();
+        }
+    }
     var before = await Snapshot(connection);
     var sequenceBefore = await SequenceValue(connection);
     await connection.CloseAsync();
@@ -220,7 +240,7 @@ static async Task CreateHistory(SqlConnection connection, string fixture)
 
 static async Task VerifySchema(SqlConnection connection)
 {
-    var expected = new Dictionary<string, int> { ["U"] = 16, ["P"] = 84, ["TR"] = 14, ["V"] = 2, ["FN"] = 1, ["SO"] = 1, ["PK"] = 16, ["F"] = 36, ["C"] = 79 };
+    var expected = new Dictionary<string, int> { ["U"] = 24, ["P"] = 96, ["TR"] = 16, ["V"] = 5, ["FN"] = 1, ["IF"] = 1, ["SO"] = 1, ["PK"] = 24, ["F"] = 53, ["C"] = 91 };
     await using var command = new SqlCommand("SELECT RTRIM(type),COUNT(*) FROM sys.objects WHERE schema_id=SCHEMA_ID(N'dbo') AND is_ms_shipped=0 GROUP BY type", connection);
     await using (var reader = await command.ExecuteReaderAsync())
         while (await reader.ReadAsync())
@@ -236,6 +256,43 @@ static async Task VerifySchema(SqlConnection connection)
     Assert(Convert.ToInt32(await command.ExecuteScalarAsync()) >= 16, "Requiere SQL Server 2022 o posterior.");
     command.CommandText = "SELECT CONVERT(nvarchar(128),DATABASEPROPERTYEX(DB_NAME(),'Collation'))";
     Assert(Convert.ToString(await command.ExecuteScalarAsync()) == "SQL_Latin1_General_CP1_CI_AS", "Collation inesperada.");
+}
+
+static async Task VerifyConcurrentBudget(SqlConnection connection, string connectionString, string fixture)
+{
+    await using var preparar = new SqlCommand(fixture + "\nSELECT @PartidaNorte;", connection);
+    var partida = Convert.ToInt64(await preparar.ExecuteScalarAsync());
+    const string reservar = """
+        DECLARE @Distribucion nvarchar(max) = (SELECT @Partida AS idPartidaPresupuesto, 600000 AS monto FOR JSON PATH);
+        DECLARE @Operacion uniqueidentifier = NEWID(), @Compromiso bigint;
+        EXEC dbo.usp_Compromiso_Registrar '20261016', N'CRC', @Distribucion, @Operacion, N'Prueba concurrente', @Compromiso OUTPUT;
+        """;
+    await using var segundaConexion = new SqlConnection(connectionString);
+    await segundaConexion.OpenAsync();
+    await using var transaccion = (SqlTransaction)await connection.BeginTransactionAsync();
+    await using var primera = new SqlCommand(reservar, connection, transaccion);
+    primera.Parameters.Add("@Partida", SqlDbType.BigInt).Value = partida;
+    await primera.ExecuteNonQueryAsync();
+
+    await using var segunda = new SqlCommand(reservar, segundaConexion);
+    segunda.Parameters.Add("@Partida", SqlDbType.BigInt).Value = partida;
+    var intento = segunda.ExecuteNonQueryAsync();
+    var esperoLaPrimera = await Task.WhenAny(intento, Task.Delay(250)) != intento;
+    await transaccion.CommitAsync();
+    try
+    {
+        await intento;
+        throw new InvalidOperationException("Dos reservas simultáneas consumieron el mismo saldo.");
+    }
+    catch (SqlException error) when (error.Number == 52010 && error.Message.Contains("saldo disponible", StringComparison.Ordinal))
+    {
+        Assert(esperoLaPrimera, "La segunda reserva no esperó a la transacción en curso.");
+    }
+
+    await using var saldo = new SqlCommand("SELECT Disponible FROM dbo.vw_SaldosPresupuesto WHERE IdPartidaPresupuesto = @Partida", connection);
+    saldo.Parameters.Add("@Partida", SqlDbType.BigInt).Value = partida;
+    Assert(Convert.ToDecimal(await saldo.ExecuteScalarAsync()) == 400000m, "La reserva concurrente dejó un saldo incorrecto.");
+    Console.WriteLine("OK: dos sesiones concurrentes no reutilizan el saldo presupuestario.");
 }
 
 static async Task VerifyEmptyBusinessData(SqlConnection connection)
@@ -282,7 +339,7 @@ static void Assert(bool condition, string message)
     if (!condition) throw new InvalidOperationException(message);
 }
 
-record TestCase(string Name, string Sql, string? Setup, string? BeforeEmit, int[]? Errors);
+record TestCase(string Name, string Sql, string? Setup, string? BeforeEmit, int[]? Errors, bool UsaPresupuesto = false);
 record TestResult(string Name, bool Passed, string? Detail);
 record TableSnapshot(long Rows, string Sha256);
 record PersistenceBaseline(string Database, string Sequence, SortedDictionary<string, TableSnapshot> Tables);

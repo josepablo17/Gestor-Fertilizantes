@@ -12,6 +12,7 @@ namespace GestorFertilizantes.Backend.Tests;
 public class RecepcionPdfPruebas
 {
     private readonly LectorRespuestaPdf lector = new(NullLogger<LectorRespuestaPdf>.Instance);
+    private static readonly string Version = new GeneradorSolicitudPdf().VersionPlantilla;
 
     [Fact]
     public void Lee_formulario_guardado_en_dos_paginas_y_conserva_id_y_texto_literal()
@@ -31,7 +32,7 @@ public class RecepcionPdfPruebas
             ["linea_3008_observaciones"] = "Sin existencias en la región."
         });
 
-        var borrador = PreparadorBorradorRespuesta.Preparar(solicitud, lector.Leer(pdf, solicitud, destino, "GF-SOL-1"));
+        var borrador = PreparadorBorradorRespuesta.Preparar(solicitud, lector.Leer(pdf, solicitud, destino, Version));
         Assert.Equal("AcroForm", borrador.Extraccion.Metodo);
         Assert.Equal("Completada", borrador.Extraccion.Estado);
         Assert.Contains(borrador.Extraccion.Campos, x => x.Nombre == "gf_solicitud_id" && x.Valor == "9007199254740993");
@@ -42,7 +43,7 @@ public class RecepcionPdfPruebas
         Assert.Equal("NoDisponible", borrador.Lineas[^1].EstadoOferta);
         Assert.Equal("Sin existencias en la región.", borrador.Lineas[^1].Observacion);
         Assert.Null(borrador.Lineas[^1].PrecioUnitario);
-        Assert.Null(borrador.Cabecera.Iva);
+        Assert.Equal(0m, borrador.Cabecera.Iva);
     }
 
     [Fact]
@@ -58,7 +59,7 @@ public class RecepcionPdfPruebas
             ["linea_3001_precioUnitario"] = "7,546.00",
             ["linea_3001_totalLinea"] = "0",
             ["linea_3001_observaciones"] = "Alternativa en otro empaque"
-        });
+        }, ConvertirEnPlantillaAnterior);
         var borrador = PreparadorBorradorRespuesta.Preparar(solicitud, lector.Leer(pdf, solicitud, destino, "GF-SOL-1"));
         var linea = Assert.Single(borrador.Lineas);
         Assert.Null(linea.CantidadEmpaques);
@@ -78,11 +79,11 @@ public class RecepcionPdfPruebas
         var destino = solicitud.Destinatarios[0];
         var pdf = new GeneradorSolicitudPdf().Generar(solicitud, destino);
         var otro = Cambiar(pdf, new Dictionary<string, string> { ["gf_destinatario_id"] = "44" });
-        var error = Assert.Throws<ReglaNegocio>(() => lector.Leer(otro, solicitud, destino, "GF-SOL-1"));
+        var error = Assert.Throws<ReglaNegocio>(() => lector.Leer(otro, solicitud, destino, Version));
         Assert.Equal(HttpStatusCode.Conflict, error.StatusCode);
 
         var separado = Cambiar(pdf, new Dictionary<string, string>(), documento => documento.Pages[0].Elements.Remove("/Annots"));
-        var intento = lector.Leer(separado, solicitud, destino, "GF-SOL-1");
+        var intento = lector.Leer(separado, solicitud, destino, Version);
         Assert.Equal("Manual", intento.Metodo);
         Assert.Equal("FormularioIncompleto", Assert.Single(intento.Advertencias).Codigo);
     }
@@ -96,7 +97,7 @@ public class RecepcionPdfPruebas
         externo.AddPage();
         using var bytes = new MemoryStream();
         externo.Save(bytes, false);
-        var borrador = PreparadorBorradorRespuesta.Preparar(solicitud, lector.Leer(bytes.ToArray(), solicitud, destino, "GF-SOL-1"));
+        var borrador = PreparadorBorradorRespuesta.Preparar(solicitud, lector.Leer(bytes.ToArray(), solicitud, destino, Version));
         Assert.Equal("NoCompatible", borrador.Extraccion.Estado);
         Assert.Equal(solicitud.Lineas.Select(x => (long?)x.IdSolicitudCotizacionDetalle), borrador.Lineas.Select(x => x.IdSolicitudDetalle));
         Assert.All(borrador.Lineas, x =>
@@ -106,7 +107,54 @@ public class RecepcionPdfPruebas
             Assert.Null(x.CantidadEmpaques);
             Assert.Null(x.PrecioUnitario);
         });
-        Assert.Throws<ReglaNegocio>(() => lector.Leer("%PDF-1.7\nArchivo incompleto"u8.ToArray(), solicitud, destino, "GF-SOL-1"));
+        Assert.Throws<ReglaNegocio>(() => lector.Leer("%PDF-1.7\nArchivo incompleto"u8.ToArray(), solicitud, destino, Version));
+    }
+
+    [Fact]
+    public void Recalcula_partidas_y_documento_sin_duplicar_descuentos_o_impuestos()
+    {
+        var solicitud = SolicitudesPdfPruebas.Ejemplo(3);
+        var destino = solicitud.Destinatarios[0];
+        var pdf = Cambiar(new GeneradorSolicitudPdf().Generar(solicitud, destino), new Dictionary<string, string>
+        {
+            ["cabecera_moneda"] = "USD",
+            ["cabecera_descuento"] = "3",
+            ["cabecera_ivaAdicional"] = "2",
+            ["cabecera_otrosCargos"] = "5",
+            ["linea_3001_estadoOferta"] = "Cotizada",
+            ["linea_3001_cantidadEmpaques"] = "2",
+            ["linea_3001_precioUnitario"] = "50,50",
+            ["linea_3001_descuentoPorcentaje"] = "10",
+            ["linea_3001_impuestoMonto"] = "12",
+            ["linea_3001_baseTotalLinea"] = "ConImpuestos",
+            ["linea_3002_estadoOferta"] = "Cotizada",
+            ["linea_3002_cantidadEmpaques"] = "1",
+            ["linea_3002_precioUnitario"] = "10",
+            ["linea_3002_descuentoPorcentaje"] = "20",
+            ["linea_3002_baseTotalLinea"] = "Bruto",
+            ["linea_3002_totalLinea"] = "999",
+            ["linea_3003_estadoOferta"] = "NoDisponible"
+        });
+        var borrador = PreparadorBorradorRespuesta.Preparar(solicitud, lector.Leer(pdf, solicitud, destino, Version));
+        Assert.Equal(102.90m, borrador.Lineas[0].TotalLinea);
+        Assert.Equal(10m, borrador.Lineas[1].TotalLinea);
+        Assert.Null(borrador.Lineas[2].TotalLinea);
+        Assert.Equal(98.90m, borrador.Cabecera.Subtotal);
+        Assert.Equal(14m, borrador.Cabecera.Iva);
+        Assert.Equal(114.90m, borrador.Cabecera.Total);
+        Assert.Contains(borrador.Extraccion.Advertencias, x => x.Codigo == "ImporteRecalculado" && x.Campo == "linea_3002_totalLinea");
+    }
+
+    private static void ConvertirEnPlantillaAnterior(PdfDocument documento)
+    {
+        var formulario = documento.Internals.Catalog.Elements.GetDictionary("/AcroForm")!;
+        var campos = formulario.Elements.GetArray("/Fields")!;
+        foreach (var referencia in campos.Elements.Cast<PdfReference>())
+        {
+            var campo = (PdfDictionary)referencia.Value;
+            if (campo.Elements.GetString("/T") == "gf_plantilla") campo.Elements.SetString("/V", "GF-SOL-1");
+            if (campo.Elements.GetName("/FT") == "/Ch") campo.Elements.SetName("/FT", "/Tx");
+        }
     }
 
     private static byte[] Cambiar(byte[] pdf, IReadOnlyDictionary<string, string> valores, Action<PdfDocument>? modificar = null)
