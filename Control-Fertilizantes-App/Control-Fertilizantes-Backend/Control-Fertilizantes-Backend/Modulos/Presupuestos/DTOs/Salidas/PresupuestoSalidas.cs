@@ -6,7 +6,7 @@ public record PresupuestoResumenDTO(long IdPresupuesto, string Nombre, int? IdFi
 
 public record PresupuestoCabeceraDTO(long IdPresupuesto, string Nombre, int? IdFinca, string? Finca,
     DateTime FechaInicio, DateTime FechaFin, string Moneda, string Estado, DateTime FechaCreacion,
-    DateTime? FechaAprobacion, DateTime? FechaCierre, string? MotivoCierre);
+    DateTime? FechaAprobacion, DateTime? FechaCierre, string? MotivoCierre, Guid Version);
 
 public record PartidaPresupuestoDTO(long IdPartidaPresupuesto, int IdRubroPresupuesto, string Rubro,
     decimal MontoInicial, decimal Aprobado, decimal Comprometido, decimal Ejecutado, decimal Disponible);

@@ -40,7 +40,6 @@ public class SolicitudServicio(ISolicitudRepositorio repositorio, IGeneradorSoli
         };
         var datos = new SolicitudGuardar
         {
-            NumeroSolicitud = entrada.NumeroSolicitud.Trim(),
             FechaSolicitud = (entrada.FechaSolicitud ?? throw Error("La fecha es obligatoria.")).ToDateTime(TimeOnly.MinValue),
             FechaLimiteRespuesta = entrada.FechaLimiteRespuesta?.ToDateTime(TimeOnly.MinValue),
             DatosClienteOriginalJson = cliente is null ? null : JsonSerializer.Serialize(cliente, JsonWeb),

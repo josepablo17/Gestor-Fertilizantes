@@ -8,6 +8,7 @@ CREATE TABLE dbo.Presupuestos
     Moneda char(3) NOT NULL,
     Estado varchar(12) NOT NULL CONSTRAINT DF_Presupuestos_Estado DEFAULT ('Borrador'),
     IdOperacionCreacion uniqueidentifier NOT NULL,
+    IdOperacionEdicion uniqueidentifier NULL,
     IdOperacionAprobacion uniqueidentifier NULL,
     IdOperacionCierre uniqueidentifier NULL,
     CONSTRAINT CK_Presupuestos_Datos CHECK (LEN(TRIM(Nombre)) > 0 AND FechaFin >= FechaInicio
@@ -18,6 +19,7 @@ CREATE TABLE dbo.Presupuestos
         OR (Estado = 'Cerrado' AND IdOperacionAprobacion IS NOT NULL AND IdOperacionCierre IS NOT NULL)),
     CONSTRAINT FK_Presupuestos_Finca FOREIGN KEY (IdFinca) REFERENCES dbo.Fincas(IdFinca),
     CONSTRAINT FK_Presupuestos_Creacion FOREIGN KEY (IdOperacionCreacion) REFERENCES dbo.OperacionesPresupuesto(IdOperacion),
+    CONSTRAINT FK_Presupuestos_Edicion FOREIGN KEY (IdOperacionEdicion) REFERENCES dbo.OperacionesPresupuesto(IdOperacion),
     CONSTRAINT FK_Presupuestos_Aprobacion FOREIGN KEY (IdOperacionAprobacion) REFERENCES dbo.OperacionesPresupuesto(IdOperacion),
     CONSTRAINT FK_Presupuestos_Cierre FOREIGN KEY (IdOperacionCierre) REFERENCES dbo.OperacionesPresupuesto(IdOperacion)
 );

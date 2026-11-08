@@ -11,7 +11,8 @@ BEGIN
             THROW 52004, N'El presupuesto no existe.', 1;
         SELECT p.IdPresupuesto, p.Nombre, p.IdFinca, f.Nombre AS Finca, p.FechaInicio, p.FechaFin, p.Moneda, p.Estado,
             c.FechaRegistro AS FechaCreacion, a.FechaRegistro AS FechaAprobacion,
-            z.FechaRegistro AS FechaCierre, z.Motivo AS MotivoCierre
+            z.FechaRegistro AS FechaCierre, z.Motivo AS MotivoCierre,
+            COALESCE(p.IdOperacionEdicion,p.IdOperacionCreacion) AS Version
         FROM dbo.Presupuestos AS p LEFT JOIN dbo.Fincas AS f ON f.IdFinca = p.IdFinca
         JOIN dbo.OperacionesPresupuesto AS c ON c.IdOperacion = p.IdOperacionCreacion
         LEFT JOIN dbo.OperacionesPresupuesto AS a ON a.IdOperacion = p.IdOperacionAprobacion

@@ -1,7 +1,6 @@
 namespace Control_Fertilizantes_Backend.Modulos.SolicitudesCotizacion.Modelos;
 public class SolicitudGuardar
 {
-    public required string NumeroSolicitud { get; init; }
     public DateTime FechaSolicitud { get; init; }
     public DateTime? FechaLimiteRespuesta { get; init; }
     public string? DatosClienteOriginalJson { get; init; }

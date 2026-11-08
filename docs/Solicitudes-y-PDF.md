@@ -2,6 +2,8 @@
 
 El cliente elige productos y presentaciones del catálogo e indica cuántos empaques desea cotizar. Crea un borrador, elige proveedores y emite la solicitud. Después descarga un PDF por proveedor para compartirlo por su canal habitual. El módulo de [recepción y revisión](Recepcion-y-revision-de-proformas.md) lee los campos cuando el proveedor devuelve el mismo formulario.
 
+SQL asigna el número al guardar un borrador nuevo, con formato `SOL-000001`. La secuencia admite solicitudes simultáneas y puede dejar saltos. Los números históricos se conservan y se omiten cuando ya están ocupados. Editar un borrador o crear su revisión conserva el número asignado. La API recibe la fecha y el contenido de la solicitud, y devuelve su número generado.
+
 ## Probar desde Swagger
 
 Arrancar SQL con el DACPAC **1.0.2.0** y el backend según el README. Usar `/swagger` en Development. Antes de crear la solicitud, registrar un producto base, un producto comercial, una presentación y al menos un proveedor activo.
@@ -24,7 +26,6 @@ Ejemplo de cuerpo para crear o reemplazar un borrador (sustituir los IDs por los
 
 ```json
 {
-  "numeroSolicitud": "SOL-2026-0001",
   "fechaSolicitud": "2026-11-05",
   "fechaLimiteRespuesta": "2026-11-12",
   "datosCliente": { "nombre": "Finca de ejemplo" },

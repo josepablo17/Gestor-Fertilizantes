@@ -6,6 +6,7 @@ BEGIN
  DECLARE @TranInicial int=@@TRANCOUNT;
  IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION CompraReal;
  BEGIN TRY
+ EXEC dbo.usp_Presupuesto_Bloquear;
  IF @CantidadComprada IS NULL OR @CantidadComprada<=0 OR @PrecioTotal IS NULL OR @PrecioTotal<=0 OR @FechaCompra IS NULL OR @FechaCompra>CONVERT(date,GETDATE())
  THROW 52000,N'Compra requiere fecha no futura y cantidad e importe positivos.',1;
  SET @Moneda=UPPER(LTRIM(RTRIM(@Moneda)));
@@ -23,6 +24,16 @@ BEGIN
  OR FechaCompra<>@FechaCompra OR CantidadComprada<>@CantidadComprada OR PrecioTotal<>@PrecioTotal OR Moneda<>@Moneda))
  THROW 52010,N'Revierta la imputación presupuestaria antes de cambiar los datos de la compra.',1;
  DECLARE @ProductoAnterior int,@PresentacionAnterior int,@MonedaAnterior nvarchar(10);
+ DECLARE @Cabecera bigint=(SELECT IdCompraCabecera FROM dbo.Compras WHERE IdCompra=@IdCompra);
+ IF @Cabecera IS NOT NULL
+ BEGIN
+   IF EXISTS(SELECT 1 FROM dbo.ComprasCabecera WHERE IdCompraCabecera=@Cabecera
+     AND (IdProveedor<>@IdProveedor OR FechaCompra<>@FechaCompra OR Moneda<>@Moneda))
+     AND (SELECT COUNT(*) FROM dbo.Compras WHERE IdCompraCabecera=@Cabecera)>1
+     THROW 52010,N'Cambie proveedor, fecha y moneda desde la cabecera de la compra completa.',1;
+   UPDATE dbo.ComprasCabecera SET IdProveedor=@IdProveedor,FechaCompra=@FechaCompra,Moneda=@Moneda,
+     FechaModificacion=SYSUTCDATETIME() WHERE IdCompraCabecera=@Cabecera;
+ END;
  SELECT @ProductoAnterior=IdProducto,@PresentacionAnterior=IdPresentacionProducto,@MonedaAnterior=Moneda FROM dbo.Compras WHERE IdCompra=@IdCompra;
  UPDATE dbo.Compras SET IdProducto=@IdProducto,IdProveedor=@IdProveedor,IdPresentacionProducto=@IdPresentacionProducto,FechaCompra=@FechaCompra,
  CantidadComprada=@CantidadComprada,PrecioTotal=@PrecioTotal,Moneda=@Moneda,PrecioUnitarioCalculado=@Precio,Observaciones=NULLIF(LTRIM(RTRIM(@Observaciones)),N''),FechaModificacion=SYSDATETIME() WHERE IdCompra=@IdCompra;

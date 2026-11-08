@@ -1,12 +1,8 @@
 import { useState } from "react";
 import Campo from "../../../componentes/comunes/Campo.jsx";
 import { Tarjeta } from "../../../componentes/comunes/Pagina.jsx";
-import { decimalOpcional } from "../../../utils/datosApi.js";
+import { etiquetaConciliacion } from "../utils/etiquetasCotizacion.js";
 
-const estadosConciliacion = [
-  { value: "Conciliada", label: "Conciliada" },
-  { value: "ConDiferencias", label: "Con diferencias justificadas" },
-];
 
 export function MotivoAccion({ etiqueta, boton, ejecutar, cerrar, ocupado }) {
   const [motivo, setMotivo] = useState("");
@@ -21,26 +17,26 @@ export function MotivoAccion({ etiqueta, boton, ejecutar, cerrar, ocupado }) {
 
 export function Conciliacion({ resumen, guardar, ocupado }) {
   const [abierta, setAbierta] = useState(false);
-  const [estado, setEstado] = useState("Conciliada");
   const [motivo, setMotivo] = useState("");
-  const [tolerancia, setTolerancia] = useState("0.01");
+
   return <Tarjeta titulo="Conciliación de importes">
-    <p>Estado: {resumen.estadoConciliacion}</p>
+    <p role="status">{etiquetaConciliacion(resumen.estadoConciliacion)}</p>
     {resumen.justificacionConciliacion && <p>{resumen.justificacionConciliacion}</p>}
-    {!abierta ? <button type="button" className="btn btn--secondary" disabled={ocupado}
-      onClick={() => setAbierta(true)}>Conciliar importes</button> : <form className="form" onSubmit={(e) => {
-      e.preventDefault();
-      guardar(() => ({ estadoConciliacion: estado, motivo: motivo.trim(), tolerancia: decimalOpcional(tolerancia, 4) }),
-        () => setAbierta(false));
+    <div className="form-actions">
+      <button type="button" className="btn btn--primary" disabled={ocupado}
+        onClick={() => guardar(() => ({ estadoConciliacion: "Conciliada" }))}>Comprobar importes</button>
+      <button type="button" className="btn btn--secondary" disabled={ocupado} onClick={() => setAbierta(!abierta)}>
+        {abierta ? "Ocultar justificación" : "Justificar diferencias"}
+      </button>
+    </div>
+    {abierta && <form className="form" onSubmit={(evento) => {
+      evento.preventDefault();
+      guardar(() => ({ estadoConciliacion: "ConDiferencias", motivo: motivo.trim() }), () => setAbierta(false));
     }}>
-      <fieldset className="form-row" disabled={ocupado}>
-        <Campo etiqueta="Resultado de la conciliación" valor={estado} cambiar={setEstado} opciones={estadosConciliacion} required />
-        <Campo etiqueta="Tolerancia (entre 0 y 1)" valor={tolerancia} cambiar={setTolerancia} formatoNumerico="decimal" />
-        <Campo etiqueta="Motivo de la conciliación" valor={motivo} cambiar={setMotivo} maxLength={1000} required />
-      </fieldset>
+      <p>Explica por qué aceptas la discrepancia entre los importes del documento.</p>
+      <Campo etiqueta="Justificación de las diferencias" valor={motivo} cambiar={setMotivo} maxLength={1000} required disabled={ocupado} />
       <div className="form-actions">
-        <button type="button" className="btn btn--secondary" onClick={() => setAbierta(false)} disabled={ocupado}>Volver</button>
-        <button className="btn btn--primary" disabled={ocupado || !motivo.trim()}>Guardar conciliación</button>
+        <button className="btn btn--primary" disabled={ocupado || !motivo.trim()}>Aceptar diferencias</button>
       </div>
     </form>}
   </Tarjeta>;

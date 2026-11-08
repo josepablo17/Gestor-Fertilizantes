@@ -35,6 +35,7 @@ public sealed class RespuestaCotizacionController(RespuestaCotizacionServicio se
             await servicio.ListarAsync(idSolicitud, idDestinatario, pagina, tamanoPagina, ct)));
 
     [HttpGet("{idRespuesta:int}")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public async Task<ActionResult<ApiRespuesta<RespuestaCotizacionDTO>>> Obtener(int idRespuesta, CancellationToken ct) =>
         Ok(Exito("Respuesta obtenida.", await servicio.ObtenerAsync(idRespuesta, ct)));
 
@@ -49,7 +50,7 @@ public sealed class RespuestaCotizacionController(RespuestaCotizacionServicio se
 
     [HttpPut("{idRespuesta:int}/cabecera")]
     public async Task<ActionResult<ApiRespuesta<RespuestaCotizacionDTO>>> AjustarCabecera(int idRespuesta, AjustarCabeceraRespuestaDTO entrada, CancellationToken ct) =>
-        Ok(Exito("Cabecera actualizada. Concilie los importes nuevamente.", await servicio.AjustarCabeceraAsync(idRespuesta, entrada, ct)));
+        Ok(Exito("Cabecera actualizada.", await servicio.AjustarCabeceraAsync(idRespuesta, entrada, ct)));
 
     [HttpPost("{idRespuesta:int}/lineas")]
     public async Task<ActionResult<ApiRespuesta<RespuestaCotizacionDTO>>> AgregarLinea(int idRespuesta, AjustarLineaRespuestaDTO entrada, CancellationToken ct) =>
@@ -60,7 +61,7 @@ public sealed class RespuestaCotizacionController(RespuestaCotizacionServicio se
         Ok(Exito("Renglón actualizado. Confirme la revisión nuevamente.", await servicio.GuardarLineaAsync(idRespuesta, idLinea, entrada, ct)));
 
     [HttpPost("{idRespuesta:int}/lineas/{idLinea:int}/revision")]
-    public async Task<ActionResult<ApiRespuesta<RespuestaCotizacionDTO>>> RevisarLinea(int idRespuesta, int idLinea, MotivoRespuestaDTO entrada, CancellationToken ct) =>
+    public async Task<ActionResult<ApiRespuesta<RespuestaCotizacionDTO>>> RevisarLinea(int idRespuesta, int idLinea, RevisionLineaRespuestaDTO entrada, CancellationToken ct) =>
         Ok(Exito("Renglón revisado.", await servicio.RevisarLineaAsync(idRespuesta, idLinea, entrada, ct)));
 
     [HttpPost("{idRespuesta:int}/conciliacion")]

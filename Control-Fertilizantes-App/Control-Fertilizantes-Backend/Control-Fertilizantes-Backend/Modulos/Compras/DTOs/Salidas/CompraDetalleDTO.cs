@@ -3,6 +3,7 @@ namespace Control_Fertilizantes_Backend.Modulos.Compras.DTOs.Salidas
     public class CompraDetalleDTO
     {
         public int IdCompra { get; set; }
+        public long? IdCompraCabecera { get; set; }
 
         public int IdProducto { get; set; }
         public string? NombreProducto { get; set; }

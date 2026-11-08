@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Control_Fertilizantes_Backend.Comun.Errores;
 using Control_Fertilizantes_Backend.Comun.Respuestas;
+using Control_Fertilizantes_Backend.Comun.Validacion;
 using Control_Fertilizantes_Backend.Modulos.Presupuestos.Contratos;
 using Control_Fertilizantes_Backend.Modulos.Presupuestos.DTOs.Entradas;
 using Control_Fertilizantes_Backend.Modulos.Presupuestos.DTOs.Salidas;
@@ -20,6 +21,7 @@ public sealed class PresupuestosController(IPresupuestoRepositorio repositorio) 
             await repositorio.Listar(idFinca, moneda, estado, ct));
 
     [HttpGet("{id:long:min(1)}")]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public async Task<ApiRespuesta<PresupuestoDetalleDTO>> Consultar(long id, CancellationToken ct) =>
         ApiRespuesta<PresupuestoDetalleDTO>.CrearExito("Presupuesto consultado.", await repositorio.Consultar(id, ct));
 
@@ -49,6 +51,31 @@ public sealed class PresupuestosController(IPresupuestoRepositorio repositorio) 
     {
         await repositorio.Aprobar(id, datos, ct);
         return ApiRespuesta<object>.CrearExito("Presupuesto aprobado.");
+    }
+
+    [HttpPut("{id:long:min(1)}/borrador")]
+    public async Task<ApiRespuesta<PresupuestoDetalleDTO>> EditarBorrador(long id, EditarBorradorPresupuestoDTO datos, CancellationToken ct)
+    {
+        ValidacionCatalogo.Validar(datos);
+        if (datos.Version == Guid.Empty || datos.IdOperacion == Guid.Empty)
+            throw new ReglaNegocio("Recargue el presupuesto para obtener una versión válida y vuelva a guardar.");
+        if (datos.FechaInicio == default || datos.FechaFin == default || datos.FechaFin < datos.FechaInicio)
+            throw new ReglaNegocio("Indique un período válido para el presupuesto.");
+        ValidacionCatalogo.IdOpcional(datos.IdFinca);
+        foreach (var partida in datos.Partidas) ValidacionCatalogo.Validar(partida);
+        if (datos.Partidas.Select(p => p.IdRubroPresupuesto).Distinct().Count() != datos.Partidas.Length)
+            throw new ReglaNegocio("Use una sola partida por rubro.");
+        await repositorio.EditarBorrador(id, datos, ct);
+        return ApiRespuesta<PresupuestoDetalleDTO>.CrearExito("Borrador actualizado.", await repositorio.Consultar(id, ct));
+    }
+
+    [HttpPost("partidas/{id:long:min(1)}/monto")]
+    public async Task<ApiRespuesta<object>> EstablecerMonto(long id, EstablecerMontoPartidaDTO datos, CancellationToken ct)
+    {
+        ValidacionCatalogo.Validar(datos);
+        if (datos.IdOperacion == Guid.Empty) throw new ReglaNegocio("Falta el identificador de la operación.");
+        await repositorio.EstablecerMonto(id, datos, ct);
+        return ApiRespuesta<object>.CrearExito("Monto de la partida actualizado.");
     }
 
     [HttpPost("{id:long:min(1)}/cerrar")]

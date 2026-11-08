@@ -106,7 +106,7 @@ public sealed class RespuestaCotizacionRepositorio(IConexionBD conexionBD) : IRe
         await conexion.ExecuteAsync(Comando(procedimiento, args, ct));
     }
 
-    public Task AjustarCabeceraAsync(int id, CabeceraGuardarRespuesta cabecera, string motivo, CancellationToken ct)
+    public Task AjustarCabeceraAsync(int id, CabeceraGuardarRespuesta cabecera, string? motivo, CancellationToken ct)
     {
         var args = Motivo(id, motivo);
         AgregarJson(args, "@CabeceraJson", cabecera);
@@ -128,10 +128,10 @@ public sealed class RespuestaCotizacionRepositorio(IConexionBD conexionBD) : IRe
         return EjecutarAsync("usp_Proforma_AgregarLinea", args, ct);
     }
 
-    public Task RevisarLineaAsync(int idLinea, string motivo, CancellationToken ct) =>
+    public Task RevisarLineaAsync(int idLinea, string? motivo, CancellationToken ct) =>
         EjecutarAsync("usp_Proforma_RevisarLinea", Motivo(idLinea, motivo, esLinea: true), ct);
 
-    public Task ConciliarAsync(int id, string estado, string motivo, decimal tolerancia, CancellationToken ct)
+    public Task ConciliarAsync(int id, string estado, string? motivo, decimal tolerancia, CancellationToken ct)
     {
         var args = Motivo(id, motivo);
         args.Add("@EstadoConciliacion", estado, DbType.AnsiString, size: 20);
@@ -156,7 +156,7 @@ public sealed class RespuestaCotizacionRepositorio(IConexionBD conexionBD) : IRe
     private static void AgregarJson<T>(DynamicParameters args, string nombre, T datos) =>
         args.Add(nombre, JsonSerializer.Serialize(datos, JsonWeb), DbType.String, size: -1);
 
-    private static DynamicParameters Motivo(int id, string motivo, bool esLinea = false)
+    private static DynamicParameters Motivo(int id, string? motivo, bool esLinea = false)
     {
         var args = new DynamicParameters();
         args.Add(esLinea ? "@IdProformaProveedorDetalle" : "@IdProformaProveedor", id, DbType.Int32);

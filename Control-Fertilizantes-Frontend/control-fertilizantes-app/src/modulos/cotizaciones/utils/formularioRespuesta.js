@@ -1,11 +1,9 @@
 import { decimalOpcional, enteroOpcional, idRuta, textoOpcional } from "../../../utils/datosApi.js";
 import { numeroEditable } from "../../../utils/numeros.js";
+import { etiquetaCotizacion } from "./etiquetasCotizacion.js";
 
-export const basesImporte = [
-  { value: "Bruto", label: "Bruto (antes de descuentos e impuestos)" },
-  { value: "NetoSinImpuestos", label: "Neto sin impuestos" },
-  { value: "ConImpuestos", label: "Con impuestos" },
-];
+export const basesImporte = ["Bruto", "NetoSinImpuestos", "ConImpuestos"]
+  .map((value) => ({ value, label: etiquetaCotizacion(value) }));
 
 export const camposCabecera = [
   ["numeroProforma", "Número de proforma", 50],
@@ -59,16 +57,60 @@ export function cuerpoCabecera(valores) {
       : textoOpcional(campo === "moneda" ? String(valores[campo]).toUpperCase() : valores[campo]),
   ]));
   for (const [campo] of partesCabecera) {
-    const parte = { ...valores[campo] };
-    for (const [llave] of camposParte) {
-      if (!Object.hasOwn(parte, llave)) continue;
-      const texto = textoOpcional(parte[llave]);
-      if (texto === null) delete parte[llave];
-      else parte[llave] = texto;
-    }
-    datos[campo] = Object.keys(parte).length ? parte : null;
+    datos[campo] = cuerpoParte(valores[campo]);
   }
   return datos;
+}
+
+function cuerpoParte(valor) {
+  const parte = { ...valor };
+  for (const [llave] of camposParte) {
+    if (!Object.hasOwn(parte, llave)) continue;
+    const texto = textoOpcional(parte[llave]);
+    if (texto === null) delete parte[llave];
+    else parte[llave] = texto;
+  }
+  return Object.keys(parte).length ? parte : null;
+}
+
+export function camposPendientesCabecera(cabecera) {
+  const requeridos = ["fechaProforma", "moneda", "subtotal", "descuento", "iva", "otrosCargos", "total"];
+  const campos = camposCabecera
+    .filter(([campo]) => requeridos.includes(campo) && textoOpcional(cabecera[campo]) === null)
+    .map(([campo, etiqueta]) => ({ campo, etiqueta: campo === "moneda" ? "Moneda" : etiqueta }));
+  for (const [campo, etiqueta] of partesCabecera) {
+    if (cuerpoParte(cabecera[campo]) === null) campos.push({ campo, etiqueta });
+  }
+  return campos;
+}
+
+function importeComparable(valor) {
+  const texto = textoOpcional(valor);
+  if (texto === null) return null;
+  const partes = /^([0-9]+)(?:[.,]([0-9]+))?$/.exec(texto);
+  return partes ? `${BigInt(partes[1])}.${(partes[2] ?? "").replace(/0+$/, "")}` : texto;
+}
+
+export function requiereMotivoCabecera(original, valores, estadoConciliacion) {
+  if (!estadoConciliacion || estadoConciliacion === "Pendiente") return false;
+  const monedaCambiada = original.moneda != null &&
+    textoOpcional(original.moneda) !== textoOpcional(valores.moneda)?.toUpperCase();
+  return monedaCambiada || ["subtotal", "descuento", "iva", "otrosCargos", "total"]
+    .some((campo) => importeComparable(original[campo]) !== importeComparable(valores[campo]));
+}
+
+export function confirmarNombresCabecera(valores, cliente, proveedor) {
+  return {
+    ...valores,
+    datosClienteOriginal: {
+      ...valores.datosClienteOriginal,
+      nombre: textoOpcional(valores.datosClienteOriginal.nombre) || cliente,
+    },
+    datosProveedorOriginal: {
+      ...valores.datosProveedorOriginal,
+      nombre: textoOpcional(valores.datosProveedorOriginal.nombre) || proveedor,
+    },
+  };
 }
 
 export const importesLinea = [

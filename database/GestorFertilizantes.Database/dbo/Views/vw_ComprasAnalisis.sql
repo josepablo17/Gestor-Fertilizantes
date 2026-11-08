@@ -4,7 +4,7 @@
    en columnas de tendencia guardadas por versiones antiguas. */
 CREATE   VIEW dbo.vw_ComprasAnalisis AS
 WITH Ordenadas AS(
- SELECT c.IdCompra,c.IdProducto,c.IdProveedor,c.IdPresentacionProducto,c.FechaCompra,c.CantidadComprada,c.PrecioTotal,c.Moneda,c.Observaciones,c.FechaCreacion,c.FechaModificacion,
+ SELECT c.IdCompra,c.IdCompraCabecera,c.NumeroLinea,c.IdProducto,c.IdProveedor,c.IdPresentacionProducto,c.FechaCompra,c.CantidadComprada,c.PrecioTotal,c.Moneda,c.Observaciones,c.FechaCreacion,c.FechaModificacion,
  CONVERT(decimal(18,6),c.PrecioTotal/NULLIF(c.CantidadComprada,0)) AS PrecioUnitarioCalculado,
  LAG(c.IdCompra) OVER(PARTITION BY c.IdProducto,c.IdPresentacionProducto,c.Moneda ORDER BY c.FechaCompra,c.IdCompra) AS IdCompraAnterior,
  LAG(CONVERT(decimal(18,6),c.PrecioTotal/NULLIF(c.CantidadComprada,0))) OVER(PARTITION BY c.IdProducto,c.IdPresentacionProducto,c.Moneda ORDER BY c.FechaCompra,c.IdCompra) AS PrecioUnitarioAnterior

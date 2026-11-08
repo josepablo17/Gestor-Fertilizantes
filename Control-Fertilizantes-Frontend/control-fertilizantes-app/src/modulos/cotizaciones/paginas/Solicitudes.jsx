@@ -39,7 +39,8 @@ export default function Solicitudes() {
                 {solicitud.estado}
               </span></td>
               <td>{solicitud.cantidadLineas}</td><td>{solicitud.cantidadProveedores}</td>
-              <td><Link to={`/solicitudes/${solicitud.idSolicitudCotizacion}`} aria-label={`Abrir solicitud ${solicitud.numeroSolicitud} versión ${solicitud.versionSolicitud}`}>Abrir</Link></td>
+              <td><Link className="btn btn--primary btn--sm" to={`/solicitudes/${solicitud.idSolicitudCotizacion}`}
+                aria-label={`Abrir solicitud ${solicitud.numeroSolicitud} versión ${solicitud.versionSolicitud}`}>Abrir</Link></td>
             </tr>)}</tbody>
           </table>
         </div>}

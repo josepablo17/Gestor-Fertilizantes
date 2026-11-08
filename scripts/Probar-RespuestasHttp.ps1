@@ -131,15 +131,32 @@ $ajusteLiquido=@{motivo='Captura de oferta líquida';linea=@{
     estadoOferta='Cotizada';baseTotalLinea='Bruto';cantidadEmpaques=2;precioUnitario=20;totalLinea=40
 }}
 $null=Invoke-Respuesta PUT "$ruta/lineas/$lineaLiquida" 200 $ajusteLiquido
-$cabecera=@{motivo='Datos transcritos y revisados';cabecera=@{
+$cabecera=@{cabecera=@{
     numeroProforma='EXT-1';fechaProforma='2026-04-01';fechaVencimiento='2026-04-08';moneda='CRC';subtotal=240;descuento=10;iva=5;
     otrosCargos=0;total=235;datosClienteOriginal=@{nombre='Finca de prueba'};datosProveedorOriginal=@{nombre='Proveedor de prueba'}
 }}
-$null=Invoke-Respuesta PUT "$ruta/cabecera" 200 $cabecera
-$conciliacion=@{estadoConciliacion='Conciliada';motivo='Verifiqué el total del documento';tolerancia=0}
-$null=Invoke-Respuesta POST "$ruta/lineas/$linea/revision" 200 @{motivo='Confirmé la línea con el PDF'}
-$null=Invoke-Respuesta POST "$ruta/lineas/$lineaLiquida/revision" 200 @{motivo='Confirmé el bidón y el precio por empaque'}
-$null=Invoke-Respuesta POST "$ruta/conciliacion" 200 $conciliacion
+$guardada=Invoke-Respuesta PUT "$ruta/cabecera" 200 $cabecera
+Assert-Respuesta ($guardada.respuesta.estadoConciliacion -ceq 'Conciliada') 'Guardar una cabecera completa comprueba automáticamente sus importes'
+$conciliacion=@{estadoConciliacion='Conciliada';tolerancia=0}
+$null=Invoke-Respuesta POST "$ruta/lineas/$linea/revision" 200 @{}
+$null=Invoke-Respuesta POST "$ruta/lineas/$lineaLiquida/revision" 200 @{}
+$null=Invoke-Respuesta POST "$ruta/conciliacion" 400 @{estadoConciliacion='ConDiferencias';tolerancia=0}
+$conciliada=Invoke-Respuesta POST "$ruta/conciliacion" 200 $conciliacion
+Assert-Respuesta ($conciliada.respuesta.estadoConciliacion -ceq 'Conciliada' -and
+    $conciliada.respuesta.justificacionConciliacion -like '*Comprobacion aritmetica de cabecera*') 'La conciliación exacta deja constancia sin exigir un motivo'
+$reabierta=Invoke-Respuesta GET $ruta 200
+Assert-Respuesta ($reabierta.respuesta.estadoConciliacion -ceq 'Conciliada' -and
+    $reabierta.respuesta.justificacionConciliacion -ceq $conciliada.respuesta.justificacionConciliacion) 'La consulta posterior conserva la conciliación guardada'
+$contacto=$cabecera.cabecera.Clone(); $contacto.vendedor='Contacto actualizado'
+$actualizada=Invoke-Respuesta PUT "$ruta/cabecera" 200 @{cabecera=$contacto}
+Assert-Respuesta ($actualizada.respuesta.estadoConciliacion -ceq 'Conciliada' -and
+    $actualizada.respuesta.justificacionConciliacion -ceq $conciliada.respuesta.justificacionConciliacion) 'Actualizar información comercial conserva la conciliación'
+$incorrecta=$contacto.Clone(); $incorrecta.total=236
+$null=Invoke-Respuesta PUT "$ruta/cabecera" 400 @{cabecera=$incorrecta}
+$discrepante=Invoke-Respuesta PUT "$ruta/cabecera" 200 @{cabecera=$incorrecta;motivo='Corregir importe del PDF'}
+Assert-Respuesta ($discrepante.respuesta.estadoConciliacion -ceq 'Pendiente') 'Una corrección monetaria que no cuadra requiere comprobarse'
+$restaurada=Invoke-Respuesta PUT "$ruta/cabecera" 200 @{cabecera=$contacto}
+Assert-Respuesta ($restaurada.respuesta.estadoConciliacion -ceq 'Conciliada') 'Corregir la aritmética vuelve a comprobar los importes'
 $ajuste.linea.observacion='Comprobado nuevamente';$ajuste.motivo='Se revisó de nuevo el detalle'
 $corregida=Invoke-Respuesta PUT "$ruta/lineas/$linea" 200 $ajuste
 $valor=@($corregida.importacion.camposOriginales | Where-Object nombre -ceq "linea_${detalle}_precioUnitario")[0]

@@ -17,7 +17,6 @@ public class SolicitudRepositorio(IConexionBD conexionBD) : ISolicitudRepositori
         using var conexion = conexionBD.ObtenerConexion();
         var p = new DynamicParameters();
         p.Add("@IdSolicitudCotizacion", id, DbType.Int64, direction: ParameterDirection.InputOutput);
-        p.Add("@NumeroSolicitud", datos.NumeroSolicitud, DbType.String, size: 50);
         p.Add("@FechaSolicitud", datos.FechaSolicitud, DbType.Date);
         p.Add("@FechaLimiteRespuesta", datos.FechaLimiteRespuesta, DbType.Date);
         p.Add("@DatosClienteOriginalJson", datos.DatosClienteOriginalJson, DbType.String, size: -1);

@@ -7,7 +7,8 @@ CREATE TABLE dbo.OperacionesPresupuesto
     FechaRegistro datetime2(3) NOT NULL CONSTRAINT DF_OperacionesPresupuesto_Fecha DEFAULT (SYSUTCDATETIME()),
     CONSTRAINT CK_OperacionesPresupuesto_Tipo CHECK
         (Tipo = 'CrearPresupuesto' OR Tipo = 'Aprobar' OR Tipo = 'Ajustar' OR Tipo = 'CerrarPresupuesto'
-        OR Tipo = 'Reservar' OR Tipo = 'FinalizarCompromiso' OR Tipo = 'ImputarCompra' OR Tipo = 'RevertirCompra'),
+        OR Tipo = 'Reservar' OR Tipo = 'FinalizarCompromiso' OR Tipo = 'ImputarCompra' OR Tipo = 'RevertirCompra'
+        OR Tipo = 'EditarBorrador'),
     CONSTRAINT CK_OperacionesPresupuesto_Motivo CHECK (LEN(TRIM(Motivo)) > 0)
 );
 GO

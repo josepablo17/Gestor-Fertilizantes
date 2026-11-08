@@ -1,8 +1,8 @@
-# Base de datos versionada — versión 1.0.2
+# Base de datos versionada — versión 1.0.4
 
 La fuente del esquema es **`GestorFertilizantes.Database/GestorFertilizantes.Database.sqlproj`**. Compila las definiciones declarativas a un DACPAC que crea una base vacía o calcula la actualización de una existente. Destino: SQL Server 2022, compatibilidad 160, collation `SQL_Latin1_General_CP1_CI_AS`.
 
-Incluye 24 tablas, 96 procedimientos, 16 triggers, 5 vistas, 2 funciones y 1 secuencia, con sus llaves, índices y restricciones. Los archivos de tabla contienen también sus índices y triggers.
+Incluye 25 tablas, 103 procedimientos, 16 triggers, 5 vistas, 2 funciones y 2 secuencias, con sus llaves, índices y restricciones. Los archivos de tabla contienen también sus índices y triggers.
 
 ## Estructura
 
@@ -12,11 +12,11 @@ database/
   global.json                              SDK .NET fijado
   NuGet.Config                             Origen explícito de paquetes
   GestorFertilizantes.Database/
-    GestorFertilizantes.Database.sqlproj    Modelo compilable; DAC 1.0.2.0
+    GestorFertilizantes.Database.sqlproj    Modelo compilable; DAC 1.0.4.0
     packages.lock.json                     Referencia master de SQL Server 2022
     dbo/{Tables,StoredProcedures,...}/      Definiciones actuales
     ExtendedProperties.sql                 Versiones históricas de tablas/SP
-    Scripts/PostDeployment.sql             Unidades técnicas y retiro de procedimientos obsoletos
+    Scripts/PostDeployment.sql             Unidades, migración de compras y retiro de procedimientos obsoletos
     Security/rol_gestor_api.sql             Rol y permisos de ejecución explícitos
   Profiles/Portable.publish.xml            Reglas sin conexiones ni contraseñas
   scripts/Invoke-Database.ps1               Build / Plan / Publish / Test

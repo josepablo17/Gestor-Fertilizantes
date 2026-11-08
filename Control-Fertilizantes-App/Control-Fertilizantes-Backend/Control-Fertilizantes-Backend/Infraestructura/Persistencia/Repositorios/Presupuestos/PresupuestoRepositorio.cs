@@ -53,6 +53,22 @@ public sealed class PresupuestoRepositorio(IConexionBD conexionBD) : IPresupuest
     public Task Aprobar(long id, OperacionPresupuestoDTO datos, CancellationToken ct) =>
         Ejecutar("usp_Presupuesto_Aprobar", new { IdPresupuesto = id, datos.IdOperacion, datos.Motivo }, ct);
 
+    public Task EditarBorrador(long id, EditarBorradorPresupuestoDTO datos, CancellationToken ct) =>
+        Ejecutar("usp_Presupuesto_EditarBorrador", new
+        {
+            IdPresupuesto = id, datos.Version, datos.Nombre, datos.IdFinca,
+            FechaInicio = FechaSql(datos.FechaInicio), FechaFin = FechaSql(datos.FechaFin), datos.Moneda,
+            datos.IdOperacion, PartidasJson = JsonSerializer.Serialize(datos.Partidas, JsonSerializerOptions.Web)
+        }, ct);
+
+    public Task EstablecerMonto(long id, EstablecerMontoPartidaDTO datos, CancellationToken ct)
+    {
+        var parametros = new DynamicParameters(new { IdPartidaPresupuesto = id, datos.IdOperacion, datos.Motivo });
+        parametros.Add("NuevoMonto", datos.NuevoMonto, DbType.Decimal, precision: 18, scale: 4);
+        parametros.Add("MontoAprobadoEsperado", datos.MontoAprobadoEsperado, DbType.Decimal, precision: 28, scale: 4);
+        return Ejecutar("usp_Presupuesto_EstablecerMonto", parametros, ct);
+    }
+
     public Task Cerrar(long id, OperacionPresupuestoDTO datos, CancellationToken ct) =>
         Ejecutar("usp_Presupuesto_Cerrar", new { IdPresupuesto = id, datos.IdOperacion, datos.Motivo }, ct);
 

@@ -11,6 +11,8 @@ public interface IPresupuestoRepositorio
     Task<int> CrearFinca(CatalogoPresupuestoDTO datos, CancellationToken ct);
     Task<int> CrearRubro(CatalogoPresupuestoDTO datos, CancellationToken ct);
     Task<long> Crear(CrearPresupuestoDTO datos, CancellationToken ct);
+    Task EditarBorrador(long id, EditarBorradorPresupuestoDTO datos, CancellationToken ct);
+    Task EstablecerMonto(long id, EstablecerMontoPartidaDTO datos, CancellationToken ct);
     Task Aprobar(long id, OperacionPresupuestoDTO datos, CancellationToken ct);
     Task Cerrar(long id, OperacionPresupuestoDTO datos, CancellationToken ct);
     Task Ajustar(long id, AjustarPartidaDTO datos, CancellationToken ct);

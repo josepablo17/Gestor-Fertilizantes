@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import Pagina, { Tarjeta } from "../componentes/comunes/Pagina.jsx";
-import ListaCompras from "../componentes/compras/ListaCompras.jsx";
+import ListaCompras from "../modulos/compras/componentes/ListaDocumentosCompra.jsx";
 
 export default function Compras() {
   return (

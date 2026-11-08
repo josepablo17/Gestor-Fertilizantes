@@ -2,13 +2,14 @@
 /* Guardado completo del borrador. Los IDs de linea quedan definitivos al emitir.
    Guardar otra vez un borrador reemplaza sus lineas/destinatarios atomicamente. */
 CREATE   PROCEDURE dbo.usp_Solicitud_GuardarBorrador
- @NumeroSolicitud nvarchar(50),@FechaSolicitud date,@FechaLimiteRespuesta date=NULL,
+ @NumeroSolicitud nvarchar(50)=NULL,@FechaSolicitud date,@FechaLimiteRespuesta date=NULL,
  @DatosClienteOriginalJson nvarchar(max)=NULL,@Observaciones nvarchar(2000)=NULL,
  @LineasJson nvarchar(max),@ProveedoresJson nvarchar(max),@IdSolicitudCotizacion bigint OUTPUT
 AS
 BEGIN
  SET NOCOUNT ON; SET XACT_ABORT ON;
- IF NULLIF(LTRIM(RTRIM(@NumeroSolicitud)),N'') IS NULL OR @FechaSolicitud IS NULL THROW 52000,N'Numero y fecha de solicitud obligatorios.',1;
+ IF @FechaSolicitud IS NULL THROW 52000,N'La fecha de solicitud es obligatoria.',1;
+ SET @NumeroSolicitud=NULLIF(LTRIM(RTRIM(@NumeroSolicitud)),N'');
  IF ISNULL(ISJSON(@LineasJson,ARRAY),0)<>1 OR ISNULL(ISJSON(@ProveedoresJson,ARRAY),0)<>1 THROW 52000,N'Lineas y proveedores deben ser arreglos JSON.',1;
  IF EXISTS(SELECT 1 FROM OPENJSON(@LineasJson) WHERE [type]<>5) THROW 52000,N'Cada linea debe ser un objeto.',1;
  IF EXISTS(SELECT 1 FROM OPENJSON(@ProveedoresJson) WHERE [type]<>2 OR TRY_CONVERT(int,[value]) IS NULL) THROW 52000,N'Proveedores debe contener IDs enteros.',1;
@@ -45,15 +46,26 @@ BEGIN
   THROW 52000,N'Proveedor inexistente o inactivo.',1;
   IF @IdSolicitudCotizacion IS NULL
   BEGIN
+   IF @NumeroSolicitud IS NULL
+   BEGIN
+    DECLARE @Consecutivo bigint,@Digitos nvarchar(20);
+    WHILE 1=1
+    BEGIN
+     SELECT @Consecutivo=NEXT VALUE FOR dbo.SecNumeroSolicitud;
+     SET @Digitos=CONVERT(nvarchar(20),@Consecutivo);
+     SET @NumeroSolicitud=N'SOL-'+CASE WHEN LEN(@Digitos)<6 THEN RIGHT(N'000000'+@Digitos,6) ELSE @Digitos END;
+     IF NOT EXISTS(SELECT 1 FROM dbo.SolicitudesCotizacion WHERE NumeroSolicitud=@NumeroSolicitud AND VersionSolicitud=1) BREAK;
+    END;
+   END;
    INSERT dbo.SolicitudesCotizacion(NumeroSolicitud,FechaSolicitud,FechaLimiteRespuesta,DatosClienteOriginalJson,Observaciones)
    VALUES(LTRIM(RTRIM(@NumeroSolicitud)),@FechaSolicitud,@FechaLimiteRespuesta,@DatosClienteOriginalJson,@Observaciones);
    SET @IdSolicitudCotizacion=CONVERT(bigint,SCOPE_IDENTITY());
   END ELSE BEGIN
    IF NOT EXISTS(SELECT 1 FROM dbo.SolicitudesCotizacion WITH(UPDLOCK,HOLDLOCK) WHERE IdSolicitudCotizacion=@IdSolicitudCotizacion AND Estado='Borrador')
    THROW 52010,N'La solicitud no existe o ya no admite cambios de borrador.',1;
-   IF EXISTS(SELECT 1 FROM dbo.SolicitudesCotizacion WHERE IdSolicitudCotizacion=@IdSolicitudCotizacion AND VersionSolicitud>1 AND NumeroSolicitud<>@NumeroSolicitud)
-   THROW 52010,N'Una revision conserva el numero de su cadena.',1;
-   UPDATE dbo.SolicitudesCotizacion SET NumeroSolicitud=LTRIM(RTRIM(@NumeroSolicitud)),FechaSolicitud=@FechaSolicitud,FechaLimiteRespuesta=@FechaLimiteRespuesta,
+   IF @NumeroSolicitud IS NOT NULL AND EXISTS(SELECT 1 FROM dbo.SolicitudesCotizacion WHERE IdSolicitudCotizacion=@IdSolicitudCotizacion AND NumeroSolicitud<>@NumeroSolicitud)
+   THROW 52010,N'El numero de solicitud se conserva al editar o crear una revision.',1;
+   UPDATE dbo.SolicitudesCotizacion SET FechaSolicitud=@FechaSolicitud,FechaLimiteRespuesta=@FechaLimiteRespuesta,
    DatosClienteOriginalJson=@DatosClienteOriginalJson,Observaciones=@Observaciones,FechaModificacion=SYSUTCDATETIME() WHERE IdSolicitudCotizacion=@IdSolicitudCotizacion;
    DELETE dbo.SolicitudesCotizacionDetalle WHERE IdSolicitudCotizacion=@IdSolicitudCotizacion;
    DELETE dbo.SolicitudesCotizacionProveedor WHERE IdSolicitudCotizacion=@IdSolicitudCotizacion;

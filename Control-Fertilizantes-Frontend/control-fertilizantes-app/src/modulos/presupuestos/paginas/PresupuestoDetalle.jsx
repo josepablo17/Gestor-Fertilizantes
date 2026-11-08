@@ -5,9 +5,11 @@ import Pagina, { EstadoConsulta, Mensajes, Tarjeta } from "../../../componentes/
 import useConsulta from "../../../hooks/useConsulta.js";
 import useOperacion from "../../../hooks/useOperacion.js";
 import { fechaHora } from "../../../utils/datosApi.js";
-import { ajustarPartida, aprobarPresupuesto, cerrarPresupuesto, consultarPresupuesto, finalizarCompromiso } from "../api/presupuestosApi.js";
+import { establecerMontoPartida, aprobarPresupuesto, cerrarPresupuesto, consultarPresupuesto, finalizarCompromiso, obtenerCatalogos } from "../api/presupuestosApi.js";
 import useIdOperacion from "../hooks/useIdOperacion.js";
-import { desdeDiezMilesimas, fechaCorta, importeEnDiezMilesimas, importePositivo, monedaVisible, motivoValido } from "../utils/presupuesto.js";
+import { desdeDiezMilesimas, fechaCorta, importeEnDiezMilesimas, monedaVisible, motivoValido } from "../utils/presupuesto.js";
+import FormularioPresupuesto from "../componentes/FormularioPresupuesto.jsx";
+import FormularioMontoPartida from "../componentes/FormularioMontoPartida.jsx";
 
 const columnas = [["Monto inicial", "montoInicial"], ["Aprobado", "aprobado"], ["Comprometido", "comprometido"],
   ["Ejecutado", "ejecutado"], ["Disponible", "disponible"]];
@@ -23,6 +25,7 @@ export default function PresupuestoDetalle() {
   const operacion = useOperacion();
   const { conOperacion, completarOperacion } = useIdOperacion();
   const [accion, setAccion] = useState(null);
+  const [editarBorrador, setEditarBorrador] = useState(false);
 
   function aplicar(datos) {
     operacion.ejecutar(async () => {
@@ -40,36 +43,50 @@ export default function PresupuestoDetalle() {
     acciones={<Link to="/presupuestos" className="btn btn--secondary">Volver a presupuestos</Link>}>
     <Mensajes {...operacion} />
     <EstadoConsulta estado={consulta}>
-      {presupuesto && accion && <FormularioMovimiento key={`${accion.etiqueta}-${accion.id}`}
-        accion={accion} aplicar={aplicar} ocupado={operacion.ocupado} cancelar={() => setAccion(null)} />}
-      {presupuesto && <ContenidoDetalle datos={consulta.datos} elegir={setAccion} ocupado={operacion.ocupado} />}
+      {presupuesto && editarBorrador && <EditorBorrador key={presupuesto.version} datos={consulta.datos}
+        cancelar={() => setEditarBorrador(false)} guardar={(datos) => { consulta.actualizar(datos); setEditarBorrador(false); }} />}
+      {presupuesto && accion && (accion.ejecutar === establecerMontoPartida
+        ? <FormularioMontoPartida key={accion.id} accion={accion} aplicar={aplicar} ocupado={operacion.ocupado} cancelar={() => setAccion(null)} />
+        : <FormularioMovimiento key={`${accion.etiqueta}-${accion.id}`} accion={accion} aplicar={aplicar} ocupado={operacion.ocupado} cancelar={() => setAccion(null)} />)}
+      {presupuesto && <ContenidoDetalle datos={consulta.datos} elegir={setAccion} editar={() => setEditarBorrador(true)}
+        ocupado={operacion.ocupado || editarBorrador || Boolean(accion)} />}
     </EstadoConsulta>
   </Pagina>;
 }
 
-function ContenidoDetalle({ datos, elegir, ocupado }) {
+function EditorBorrador({ datos, cancelar, guardar }) {
+  const catalogos = useConsulta(obtenerCatalogos);
+  return <EstadoConsulta estado={catalogos}>{catalogos.datos && <FormularioPresupuesto
+    catalogos={catalogos.datos} borrador={datos} alGuardar={guardar} cancelar={cancelar} />}</EstadoConsulta>;
+}
+
+function ContenidoDetalle({ datos, elegir, editar, ocupado }) {
   const { presupuesto: p, partidas, movimientos, compromisos } = datos;
   const rubros = new Map(partidas.map((fila) => [String(fila.idPartidaPresupuesto), fila.rubro]));
   const primeraPorCompromiso = new Set();
   const moneda = (m) => monedaVisible(m, p.moneda);
   const total = (campo) => moneda(desdeDiezMilesimas(partidas.reduce((suma, fila) => suma + importeEnDiezMilesimas(fila[campo]), 0n)));
+  const columnasVisibles = p.estado === "Borrador" ? [["Monto planificado", "montoInicial"]] : columnas;
 
   return <>
-    <Tarjeta titulo="Saldos por partida">
+    <Tarjeta titulo={p.estado === "Borrador" ? "Partidas del borrador" : "Saldos por partida"}>
+      {p.estado === "Borrador" && <p>Puedes corregir los datos y montos antes de aprobar. El saldo estará disponible al aprobar el presupuesto.</p>}
       <div className="table-wrapper"><table className="table">
-        <thead><tr><th>Rubro</th>{columnas.map(([titulo]) => <th key={titulo}>{titulo}</th>)}{p.estado === "Aprobado" && <th>Acción</th>}</tr></thead>
+        <thead><tr><th>Rubro</th>{columnasVisibles.map(([titulo]) => <th key={titulo}>{titulo}</th>)}{p.estado === "Aprobado" && <th>Acción</th>}</tr></thead>
         <tbody>{partidas.map((fila) => <tr key={fila.idPartidaPresupuesto}>
-          <td>{fila.rubro}</td>{columnas.map(([titulo, campo]) => <td key={titulo}>{moneda(fila[campo])}</td>)}
+          <td>{fila.rubro}</td>{columnasVisibles.map(([titulo, campo]) => <td key={titulo}>{moneda(fila[campo])}</td>)}
           {p.estado === "Aprobado" && <td><button type="button" className="btn btn--secondary" disabled={ocupado}
-            onClick={() => elegir({ etiqueta: "Ajustar partida", id: fila.idPartidaPresupuesto, ejecutar: ajustarPartida })}>Ajustar</button></td>}
+            onClick={() => elegir({ etiqueta: "Cambiar monto", id: fila.idPartidaPresupuesto, ejecutar: establecerMontoPartida, partida: fila, moneda: p.moneda })}>Cambiar monto</button></td>}
         </tr>)}</tbody>
-        <tfoot><tr><th>Total</th>{columnas.map(([titulo, campo]) => <td key={titulo}>{total(campo)}</td>)}
+        <tfoot><tr><th>Total</th>{columnasVisibles.map(([titulo, campo]) => <td key={titulo}>{total(campo)}</td>)}
           {p.estado === "Aprobado" && <td />}</tr></tfoot>
       </table></div>
       {p.motivoCierre && <p>Motivo de cierre {p.motivoCierre}</p>}
       {p.estado !== "Cerrado" && <div className="form-actions">
-        {p.estado === "Borrador" ? <button type="button" className="btn btn--primary" disabled={ocupado}
-          onClick={() => elegir({ etiqueta: "Aprobar presupuesto", id: p.idPresupuesto, ejecutar: aprobarPresupuesto })}>Aprobar presupuesto</button>
+        {p.estado === "Borrador" ? <>
+          <button type="button" className="btn btn--secondary" disabled={ocupado} onClick={editar}>Editar borrador</button>
+          <button type="button" className="btn btn--primary" disabled={ocupado}
+            onClick={() => elegir({ etiqueta: "Aprobar presupuesto", id: p.idPresupuesto, ejecutar: aprobarPresupuesto })}>Aprobar presupuesto</button></>
           : <button type="button" className="btn btn--secondary" disabled={ocupado || partidas.some((fila) => Number(fila.comprometido) > 0)}
             onClick={() => elegir({ etiqueta: "Cerrar presupuesto", id: p.idPresupuesto, ejecutar: cerrarPresupuesto })}>Cerrar presupuesto</button>}
       </div>}
@@ -113,11 +130,8 @@ function ContenidoDetalle({ datos, elegir, ocupado }) {
 
 function FormularioMovimiento({ accion, aplicar, cancelar, ocupado }) {
   const [motivo, setMotivo] = useState("");
-  const [importe, setImporte] = useState("");
-  const [sentido, setSentido] = useState("aumentar");
   const [estado, setEstado] = useState("Cerrado");
   const [error, setError] = useState("");
-  const ajuste = accion.ejecutar === ajustarPartida;
   const finalizacion = accion.ejecutar === finalizarCompromiso;
   return <Tarjeta titulo={accion.etiqueta}>
     <form className="form" onSubmit={(e) => {
@@ -125,18 +139,12 @@ function FormularioMovimiento({ accion, aplicar, cancelar, ocupado }) {
       setError("");
       try {
         const datos = { motivo: motivoValido(motivo) };
-        if (ajuste) datos.ajuste = (sentido === "reducir" ? "-" : "") + importePositivo(importe);
         if (finalizacion) datos.estado = estado;
         aplicar(datos);
       } catch (fallo) { setError(fallo.message); }
     }}>
       {finalizacion && <p>Se liberará el saldo pendiente de este compromiso en todas sus partidas. Si ya tiene compras, debes cerrarlo.</p>}
       <div className="form-row form-row--3">
-        {ajuste && <>
-          <Campo etiqueta="Tipo de ajuste" valor={sentido} cambiar={setSentido} required
-            opciones={[{ value: "aumentar", label: "Aumentar" }, { value: "reducir", label: "Reducir" }]} />
-          <Campo etiqueta="Importe del ajuste" valor={importe} cambiar={setImporte} formatoNumerico="decimal" required />
-        </>}
         {finalizacion && <Campo etiqueta="Estado final" valor={estado} cambiar={setEstado} required
           opciones={[{ value: "Cerrado", label: "Cerrar" }, { value: "Cancelado", label: "Cancelar compromiso" }]} />}
         <Campo etiqueta="Motivo de la operación" valor={motivo} cambiar={setMotivo} textoLargo maxLength={500} required />

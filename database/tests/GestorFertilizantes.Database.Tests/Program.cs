@@ -131,7 +131,27 @@ try
     // and audit, then prove that republishing preserves EVERY row byte-for-byte.
     Console.WriteLine("Actualizacion sobre datos historicos de prueba...");
     await CreateHistory(connection, fixture);
+    long compraLegada;
+    await using (var legadoCompra = new SqlCommand("""
+        INSERT dbo.Compras(IdProducto,IdProveedor,IdPresentacionProducto,FechaCompra,CantidadComprada,PrecioTotal,Moneda,PrecioUnitarioCalculado)
+        SELECT TOP(1) pp.IdProducto,p.IdProveedor,pp.IdPresentacionProducto,'20260401',2,100,N'CRC',50
+        FROM dbo.PresentacionesProducto pp CROSS JOIN dbo.Proveedores p;
+        SELECT CONVERT(bigint,SCOPE_IDENTITY());
+        """, connection)) compraLegada = Convert.ToInt64(await legadoCompra.ExecuteScalarAsync());
+    await connection.CloseAsync();
+    await SqlPackage("Publish", null);
+    await connection.OpenAsync();
+    await using (var migracion = new SqlCommand("""
+        SELECT COUNT(*) FROM dbo.Compras c JOIN dbo.ComprasCabecera h ON h.IdCompraCabecera=c.IdCompraCabecera
+        WHERE c.IdCompra=@Id AND h.IdCompraMigrada=@Id AND c.NumeroLinea=1 AND c.PrecioTotal=100 AND c.CantidadComprada=2;
+        """, connection))
+    {
+        migracion.Parameters.Add("@Id", SqlDbType.BigInt).Value = compraLegada;
+        Assert(Convert.ToInt32(await migracion.ExecuteScalarAsync()) == 1, "La migración no conservó la compra histórica.");
+    }
+    Console.WriteLine("OK: compra histórica migrada a cabecera y renglón conservando identificador e importes.");
     await VerifyConcurrentBudget(connection, targetSettings.ConnectionString, fixturePresupuesto);
+    await VerifyConcurrentRequestNumbers(targetSettings.ConnectionString);
     string[] procedimientosRetirados =
     [
         "SP_ComparadorProveedor_ObtenerComparativa",
@@ -151,12 +171,14 @@ try
     }
     var before = await Snapshot(connection);
     var sequenceBefore = await SequenceValue(connection);
+    var requestSequenceBefore = await SequenceValue(connection, "SecNumeroSolicitud");
     await connection.CloseAsync();
     await SqlPackage("Publish", null);
     await connection.OpenAsync();
     var after = await Snapshot(connection);
     Assert(JsonSerializer.Serialize(before) == JsonSerializer.Serialize(after), "El redespliegue modifico datos existentes.");
     Assert(sequenceBefore == await SequenceValue(connection), "El redespliegue reinicio la secuencia de productos.");
+    Assert(requestSequenceBefore == await SequenceValue(connection, "SecNumeroSolicitud"), "El redespliegue reinició la numeración de solicitudes.");
     await VerifySchema(connection);
     await File.WriteAllTextAsync(Path.Combine(artifacts, "data-preservation.json"), JsonSerializer.Serialize(before, jsonOptions));
     await connection.CloseAsync();
@@ -232,6 +254,10 @@ static async Task CreateHistory(SqlConnection connection, string fixture)
     EXEC dbo.usp_Proforma_RevisarLinea @QD;
     EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada',N'Historia conservada durante despliegue';
     EXEC dbo.usp_Proforma_Validar @Q;
+    DECLARE @LineasCompra nvarchar(max)=(SELECT * FROM (SELECT @P AS idProducto,@PP AS idPresentacionProducto,2 AS cantidadComprada,100 AS precioTotal
+      UNION ALL SELECT @OtroProducto,@OtraPresentacion,3,150) l FOR JSON PATH);
+    DECLARE @OperacionCompra uniqueidentifier=NEWID();
+    EXEC dbo.usp_Compra_RegistrarDocumento @Proveedor,'20260401',N'CRC',@LineasCompra,@OperacionCompra,N'HISTORIA-MULTIPLE';
     """;
     await using var command = new SqlCommand(body, connection, transaction) { CommandTimeout = 60 };
     await command.ExecuteNonQueryAsync();
@@ -240,7 +266,7 @@ static async Task CreateHistory(SqlConnection connection, string fixture)
 
 static async Task VerifySchema(SqlConnection connection)
 {
-    var expected = new Dictionary<string, int> { ["U"] = 24, ["P"] = 96, ["TR"] = 16, ["V"] = 5, ["FN"] = 1, ["IF"] = 1, ["SO"] = 1, ["PK"] = 24, ["F"] = 53, ["C"] = 91 };
+    var expected = new Dictionary<string, int> { ["U"] = 25, ["P"] = 103, ["TR"] = 16, ["V"] = 5, ["FN"] = 1, ["IF"] = 1, ["SO"] = 2, ["PK"] = 25, ["F"] = 56, ["C"] = 95 };
     await using var command = new SqlCommand("SELECT RTRIM(type),COUNT(*) FROM sys.objects WHERE schema_id=SCHEMA_ID(N'dbo') AND is_ms_shipped=0 GROUP BY type", connection);
     await using (var reader = await command.ExecuteReaderAsync())
         while (await reader.ReadAsync())
@@ -328,9 +354,31 @@ static async Task<SortedDictionary<string, TableSnapshot>> Snapshot(SqlConnectio
     return snapshots;
 }
 
-static async Task<string> SequenceValue(SqlConnection connection)
+static async Task VerifyConcurrentRequestNumbers(string connectionString)
 {
-    await using var command = new SqlCommand("SELECT CONVERT(nvarchar(100),current_value) FROM sys.sequences WHERE name=N'SecCodigoProducto'", connection);
+    var numeros = await Task.WhenAll(Enumerable.Range(0, 8).Select(async _ =>
+    {
+        await using var conexion = new SqlConnection(connectionString);
+        await conexion.OpenAsync();
+        await using var comando = new SqlCommand("""
+            DECLARE @Solicitud bigint;
+            EXEC dbo.usp_Solicitud_GuardarBorrador @FechaSolicitud='20260401',
+                @LineasJson=N'[]', @ProveedoresJson=N'[]', @IdSolicitudCotizacion=@Solicitud OUTPUT;
+            SELECT NumeroSolicitud FROM dbo.SolicitudesCotizacion WHERE IdSolicitudCotizacion=@Solicitud;
+            """, conexion);
+        return Convert.ToString(await comando.ExecuteScalarAsync()) ?? "";
+    }));
+    Assert(numeros.All(numero => Regex.IsMatch(numero, "^SOL-[0-9]{6,}$", RegexOptions.CultureInvariant)),
+        "La numeración automática tiene un formato inválido.");
+    Assert(numeros.Distinct(StringComparer.Ordinal).Count() == numeros.Length,
+        "Las solicitudes simultáneas repitieron un número.");
+    Console.WriteLine("OK: ocho solicitudes concurrentes reciben números distintos.");
+}
+
+static async Task<string> SequenceValue(SqlConnection connection, string nombre = "SecCodigoProducto")
+{
+    await using var command = new SqlCommand("SELECT CONVERT(nvarchar(100),current_value) FROM sys.sequences WHERE schema_id=SCHEMA_ID(N'dbo') AND name=@Nombre", connection);
+    command.Parameters.Add("@Nombre", SqlDbType.NVarChar, 128).Value = nombre;
     return Convert.ToString(await command.ExecuteScalarAsync()) ?? "";
 }
 

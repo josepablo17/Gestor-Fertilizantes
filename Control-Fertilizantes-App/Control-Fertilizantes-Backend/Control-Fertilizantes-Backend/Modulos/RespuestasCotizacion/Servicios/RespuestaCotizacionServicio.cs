@@ -161,7 +161,7 @@ public sealed class RespuestaCotizacionServicio(
             Observaciones = Limpiar(c.Observaciones)
         };
         await EditableAsync(id, ct);
-        await repositorio.AjustarCabeceraAsync(id, datos, entrada.Motivo.Trim(), ct);
+        await repositorio.AjustarCabeceraAsync(id, datos, Limpiar(entrada.Motivo), ct);
         return await ObtenerAsync(id, ct);
     }
 
@@ -225,14 +225,14 @@ public sealed class RespuestaCotizacionServicio(
         return datos;
     }
 
-    public async Task<RespuestaCotizacionDTO> RevisarLineaAsync(int id, int idLinea, MotivoRespuestaDTO entrada, CancellationToken ct)
+    public async Task<RespuestaCotizacionDTO> RevisarLineaAsync(int id, int idLinea, RevisionLineaRespuestaDTO entrada, CancellationToken ct)
     {
         ValidacionCatalogo.Validar(entrada);
         var linea = ObtenerLinea(await EditableAsync(id, ct), idLinea);
         if (linea.EstadoOferta == "Cotizada" && (linea.Cantidad is null || linea.PrecioUnitario is null || linea.TotalLinea is null ||
             linea.NumeroLineaDocumento is null || linea.DescripcionProveedor is null || linea.IdPresentacionProducto is null || linea.BaseTotalLinea == "SinDefinir"))
             throw new ReglaNegocio("Complete descripción, número, presentación, cantidad, precio, total y base antes de confirmar la línea.");
-        await repositorio.RevisarLineaAsync(idLinea, entrada.Motivo.Trim(), ct);
+        await repositorio.RevisarLineaAsync(idLinea, Limpiar(entrada.Motivo), ct);
         return await ObtenerAsync(id, ct);
     }
 
@@ -240,10 +240,13 @@ public sealed class RespuestaCotizacionServicio(
     {
         ValidacionCatalogo.Validar(entrada);
         var tolerancia = entrada.Tolerancia ?? 0.01m;
-        if (entrada.EstadoConciliacion is not ("Conciliada" or "ConDiferencias") || tolerancia > 1)
+        if (entrada.EstadoConciliacion is not ("Conciliada" or "ConDiferencias") || tolerancia < 0 || tolerancia > 1)
             throw new ReglaNegocio("Indique Conciliada o ConDiferencias y una tolerancia entre 0 y 1.");
+        var motivo = Limpiar(entrada.Motivo);
+        if (entrada.EstadoConciliacion == "ConDiferencias" && motivo is null)
+            throw new ReglaNegocio("Justifique las diferencias antes de aceptar la conciliación.");
         await EditableAsync(id, ct);
-        await repositorio.ConciliarAsync(id, entrada.EstadoConciliacion, entrada.Motivo.Trim(), tolerancia, ct);
+        await repositorio.ConciliarAsync(id, entrada.EstadoConciliacion, motivo, tolerancia, ct);
         return await ObtenerAsync(id, ct);
     }
 

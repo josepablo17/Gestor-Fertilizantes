@@ -15,7 +15,6 @@ export function nuevaLineaSolicitud(clave) {
 
 export function valoresSolicitud(original) {
   return {
-    numeroSolicitud: original?.numeroSolicitud ?? "",
     fechaSolicitud: original?.fechaSolicitud ?? fechaLocal(),
     fechaLimiteRespuesta: original?.fechaLimiteRespuesta ?? "",
     observaciones: original?.observaciones ?? "",
@@ -43,7 +42,6 @@ export function cuerpoSolicitud(valores) {
     throw new Error("La fecha límite no puede ser anterior a la fecha de solicitud.");
   }
   return {
-    numeroSolicitud: valores.numeroSolicitud.trim(),
     fechaSolicitud: valores.fechaSolicitud,
     fechaLimiteRespuesta: textoOpcional(valores.fechaLimiteRespuesta),
     datosCliente: cliente.nombre ? cliente : null,

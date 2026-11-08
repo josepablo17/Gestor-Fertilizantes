@@ -17,13 +17,14 @@ export class ErrorApi extends Error {
   }
 }
 
-export async function solicitar(ruta, { metodo = "GET", datos, signal, pdf = false, decimalesExactos = true } = {}) {
+export async function solicitar(ruta, { metodo = "GET", datos, signal, pdf = false, decimalesExactos = true, cache } = {}) {
   const multipart = datos instanceof FormData;
   let respuesta;
   try {
     respuesta = await fetch(`${CONFIG.API_URL}${ruta}`, {
       method: metodo,
       signal,
+      cache,
       headers: datos !== undefined && !multipart ? { "Content-Type": "application/json" } : undefined,
       body: datos === undefined || multipart ? datos : JSON.stringify(datos),
     });

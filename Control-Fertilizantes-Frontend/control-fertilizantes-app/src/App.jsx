@@ -6,6 +6,8 @@ import UnidadesMedida from "./paginas/UnidadesMedida";
 import PresentacionesProducto from "./paginas/PresentacionProducto";
 import Compras from "./paginas/Compras";
 import ComprasFormulario from "./paginas/ComprasFormulario"
+import CompraNueva from "./modulos/compras/paginas/CompraNueva";
+import CompraDetalle from "./modulos/compras/paginas/CompraDetalle";
 import CatalogoFormulario from "./paginas/CatalogoFormulario";
 import CatalogoIdentidades from "./paginas/CatalogoIdentidades";
 import Solicitudes from "./modulos/cotizaciones/paginas/Solicitudes";
@@ -47,7 +49,8 @@ function App() {
           <Route path="presentacionProductos/nuevo" element={<CatalogoFormulario tipo="presentaciones" />} />
           <Route path="presentacionProductos/editar/:id" element={<CatalogoFormulario tipo="presentaciones" />} />
           <Route path="compras" element={<Compras/>}/>
-          <Route path="compras/nuevo" element={<ComprasFormulario/>}/>
+          <Route path="compras/nuevo" element={<CompraNueva/>}/>
+          <Route path="compras/:id" element={<CompraDetalle/>}/>
           <Route path="compras/editar/:id" element={<ComprasFormulario/>}/>
           <Route path="presupuestos" element={<Presupuestos />} />
           <Route path="presupuestos/:id" element={<PresupuestoDetalle />} />

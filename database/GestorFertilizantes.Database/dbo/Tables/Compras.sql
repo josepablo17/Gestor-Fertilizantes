@@ -1,5 +1,7 @@
 CREATE TABLE [dbo].[Compras] (
     [IdCompra]                BIGINT          IDENTITY (1, 1) NOT NULL,
+    [IdCompraCabecera]        BIGINT          NULL,
+    [NumeroLinea]             INT             NULL,
     [IdProducto]              INT             NOT NULL,
     [IdProveedor]             INT             NOT NULL,
     [IdPresentacionProducto]  INT             NOT NULL,
@@ -17,6 +19,9 @@ CREATE TABLE [dbo].[Compras] (
     [FechaCreacion]           DATETIME2 (7)   CONSTRAINT [DF_Compras_FechaCreacion] DEFAULT (sysdatetime()) NOT NULL,
     [FechaModificacion]       DATETIME2 (7)   NULL,
     CONSTRAINT [PK_Compras] PRIMARY KEY CLUSTERED ([IdCompra] ASC),
+    CONSTRAINT FK_Compras_Cabecera FOREIGN KEY(IdCompraCabecera) REFERENCES dbo.ComprasCabecera(IdCompraCabecera),
+    CONSTRAINT CK_Compras_Renglon CHECK((IdCompraCabecera IS NULL AND NumeroLinea IS NULL)
+      OR (IdCompraCabecera IS NOT NULL AND NumeroLinea IS NOT NULL AND NumeroLinea>0)),
     CONSTRAINT [CK_Compras_CantidadComprada_MayorCero] CHECK ([CantidadComprada]>(0)),
     CONSTRAINT [CK_Compras_Moneda_Valida] CHECK ([Moneda]='USD' OR [Moneda]='CRC'),
     CONSTRAINT [CK_Compras_PrecioTotal_MayorCero] CHECK ([PrecioTotal]>(0)),
@@ -30,6 +35,9 @@ CREATE TABLE [dbo].[Compras] (
 );
 
 
+GO
+
+CREATE UNIQUE INDEX UX_Compras_CabeceraLinea ON dbo.Compras(IdCompraCabecera,NumeroLinea) WHERE IdCompraCabecera IS NOT NULL;
 GO
 
 CREATE NONCLUSTERED INDEX [IX_Compras_IdPresentacionProducto]
