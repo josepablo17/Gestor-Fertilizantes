@@ -5,13 +5,13 @@ El backend debe llamar a los procedimientos con parámetros tipados y `CommandTy
 ## Secuencia de trabajo
 
 1. Cargar los catálogos y seleccionar productos comerciales y sus presentaciones. Un producto comercial pertenece a un producto base y opcionalmente a una marca por ID. La etiqueta de marca en `Productos.Marca` se mantiene como compatibilidad mediante los triggers.
-2. Llamar a `usp_Solicitud_GuardarBorrador`, con `@IdSolicitudCotizacion = NULL` para crear o con su ID para reemplazar el borrador. La solicitud captura desde el catálogo nombre, marca, presentación, unidad, factor y contenido. Los proveedores se pasan como un arreglo JSON de IDs enteros.
+2. Llamar a `usp_Solicitud_GuardarBorrador`, con `@IdSolicitudCotizacion = NULL` para crear o con su ID para reemplazar el borrador. Omitir `@NumeroSolicitud` para generar `SOL-000001` mediante `SecNumeroSolicitud`. El parámetro de número se conserva para llamadas SQL existentes. Editar mantiene el número original. La solicitud captura desde el catálogo nombre, marca, presentación, unidad, factor y contenido. Los proveedores se pasan como un arreglo JSON de IDs enteros.
 3. Llamar a `usp_Solicitud_Emitir`. La emisión congela la identidad de los renglones. Generar el PDF con esos IDs y el número/versión de solicitud. El procedimiento no genera archivos.
 4. Guardar el PDF generado sin sobrescribir otros archivos; calcular el SHA-256 y ejecutar `usp_Documento_Registrar` con origen `Generado` y `usp_Solicitud_AsignarDocumento` en la misma transacción SQL. El destinatario sigue en `PendienteEnvio`, con `FechaEnvio = NULL`. Después de compartir el PDF, registrar la evidencia por destinatario con `usp_Solicitud_RegistrarEnvio`.
 5. Al recibir un PDF, almacenarlo como un nuevo documento con origen `Recibido`. Si se ejecuta el lector determinista, guardar su salida intacta en `usp_Importacion_Registrar`, incluyendo versión del lector, método, advertencias y resultado. El método `Manual` también está disponible; una respuesta puede tener documento sin importación.
 6. Llamar a `usp_Proforma_GuardarBorrador` con el destinatario de la solicitud, documento, importación opcional, cabecera y líneas. La cabecera y todas sus líneas se guardan juntas. Devuelve el ID mediante parámetro `OUTPUT`. Siempre empieza como borrador con revisión pendiente. No crea compras.
-7. Mostrar el documento y los datos extraídos al usuario. Usar `usp_Proforma_ActualizarCabecera`, `usp_Proforma_ActualizarLinea` y `usp_Proforma_AgregarLinea` con un motivo. La actualización de una línea reinicia su revisión; cualquier ajuste de datos reinicia la conciliación. Las modificaciones conservan antes/después y el motivo, sin alterar documento o extracción originales.
-8. Confirmar cada renglón con `usp_Proforma_RevisarLinea`, conciliar la cabecera con `usp_Proforma_Conciliar` y finalizar con `usp_Proforma_Validar`. La base rechaza validaciones incompletas o vínculos cruzados.
+7. Mostrar el documento y los datos extraídos al usuario. `usp_Proforma_ActualizarCabecera` conserva la conciliación en cambios informativos y vuelve a comprobar los importes modificados con tolerancia 0.01. Requiere motivo al corregir importes o moneda ya conciliados. La captura inicial registra su acción automáticamente. `usp_Proforma_ActualizarLinea` y `usp_Proforma_AgregarLinea` requieren motivo y reinician la conciliación. La actualización de una línea reinicia su revisión. Las modificaciones conservan antes/después, documento y extracción originales.
+8. Confirmar cada renglón con `usp_Proforma_RevisarLinea`, que registra una revisión aunque se omita el motivo y conserva la conciliación. Conciliar la cabecera con `usp_Proforma_Conciliar` y finalizar con `usp_Proforma_Validar`. El motivo es opcional para `Conciliada`, que verifica la igualdad de la cabecera y registra la comprobación. `ConDiferencias` requiere una justificación. La base rechaza validaciones incompletas o vínculos cruzados.
 9. Comparar con `usp_Cotizaciones_CompararSolicitud`, indicando moneda, base del importe de línea y fecha para comprobar vencimiento.
 10. Para corregir una respuesta finalizada, usar `usp_Proforma_CrearRevision` o guardar una nueva respuesta con su documento correspondiente. La primera opción clona la interpretación para corregirla sobre la misma evidencia. Ambas crean otra versión pendiente y conservan la anterior. Hasta validar la nueva, la última versión validada sigue disponible para comparar.
 
@@ -19,12 +19,16 @@ Un borrador de solicitud se guarda por reemplazo completo: los IDs de sus línea
 
 ## Presupuestos y compromisos
 
+Las compras con varios productos usan `ComprasCabecera` y mantienen `Compras.IdCompra` como identificador del renglón para los movimientos de presupuesto y el historial. `usp_Compra_RegistrarDocumento` guarda cabecera, renglones e imputaciones en una transacción y reconoce reintentos mediante `@IdOperacion`. `usp_Compra_ListarDocumentos` devuelve total de registros y página; `usp_Compra_ObtenerDocumento` devuelve cabecera y renglones. La edición de cabecera y renglón exige `@Version`. Ver [flujo de compras](../../docs/Compras-con-varios-productos.md).
+
 Un presupuesto tiene período inclusivo, moneda CRC o USD y una finca opcional. Una finca nula indica alcance general. Cada partida corresponde a un rubro y su saldo disponible es el aprobado menos el compromiso pendiente y el importe ejecutado.
 
 | Operación | Contrato SQL |
 | --- | --- |
 | Preparar catálogos | `usp_Finca_Guardar`, `usp_RubroPresupuesto_Guardar` y `usp_Presupuesto_ListarCatalogos`. |
 | Crear y aprobar | `usp_Presupuesto_Crear` recibe partidas `[{"idRubroPresupuesto":1,"monto":"1000000"}]` y devuelve el ID de borrador por parámetro `OUTPUT`. `usp_Presupuesto_Aprobar` registra los importes iniciales y evita períodos solapados para la misma finca o alcance general, moneda y rubro. |
+| Editar borrador | `usp_Presupuesto_EditarBorrador` reemplaza los datos y partidas de un borrador, conserva los IDs de las partidas cuyos rubros continúan y exige la `Version` devuelta por la consulta. Registra la operación `EditarBorrador` con un motivo automático. No genera movimientos de fondos. |
+| Establecer nuevo monto | `usp_Presupuesto_EstablecerMonto` recibe `@NuevoMonto` y `@MontoAprobadoEsperado`, calcula la diferencia bajo el bloqueo presupuestario y registra el ajuste mediante el procedimiento existente. Rechaza una pantalla desactualizada y una reducción que consuma fondos comprometidos o ejecutados. |
 | Ajustar y cerrar | `usp_Presupuesto_AjustarPartida` aumenta o reduce el importe aprobado. `usp_Presupuesto_Cerrar` requiere que el compromiso pendiente sea cero. |
 | Reservar | `usp_Compromiso_Registrar` acepta una distribución con `idPartidaPresupuesto` y `monto`. Si se indica una solicitud, cada renglón lleva también `idProformaProveedorDetalle` de una oferta vigente y revisada de esa solicitud. El monto incluye los ajustes comerciales que correspondan al pedido. |
 | Ejecutar | `usp_Presupuesto_ImputarCompra` recibe el ID de una compra real y una distribución con `idPartidaPresupuesto`, `monto` y `idCompromisoDetalle` opcional. Cada partida puede figurar una vez. La suma debe coincidir con el importe total de la compra. Una compra que excede el saldo requiere `@MotivoExceso`. |
@@ -35,6 +39,8 @@ Un presupuesto tiene período inclusivo, moneda CRC o USD y una finca opcional. 
 Cada operación presupuestaria recibe un GUID y un motivo. Repetir un GUID produce el error 52009. La escritura es transaccional y el saldo se comprueba dentro del bloqueo presupuestario. Las fechas y monedas deben coincidir con el presupuesto. Los importes JSON aceptan hasta cuatro decimales significativos con punto decimal. El historial registra la cuenta SQL que ejecutó la operación.
 
 El backend podrá registrar una compra e imputarla dentro de una sola transacción. Para corregir el importe, fecha, proveedor o producto de una compra ya imputada, primero debe revertir su distribución.
+
+La cabecera consultada de presupuesto incluye `Version`: es la última operación de edición, o la operación de creación cuando aún no se ha editado. El formulario de edición de borrador no pide otro motivo al usuario; el motivo se registra automáticamente. En un presupuesto aprobado, la interfaz solicita el nuevo total de la partida y muestra la diferencia y el disponible resultante. El monto inicial queda como referencia. La operación de cambio de monto continúa requiriendo motivo. Ver [edición y saldos](../../docs/Edicion-y-saldos-de-presupuestos.md).
 
 ## JSON de solicitud
 
@@ -180,7 +186,10 @@ CREATE   PROCEDURE dbo.SP_Compra_HistorialPorProducto @IdProducto int,@Moneda nv
 ### SP_Compra_Insertar
 
 ```sql
-CREATE   PROCEDURE dbo.SP_Compra_Insertar @IdProducto int,@IdProveedor int,@IdPresentacionProducto int,@FechaCompra date,@CantidadComprada decimal(18,4),@PrecioTotal decimal(18,4),@Moneda nvarchar(10),@Observaciones nvarchar(500)=NULL
+CREATE   PROCEDURE dbo.SP_Compra_Insertar @IdProducto int,@IdProveedor int,@IdPresentacionProducto int,@FechaCompra date,@CantidadComprada decimal(18,4),@PrecioTotal decimal(18,4),@Moneda nvarchar(10),@Observaciones nvarchar(500)=NULL,
+ @DistribucionPresupuestoJson nvarchar(max)=NULL,@IdOperacionPresupuesto uniqueidentifier=NULL,
+ @MotivoPresupuesto nvarchar(500)=NULL,@MotivoExcesoPresupuesto nvarchar(500)=NULL,
+ @IdCompraCabecera bigint=NULL,@NumeroLinea int=NULL,@IdCompraInsertada bigint=NULL OUTPUT,@DevolverResultado bit=1
 ```
 
 ### SP_Compra_Listar
@@ -429,6 +438,43 @@ CREATE   PROCEDURE dbo.SP_UnidadMedida_ObtenerPorId
  @IdUnidadMedida int
 ```
 
+### usp_Compra_ActualizarCabecera
+
+```sql
+CREATE PROCEDURE dbo.usp_Compra_ActualizarCabecera
+ @IdCompraCabecera bigint,@Version binary(8),@IdProveedor int,@FechaCompra date,@Moneda nvarchar(10),
+ @NumeroFactura nvarchar(100)=NULL,@Observaciones nvarchar(500)=NULL
+```
+
+### usp_Compra_ActualizarRenglon
+
+```sql
+CREATE PROCEDURE dbo.usp_Compra_ActualizarRenglon
+ @IdCompraCabecera bigint,@IdCompra bigint,@Version binary(8),@IdProducto int,@IdPresentacionProducto int,
+ @CantidadComprada decimal(18,4),@PrecioTotal decimal(18,4),@Observaciones nvarchar(500)=NULL
+```
+
+### usp_Compra_ListarDocumentos
+
+```sql
+CREATE PROCEDURE dbo.usp_Compra_ListarDocumentos
+ @Busqueda nvarchar(150)=NULL,@Moneda nvarchar(10)=NULL,@Fecha date=NULL,@Pagina int=1,@TamanoPagina int=20
+```
+
+### usp_Compra_ObtenerDocumento
+
+```sql
+CREATE PROCEDURE dbo.usp_Compra_ObtenerDocumento @IdCompraCabecera bigint
+```
+
+### usp_Compra_RegistrarDocumento
+
+```sql
+CREATE PROCEDURE dbo.usp_Compra_RegistrarDocumento
+ @IdProveedor int,@FechaCompra date,@Moneda nvarchar(10),@LineasJson nvarchar(max),@IdOperacion uniqueidentifier,
+ @NumeroFactura nvarchar(100)=NULL,@Observaciones nvarchar(500)=NULL
+```
+
 ### usp_Cotizaciones_CompararSolicitud
 
 ```sql
@@ -519,6 +565,28 @@ CREATE   PROCEDURE dbo.usp_Marca_ObtenerPorId
  @IdMarca int
 ```
 
+### usp_Presupuesto_Consultar
+
+```sql
+CREATE PROCEDURE dbo.usp_Presupuesto_Consultar @IdPresupuesto bigint
+```
+
+### usp_Presupuesto_EditarBorrador
+
+```sql
+CREATE PROCEDURE dbo.usp_Presupuesto_EditarBorrador
+ @IdPresupuesto bigint,@Version uniqueidentifier,@Nombre nvarchar(150),@FechaInicio date,@FechaFin date,
+ @Moneda nvarchar(10),@PartidasJson nvarchar(max),@IdOperacion uniqueidentifier,@IdFinca int=NULL
+```
+
+### usp_Presupuesto_EstablecerMonto
+
+```sql
+CREATE PROCEDURE dbo.usp_Presupuesto_EstablecerMonto
+ @IdPartidaPresupuesto bigint,@NuevoMonto decimal(18,4),@MontoAprobadoEsperado decimal(28,4),
+ @IdOperacion uniqueidentifier,@Motivo nvarchar(500)
+```
+
 ### usp_Producto_BuscarCandidatos
 
 ```sql
@@ -565,7 +633,7 @@ CREATE   PROCEDURE dbo.usp_ProductoBase_ObtenerPorId
 
 ```sql
 CREATE   PROCEDURE dbo.usp_Proforma_ActualizarCabecera
- @IdProformaProveedor int,@CabeceraJson nvarchar(max),@Motivo nvarchar(1000)
+ @IdProformaProveedor int,@CabeceraJson nvarchar(max),@Motivo nvarchar(1000)=NULL
 ```
 
 ### usp_Proforma_ActualizarLinea
@@ -599,7 +667,7 @@ CREATE   PROCEDURE dbo.usp_Proforma_ComprobarJson @CabeceraJson nvarchar(max)=NU
 
 ```sql
 CREATE   PROCEDURE dbo.usp_Proforma_Conciliar
- @IdProformaProveedor int,@EstadoConciliacion varchar(20),@Motivo nvarchar(1000),@Tolerancia decimal(18,4)=0.01
+ @IdProformaProveedor int,@EstadoConciliacion varchar(20),@Motivo nvarchar(1000)=NULL,@Tolerancia decimal(18,4)=0.01
 ```
 
 ### usp_Proforma_CrearRevision
@@ -647,15 +715,6 @@ CREATE   PROCEDURE dbo.usp_Proforma_RevisarLinea
 CREATE   PROCEDURE dbo.usp_Proforma_Validar @IdProformaProveedor int
 ```
 
-### usp_Solicitud_AsignarDocumento
-
-```sql
-CREATE PROCEDURE dbo.usp_Solicitud_AsignarDocumento
- @IdSolicitudCotizacion bigint,@IdSolicitudCotizacionProveedor bigint,@IdDocumento bigint
-```
-
-Verifica la pertenencia del destinatario, la emisión y un documento generado con versión de plantilla. Asigna la referencia de salida en la columna histórica `IdDocumentoEnviado`. Es idempotente para el mismo documento; un segundo original produce conflicto. La fecha y el estado de envío se registran en otra operación.
-
 ### usp_Solicitud_CambiarEstado
 
 ```sql
@@ -671,14 +730,17 @@ CREATE   PROCEDURE dbo.usp_Solicitud_CrearRevision @IdSolicitudCotizacion bigint
 ### usp_Solicitud_Emitir
 
 ```sql
+/* Operaciones transaccionales del nuevo contrato. La API debe adoptarlas. */
 CREATE   PROCEDURE dbo.usp_Solicitud_Emitir @IdSolicitudCotizacion bigint
 ```
 
 ### usp_Solicitud_GuardarBorrador
 
 ```sql
+/* Guardado completo del borrador. Los IDs de linea quedan definitivos al emitir.
+   Guardar otra vez un borrador reemplaza sus lineas/destinatarios atomicamente. */
 CREATE   PROCEDURE dbo.usp_Solicitud_GuardarBorrador
- @NumeroSolicitud nvarchar(50),@FechaSolicitud date,@FechaLimiteRespuesta date=NULL,
+ @NumeroSolicitud nvarchar(50)=NULL,@FechaSolicitud date,@FechaLimiteRespuesta date=NULL,
  @DatosClienteOriginalJson nvarchar(max)=NULL,@Observaciones nvarchar(2000)=NULL,
  @LineasJson nvarchar(max),@ProveedoresJson nvarchar(max),@IdSolicitudCotizacion bigint OUTPUT
 ```

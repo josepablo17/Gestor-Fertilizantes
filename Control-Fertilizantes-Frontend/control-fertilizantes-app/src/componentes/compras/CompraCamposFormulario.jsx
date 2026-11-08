@@ -1,5 +1,5 @@
 import EntradaNumerica from "../comunes/EntradaNumerica.jsx";
-import { formatearNumero } from "../../utils/numeros.js";
+import { etiquetaPresentacion } from "../../api/catalogosApi.js";
 
 function CompraCamposFormulario({
   compra,
@@ -72,11 +72,7 @@ function CompraCamposFormulario({
               key={presentacion.idPresentacionProducto}
               value={presentacion.idPresentacionProducto}
             >
-              {(presentacion.descripcion ||
-                presentacion.presentacion ||
-                "Presentación")}{" "}
-              - {formatearNumero(presentacion.cantidad)}{" "}
-              {presentacion.unidadMedida || ""}
+              {etiquetaPresentacion(presentacion)}
             </option>
           ))}
         </select>

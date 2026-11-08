@@ -332,6 +332,284 @@
         }
       }
     },
+    "/api/compras-documento": {
+      "get": {
+        "tags": [
+          "ComprasDocumento"
+        ],
+        "parameters": [
+          {
+            "name": "busqueda",
+            "in": "query",
+            "schema": {
+              "maxLength": 150,
+              "minLength": 0,
+              "type": "string"
+            }
+          },
+          {
+            "name": "moneda",
+            "in": "query",
+            "schema": {
+              "pattern": "CRC|USD",
+              "type": "string"
+            }
+          },
+          {
+            "name": "fecha",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "pagina",
+            "in": "query",
+            "schema": {
+              "maximum": 2147483647,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "tamanoPagina",
+            "in": "query",
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComprasDocumentoPaginaDTOApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComprasDocumentoPaginaDTOApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComprasDocumentoPaginaDTOApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ComprasDocumento"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompraDocumentoCrearDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompraDocumentoCrearDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompraDocumentoCrearDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/compras-documento/{id}": {
+      "get": {
+        "tags": [
+          "ComprasDocumento"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompraDocumentoDTOApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompraDocumentoDTOApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompraDocumentoDTOApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/compras-documento/{id}/cabecera": {
+      "put": {
+        "tags": [
+          "ComprasDocumento"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompraCabeceraActualizarDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompraCabeceraActualizarDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompraCabeceraActualizarDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompraDocumentoDTOApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompraDocumentoDTOApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompraDocumentoDTOApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/compras-documento/{id}/renglones/{idCompra}": {
+      "put": {
+        "tags": [
+          "ComprasDocumento"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "idCompra",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompraRenglonActualizarDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompraRenglonActualizarDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompraRenglonActualizarDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompraDocumentoDTOApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompraDocumentoDTOApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompraDocumentoDTOApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Marca/ListarMarca": {
       "get": {
         "tags": [
@@ -1136,6 +1414,126 @@
             "application/*+json": {
               "schema": {
                 "$ref": "#/components/schemas/OperacionPresupuestoDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/presupuestos/{id}/borrador": {
+      "put": {
+        "tags": [
+          "Presupuestos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditarBorradorPresupuestoDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditarBorradorPresupuestoDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditarBorradorPresupuestoDTO"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresupuestoDetalleDTOApiRespuesta"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresupuestoDetalleDTOApiRespuesta"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresupuestoDetalleDTOApiRespuesta"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/presupuestos/partidas/{id}/monto": {
+      "post": {
+        "tags": [
+          "Presupuestos"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EstablecerMontoPartidaDTO"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EstablecerMontoPartidaDTO"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/EstablecerMontoPartidaDTO"
               }
             }
           }
@@ -2815,17 +3213,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/MotivoRespuestaDTO"
+                "$ref": "#/components/schemas/RevisionLineaRespuestaDTO"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/MotivoRespuestaDTO"
+                "$ref": "#/components/schemas/RevisionLineaRespuestaDTO"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/MotivoRespuestaDTO"
+                "$ref": "#/components/schemas/RevisionLineaRespuestaDTO"
               }
             }
           }
@@ -3779,15 +4177,15 @@
     "schemas": {
       "AjustarCabeceraRespuestaDTO": {
         "required": [
-          "cabecera",
-          "motivo"
+          "cabecera"
         ],
         "type": "object",
         "properties": {
           "motivo": {
             "maxLength": 1000,
             "minLength": 0,
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "cabecera": {
             "$ref": "#/components/schemas/CabeceraRespuestaEntradaDTO"
@@ -4319,6 +4717,47 @@
         },
         "additionalProperties": false
       },
+      "CompraCabeceraActualizarDTO": {
+        "required": [
+          "moneda",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "idProveedor": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "fechaCompra": {
+            "type": "string",
+            "format": "date"
+          },
+          "moneda": {
+            "minLength": 1,
+            "pattern": "CRC|USD",
+            "type": "string"
+          },
+          "numeroFactura": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "observaciones": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "version": {
+            "type": "string",
+            "format": "byte"
+          }
+        },
+        "additionalProperties": false
+      },
       "CompraCrearDTO": {
         "required": [
           "fechaCompra",
@@ -4375,6 +4814,342 @@
         },
         "additionalProperties": false
       },
+      "CompraDocumentoCrearDTO": {
+        "required": [
+          "lineas",
+          "moneda"
+        ],
+        "type": "object",
+        "properties": {
+          "idProveedor": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "fechaCompra": {
+            "type": "string",
+            "format": "date"
+          },
+          "moneda": {
+            "minLength": 1,
+            "pattern": "CRC|USD",
+            "type": "string"
+          },
+          "numeroFactura": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "observaciones": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "idOperacion": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "lineas": {
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompraRenglonCrearDTO"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "CompraDocumentoDTO": {
+        "type": "object",
+        "properties": {
+          "idCompraCabecera": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "numeroCompra": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "idProveedor": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nombreProveedor": {
+            "type": "string",
+            "nullable": true
+          },
+          "fechaCompra": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "moneda": {
+            "type": "string",
+            "nullable": true
+          },
+          "numeroFactura": {
+            "type": "string",
+            "nullable": true
+          },
+          "observaciones": {
+            "type": "string",
+            "nullable": true
+          },
+          "cantidadProductos": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          },
+          "version": {
+            "type": "string",
+            "format": "byte",
+            "nullable": true
+          },
+          "lineas": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompraRenglonDTO"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "CompraDocumentoDTOApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/CompraDocumentoDTO"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CompraDocumentoResumenDTO": {
+        "type": "object",
+        "properties": {
+          "idCompraCabecera": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "numeroCompra": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "idProveedor": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nombreProveedor": {
+            "type": "string",
+            "nullable": true
+          },
+          "fechaCompra": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "moneda": {
+            "type": "string",
+            "nullable": true
+          },
+          "numeroFactura": {
+            "type": "string",
+            "nullable": true
+          },
+          "observaciones": {
+            "type": "string",
+            "nullable": true
+          },
+          "cantidadProductos": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CompraRenglonActualizarDTO": {
+        "required": [
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "idProducto": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "idPresentacionProducto": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "cantidadComprada": {
+            "type": "number",
+            "format": "double"
+          },
+          "precioTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "observaciones": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "version": {
+            "type": "string",
+            "format": "byte"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CompraRenglonCrearDTO": {
+        "type": "object",
+        "properties": {
+          "idProducto": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "idPresentacionProducto": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "cantidadComprada": {
+            "type": "number",
+            "format": "double"
+          },
+          "precioTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "observaciones": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "imputacionPresupuesto": {
+            "$ref": "#/components/schemas/ImputacionCompraDTO"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CompraRenglonDTO": {
+        "type": "object",
+        "properties": {
+          "idCompra": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "numeroLinea": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "idProducto": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nombreProducto": {
+            "type": "string",
+            "nullable": true
+          },
+          "marca": {
+            "type": "string",
+            "nullable": true
+          },
+          "idPresentacionProducto": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "presentacion": {
+            "type": "string",
+            "nullable": true
+          },
+          "cantidadPresentacion": {
+            "type": "number",
+            "format": "double"
+          },
+          "unidadMedida": {
+            "type": "string",
+            "nullable": true
+          },
+          "cantidadComprada": {
+            "type": "number",
+            "format": "double"
+          },
+          "precioTotal": {
+            "type": "number",
+            "format": "double"
+          },
+          "precioUnitarioCalculado": {
+            "type": "number",
+            "format": "double"
+          },
+          "observaciones": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ComprasDocumentoPaginaDTO": {
+        "type": "object",
+        "properties": {
+          "totalRegistros": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "elementos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompraDocumentoResumenDTO"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ComprasDocumentoPaginaDTOApiRespuesta": {
+        "type": "object",
+        "properties": {
+          "exito": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/ComprasDocumentoPaginaDTO"
+          }
+        },
+        "additionalProperties": false
+      },
       "CompromisoPresupuestoDTO": {
         "type": "object",
         "properties": {
@@ -4424,15 +5199,15 @@
       },
       "ConciliarRespuestaDTO": {
         "required": [
-          "estadoConciliacion",
-          "motivo"
+          "estadoConciliacion"
         ],
         "type": "object",
         "properties": {
           "motivo": {
             "maxLength": 1000,
             "minLength": 0,
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "estadoConciliacion": {
             "minLength": 1,
@@ -4657,6 +5432,84 @@
           },
           "data": {
             "$ref": "#/components/schemas/DocumentoRespuestaDTO"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EditarBorradorPresupuestoDTO": {
+        "required": [
+          "moneda",
+          "nombre",
+          "partidas"
+        ],
+        "type": "object",
+        "properties": {
+          "idOperacion": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nombre": {
+            "maxLength": 150,
+            "minLength": 0,
+            "type": "string"
+          },
+          "idFinca": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "fechaInicio": {
+            "type": "string",
+            "format": "date"
+          },
+          "fechaFin": {
+            "type": "string",
+            "format": "date"
+          },
+          "moneda": {
+            "minLength": 1,
+            "pattern": "CRC|USD",
+            "type": "string"
+          },
+          "partidas": {
+            "maxItems": 100,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartidaBorradorDTO"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "EstablecerMontoPartidaDTO": {
+        "required": [
+          "montoAprobadoEsperado",
+          "motivo",
+          "nuevoMonto"
+        ],
+        "type": "object",
+        "properties": {
+          "idOperacion": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "motivo": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string"
+          },
+          "nuevoMonto": {
+            "type": "number",
+            "format": "double"
+          },
+          "montoAprobadoEsperado": {
+            "type": "number",
+            "format": "double"
           }
         },
         "additionalProperties": false
@@ -5744,6 +6597,22 @@
         },
         "additionalProperties": false
       },
+      "PartidaBorradorDTO": {
+        "type": "object",
+        "properties": {
+          "idRubroPresupuesto": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "monto": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
       "PartidaInicialDTO": {
         "type": "object",
         "properties": {
@@ -6033,6 +6902,10 @@
           "motivoCierre": {
             "type": "string",
             "nullable": true
+          },
+          "version": {
+            "type": "string",
+            "format": "uuid"
           }
         },
         "additionalProperties": false
@@ -7203,6 +8076,18 @@
         },
         "additionalProperties": false
       },
+      "RevisionLineaRespuestaDTO": {
+        "type": "object",
+        "properties": {
+          "motivo": {
+            "maxLength": 1000,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "RubroPresupuestoDTO": {
         "type": "object",
         "properties": {
@@ -7306,16 +8191,10 @@
         "required": [
           "fechaSolicitud",
           "lineas",
-          "numeroSolicitud",
           "proveedores"
         ],
         "type": "object",
         "properties": {
-          "numeroSolicitud": {
-            "maxLength": 50,
-            "minLength": 0,
-            "type": "string"
-          },
           "fechaSolicitud": {
             "type": "string",
             "format": "date"

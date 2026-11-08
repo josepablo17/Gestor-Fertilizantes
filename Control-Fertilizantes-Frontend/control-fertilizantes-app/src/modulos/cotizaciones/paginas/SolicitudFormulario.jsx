@@ -60,8 +60,10 @@ function EditorSolicitud({ id, volver, original, catalogo }) {
 
   return <form className="form" onSubmit={guardar}>
     <Tarjeta titulo="Datos de la solicitud">
+      <p className="text-muted">{original
+        ? `Solicitud ${original.numeroSolicitud} · versión ${original.versionSolicitud}`
+        : "El número de solicitud se asignará automáticamente al guardar el borrador."}</p>
       <fieldset className="form-row" disabled={operacion.ocupado}>
-        <Campo etiqueta="Número de solicitud" valor={valores.numeroSolicitud} cambiar={asignar("numeroSolicitud")} required maxLength={50} />
         <Campo etiqueta="Fecha de solicitud" valor={valores.fechaSolicitud} cambiar={asignar("fechaSolicitud")} type="date" required />
         <Campo etiqueta="Fecha límite de respuesta" valor={valores.fechaLimiteRespuesta} cambiar={asignar("fechaLimiteRespuesta")} type="date" min={valores.fechaSolicitud} />
         <Campo etiqueta="Observaciones de la solicitud" valor={valores.observaciones} cambiar={asignar("observaciones")} textoLargo maxLength={2000} />

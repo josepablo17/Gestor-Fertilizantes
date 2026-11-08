@@ -1,5 +1,6 @@
 import { fechaHora } from "../../../utils/datosApi.js";
 import { Tarjeta } from "../../../componentes/comunes/Pagina.jsx";
+import { etiquetaCotizacion } from "../utils/etiquetasCotizacion.js";
 
 export default function EvidenciaRespuesta({ datos }) {
   const { documento, importacion, historial } = datos;
@@ -8,7 +9,7 @@ export default function EvidenciaRespuesta({ datos }) {
   return <Tarjeta titulo="Extracción e historial">
     {!documento && <p>Esta respuesta no tiene un PDF registrado.</p>}
     {importacion && <div>
-      <p>{importacion.metodo === "AcroForm" ? "Formulario reconocido" : "Captura manual"} · {importacion.estado}</p>
+      <p>{importacion.metodo === "AcroForm" ? "Formulario reconocido" : "Captura manual"} · {etiquetaCotizacion(importacion.estado)}</p>
       {advertencias.length > 0 && <ul>{advertencias.map((item, indice) =>
         <li key={indice}>{typeof item === "string" ? item : `${item?.mensaje ?? "Revisar el documento."}${item?.campo ? ` (${item.campo})` : ""}`}</li>
       )}</ul>}

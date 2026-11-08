@@ -8,6 +8,7 @@ BEGIN
  IF @TranInicial=0 BEGIN TRANSACTION; ELSE SAVE TRANSACTION OperacionCotizacion;
  BEGIN TRY
  DECLARE @MotivoPrevio sql_variant=SESSION_CONTEXT(N'MotivoCambio');
+ SET @Motivo=COALESCE(NULLIF(LTRIM(RTRIM(@Motivo)),N''),N'Renglón marcado como revisado.');
  EXEC sys.sp_set_session_context @key=N'MotivoCambio',@value=@Motivo;
  BEGIN TRY
 
@@ -22,7 +23,7 @@ BEGIN
  UPDATE dbo.ProformasProveedorDetalle SET EstadoRevision='Revisada',ProductoEncontrado=CASE WHEN IdProducto IS NULL THEN 0 ELSE 1 END,
  PresentacionEncontrada=CASE WHEN IdPresentacionProducto IS NULL THEN 0 ELSE 1 END,
  SePuedeRegistrar=CASE WHEN EstadoOferta='Cotizada' AND IdProducto IS NOT NULL AND IdPresentacionProducto IS NOT NULL THEN 1 ELSE 0 END,
- FechaModificacion=SYSUTCDATETIME() WHERE IdProformaProveedorDetalle=@IdProformaProveedorDetalle;
+ FechaModificacion=SYSUTCDATETIME() WHERE IdProformaProveedorDetalle=@IdProformaProveedorDetalle AND EstadoRevision<>'Revisada';
 
  EXEC sys.sp_set_session_context @key=N'MotivoCambio',@value=@MotivoPrevio;
  END TRY BEGIN CATCH

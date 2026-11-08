@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Pagina, { EstadoConsulta, Mensajes, Tarjeta } from "../../../componentes/comunes/Pagina.jsx";
 import EditorCabecera from "../componentes/EditorCabecera.jsx";
+import PendientesCabecera from "../componentes/PendientesCabecera.jsx";
 import EditorLineaRespuesta from "../componentes/EditorLineaRespuesta.jsx";
 import EvidenciaRespuesta from "../componentes/EvidenciaRespuesta.jsx";
 import PanelPdfRespuesta from "../componentes/PanelPdfRespuesta.jsx";
@@ -13,6 +14,8 @@ import { ajustarCabecera, cancelarRespuesta, conciliarRespuesta, confirmarLinea,
   obtenerRespuesta, obtenerSolicitud, revisarRespuesta, validarRespuesta } from "../api/cotizacionesApi.js";
 import { mostrarConfirmacion } from "../../../utils/alertas.js";
 import { mismoId, mostrarDato } from "../../../utils/datosApi.js";
+import { camposPendientesCabecera } from "../utils/formularioRespuesta.js";
+import { etiquetaConciliacion, etiquetaCotizacion } from "../utils/etiquetasCotizacion.js";
 
 export default function RespuestaCotizacion() {
   const params = useParams();
@@ -36,16 +39,16 @@ export default function RespuestaCotizacion() {
 function RevisionRespuesta({ id, datos, solicitud, actualizar }) {
   const [editarCabecera, setEditarCabecera] = useState(false);
   const [editarLinea, setEditarLinea] = useState(null);
-  const [revisarLinea, setRevisarLinea] = useState(null);
   const [cancelar, setCancelar] = useState(false);
   const operacion = useOperacion();
   const navigate = useNavigate();
   const { respuesta, cabecera, lineas } = datos;
-  const editable = ["Borrador", "EnRevision"].includes(respuesta.estado);
-  const editorAbierto = editarCabecera || editarLinea !== null || revisarLinea !== null || cancelar;
+  const editable = solicitud.estado === "Emitida" && ["Borrador", "EnRevision"].includes(respuesta.estado);
+  const editorAbierto = editarCabecera || editarLinea !== null || cancelar;
+  const pendientesCabecera = camposPendientesCabecera(cabecera);
+  const renglonesPendientes = lineas.filter((l) => l.estadoRevision !== "Revisada").length;
   const puedeValidar = solicitud.estado === "Emitida" && respuesta.estadoConciliacion !== "Pendiente" && lineas.length > 0
-    && lineas.every((l) => l.estadoRevision === "Revisada") && cabecera.fechaProforma && cabecera.moneda
-    && cabecera.datosClienteOriginal && cabecera.datosProveedorOriginal;
+    && renglonesPendientes === 0 && pendientesCabecera.length === 0;
   const lineaActual = lineas.find((l) => mismoId(l.idProformaProveedorDetalle, editarLinea));
 
   function aplicar(accion, mensaje, alGuardar) {
@@ -70,7 +73,7 @@ function RevisionRespuesta({ id, datos, solicitud, actualizar }) {
 
   return <>
     <Tarjeta titulo="Revisión de la respuesta">
-      <p>Solicitud {solicitud.numeroSolicitud} · versión de respuesta {respuesta.versionRespuesta} · {respuesta.estado}</p>
+      <p>Solicitud {solicitud.numeroSolicitud} · versión de respuesta {respuesta.versionRespuesta} · {etiquetaCotizacion(respuesta.estado)}</p>
       {respuesta.idProformaAnterior && <Link to={`/respuestas/${respuesta.idProformaAnterior}`}>Consultar la versión anterior</Link>}
       <div className="form-actions">
         {editable && <>
@@ -78,10 +81,21 @@ function RevisionRespuesta({ id, datos, solicitud, actualizar }) {
           <button type="button" className="btn btn--secondary" disabled={operacion.ocupado} onClick={() => setCancelar(true)}>Cancelar borrador</button>
         </>}
         {!editable && solicitud.estado === "Emitida" && <button type="button" className="btn btn--secondary" disabled={operacion.ocupado} onClick={nuevaRevision}>Crear revisión</button>}
-        <Link className="btn btn--secondary" to={`/solicitudes/${solicitud.idSolicitudCotizacion}/comparacion`}>Comparar ofertas</Link>
+        <Link className="btn btn--secondary" to={`/solicitudes/${solicitud.idSolicitudCotizacion}/comparacion`}
+          aria-disabled={operacion.ocupado || editorAbierto}
+          onClick={(evento) => { if (operacion.ocupado || editorAbierto) evento.preventDefault(); }}>Comparar ofertas</Link>
       </div>
-      {editable && !puedeValidar && <p>Para validar, completa la cabecera y los datos de ambas partes, confirma todos los renglones y concilia los importes.</p>}
+      {editable && !puedeValidar && <section aria-label="Pendientes para validar">
+        <p><strong>Antes de validar esta respuesta:</strong></p>
+        <ul>
+          {pendientesCabecera.length > 0 && <li>Completa los datos pendientes de la cabecera, indicados abajo.</li>}
+          {lineas.length === 0 && <li>Agrega al menos un renglón de respuesta.</li>}
+          {renglonesPendientes > 0 && <li>Confirma la revisión de {renglonesPendientes} {renglonesPendientes === 1 ? "renglón pendiente" : "renglones pendientes"}.</li>}
+          {respuesta.estadoConciliacion === "Pendiente" && <li>Comprueba los importes o justifica sus diferencias en «Conciliación de importes».</li>}
+        </ul>
+      </section>}
       {editable && puedeValidar && editorAbierto && <p>Guarda o cierra los formularios abiertos antes de validar.</p>}
+      {editorAbierto && <p>Guarda o cancela la edición antes de abrir la comparación.</p>}
       {editable && cancelar && <MotivoAccion etiqueta="Motivo de cancelación" boton="Confirmar cancelación" ocupado={operacion.ocupado}
         cerrar={() => setCancelar(false)} ejecutar={(motivo) => aplicar(() => cancelarRespuesta(id, motivo), "Borrador cancelado.", () => setCancelar(false))} />}
     </Tarjeta>
@@ -91,14 +105,15 @@ function RevisionRespuesta({ id, datos, solicitud, actualizar }) {
       </aside>}
       <div className="revision-proforma__datos">
         <Tarjeta titulo="Cabecera de la proforma">
+          {editable && !editarCabecera && <PendientesCabecera campos={pendientesCabecera} />}
           <p>Número: {mostrarDato(cabecera.numeroProforma)} · Moneda: {mostrarDato(cabecera.moneda)} · Fecha: {mostrarDato(cabecera.fechaProforma)} · Vence: {mostrarDato(cabecera.fechaVencimiento)}</p>
           <p>Subtotal: {formatearNumero(cabecera.subtotal)} · Descuento: {formatearNumero(cabecera.descuento)} · IVA: {formatearNumero(cabecera.iva)} · Otros cargos: {formatearNumero(cabecera.otrosCargos)} · Total: {formatearNumero(cabecera.total)}</p>
           <p>Pago: {mostrarDato(cabecera.condicionesPago)} · Entrega: {mostrarDato(cabecera.condicionesEntrega)}</p>
-          {editable && (editarCabecera ? <EditorCabecera cabecera={cabecera} ocupado={operacion.ocupado}
+          {editable && (editarCabecera ? <EditorCabecera cabecera={cabecera} respuesta={respuesta} solicitud={solicitud} ocupado={operacion.ocupado}
             cerrar={() => setEditarCabecera(false)} guardar={(cuerpo) => aplicar(() => ajustarCabecera(id, cuerpo()),
-              "Cabecera actualizada. Vuelve a conciliar los importes.", () => setEditarCabecera(false))} />
+              "Cabecera guardada.", () => setEditarCabecera(false))} />
             : <button type="button" className="btn btn--secondary" disabled={operacion.ocupado} onClick={() => setEditarCabecera(true)}>Editar cabecera</button>)}
-          {!editable && <p>Conciliación: {respuesta.estadoConciliacion}{respuesta.justificacionConciliacion && ` · ${respuesta.justificacionConciliacion}`}</p>}
+          {!editable && <p>Conciliación: {etiquetaConciliacion(respuesta.estadoConciliacion)}{respuesta.justificacionConciliacion && ` · ${respuesta.justificacionConciliacion}`}</p>}
         </Tarjeta>
         <Tarjeta titulo="Renglones de la respuesta">
           <div className="table-wrapper">
@@ -110,28 +125,25 @@ function RevisionRespuesta({ id, datos, solicitud, actualizar }) {
                 return <tr key={llave}>
                   <td>{numero} · {l.descripcion || l.nombreProductoOriginal || pedida?.nombreProductoOriginal || "Sin descripción"}
                     {l.presentacionOriginal && <p>{l.presentacionOriginal}</p>}</td>
-                  <td>{l.tipoOferta} · {l.estadoOferta}{l.estadoOferta === "Cotizada" && <p>{l.baseTotalLinea}</p>}</td>
+                  <td>{etiquetaCotizacion(l.tipoOferta)} · {etiquetaCotizacion(l.estadoOferta)}{l.estadoOferta === "Cotizada" && <p>{etiquetaCotizacion(l.baseTotalLinea)}</p>}</td>
                   <td>{formatearNumero(l.cantidadEmpaques)}</td><td>{formatearNumero(l.precioUnitario)}</td><td>{formatearNumero(l.totalLinea)}</td>
                   <td>{l.estadoRevision}</td>
                   {editable && <td>
                     <button type="button" className="btn btn--secondary btn--sm" disabled={operacion.ocupado}
-                      onClick={() => { setEditarLinea(llave); setRevisarLinea(null); }}>Editar renglón {numero}</button>{" "}
-                    <button type="button" className="btn btn--secondary btn--sm" disabled={operacion.ocupado || l.estadoRevision === "Revisada"}
-                      onClick={() => { setRevisarLinea(llave); setEditarLinea(null); }}>Revisar renglón {numero}</button>
+                      onClick={() => setEditarLinea(llave)}>Editar renglón {numero}</button>{" "}
+                    <button type="button" className="btn btn--secondary btn--sm" disabled={operacion.ocupado || editorAbierto || l.estadoRevision === "Revisada"}
+                      onClick={() => aplicar(() => confirmarLinea(id, llave), "Renglón revisado.")}>Revisar renglón {numero}</button>
                   </td>}
                 </tr>;
               })}</tbody>
             </table>
           </div>
           {editable && <button type="button" className="btn btn--secondary" disabled={operacion.ocupado || lineas.length >= 200}
-            onClick={() => { setEditarLinea("nueva"); setRevisarLinea(null); }}>Agregar renglón de respuesta</button>}
+            onClick={() => setEditarLinea("nueva")}>Agregar renglón de respuesta</button>}
           {editable && editarLinea !== null && <EditorLineaRespuesta key={editarLinea} linea={lineaActual} solicitud={solicitud}
             ocupado={operacion.ocupado} cerrar={() => setEditarLinea(null)}
             guardar={(cuerpo) => aplicar(() => guardarLineaRespuesta(id, lineaActual?.idProformaProveedorDetalle, cuerpo()),
               "Renglón guardado. Confirma su revisión.", () => setEditarLinea(null))} />}
-          {editable && revisarLinea !== null && <MotivoAccion key={revisarLinea} etiqueta="Motivo de revisión del renglón"
-            boton="Confirmar revisión" ocupado={operacion.ocupado} cerrar={() => setRevisarLinea(null)}
-            ejecutar={(motivo) => aplicar(() => confirmarLinea(id, revisarLinea, motivo), "Renglón revisado.", () => setRevisarLinea(null))} />}
         </Tarjeta>
         {editable && <Conciliacion resumen={respuesta} ocupado={operacion.ocupado}
           guardar={(cuerpo, cerrar) => aplicar(() => conciliarRespuesta(id, cuerpo()), "Conciliación registrada.", cerrar)} />}

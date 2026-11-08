@@ -59,13 +59,15 @@ $idProveedor1=(Invoke-Solicitud POST 'Proveedor/InsertarProveedor' 201 @{nombre=
 $idProveedor2=(Invoke-Solicitud POST 'Proveedor/InsertarProveedor' 201 @{nombre="Proveedor B $suffix"}).idProveedor
 
 $ruta='solicitudes-cotizacion'
-$numero="SOL-$suffix"
-$borrador=Invoke-Solicitud POST $ruta 201 @{numeroSolicitud=$numero;fechaSolicitud='2026-03-26'}
+$borrador=Invoke-Solicitud POST $ruta 201 @{fechaSolicitud='2026-03-26'}
+$numero=$borrador.numeroSolicitud
+Assert-Solicitud ($numero -cmatch '^SOL-[0-9]{6,}$') 'El número de solicitud se asigna desde SQL'
+$null=Invoke-Solicitud POST $ruta 400 @{numeroSolicitud='MANIPULADO';fechaSolicitud='2026-03-26'}
 $id=$borrador.idSolicitudCotizacion
 $null=Invoke-Solicitud POST "$ruta/$id/emision" 400
 $linea=@{numeroLinea=1;idProducto=$idProducto;idPresentacionProducto=$idPresentacion;cantidadEmpaques=3.25;permiteAlternativas=$true}
 $lineaLiquida=@{numeroLinea=2;idProducto=$idProductoLiquido;idPresentacionProducto=$idPresentacionLiquida;cantidadEmpaques=1.5;permiteAlternativas=$false}
-$datos=@{numeroSolicitud=$numero;fechaSolicitud='2026-03-26';fechaLimiteRespuesta='2026-04-03';datosCliente=@{nombre=' Finca de prueba '};lineas=@($linea,$lineaLiquida);proveedores=@($idProveedor1,$idProveedor2)}
+$datos=@{fechaSolicitud='2026-03-26';fechaLimiteRespuesta='2026-04-03';datosCliente=@{nombre=' Finca de prueba '};lineas=@($linea,$lineaLiquida);proveedores=@($idProveedor1,$idProveedor2)}
 $invalida=$datos.Clone(); $invalida.lineas=@($null)
 $null=Invoke-Solicitud PUT "$ruta/$id/borrador" 400 $invalida
 $invalida.lineas=@($linea.Clone()); $invalida.lineas[0].cantidadEmpaques=1.00001
@@ -78,6 +80,7 @@ $invalida=$datos.Clone(); $invalida.proveedores=@($idProveedor1,$idProveedor1)
 $null=Invoke-Solicitud PUT "$ruta/$id/borrador" 409 $invalida
 $primera=Invoke-Solicitud PUT "$ruta/$id/borrador" 200 $datos
 $segunda=Invoke-Solicitud PUT "$ruta/$id/borrador" 200 $datos
+Assert-Solicitud ($segunda.numeroSolicitud -ceq $numero) 'El borrador conserva su número automático'
 $destino1=$segunda.destinatarios[0].idSolicitudCotizacionProveedor
 $destino2=$segunda.destinatarios[1].idSolicitudCotizacionProveedor
 Assert-Solicitud ($segunda.lineas[0].idSolicitudCotizacionDetalle -ne $primera.lineas[0].idSolicitudCotizacionDetalle -and
@@ -134,6 +137,7 @@ $pagina=Invoke-Solicitud GET "$ruta`?buscar=$numero&estado=Emitida&pagina=1&tama
 Assert-Solicitud ($pagina.totalRegistros -eq 1 -and $pagina.elementos[0].idSolicitudCotizacion -eq $id) 'El listado filtra por estado y número'
 $revision=Invoke-Solicitud POST "$ruta/$id/revisiones" 201
 Assert-Solicitud ($revision.estado -ceq 'Borrador' -and $revision.versionSolicitud -eq 2 -and $revision.idSolicitudAnterior -eq $id -and
+    $revision.numeroSolicitud -ceq $numero -and
     $revision.lineas[0].idSolicitudCotizacionDetalle -ne $emitida.lineas[0].idSolicitudCotizacionDetalle -and
     $revision.destinatarios[0].idSolicitudCotizacionProveedor -ne $destino1 -and $null -eq $revision.destinatarios[0].idDocumentoGenerado) 'La revisión crea identidades nuevas sin heredar documentos ni envíos'
 $null=Invoke-Solicitud GET "$ruta/$($revision.idSolicitudCotizacion)/destinatarios/$destino1/documento" 404

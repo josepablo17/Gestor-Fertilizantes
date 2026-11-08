@@ -2,6 +2,7 @@ import { formatearNumero } from "../../../utils/numeros.js";
 import { Link } from "react-router-dom";
 import { EstadoVacio, Tarjeta } from "../../../componentes/comunes/Pagina.jsx";
 import { basesImporte } from "../utils/formularioRespuesta.js";
+import { etiquetaCotizacion } from "../utils/etiquetasCotizacion.js";
 
 const condiciones = {
   Comparable: "Comparable",
@@ -47,7 +48,7 @@ function Oferta({ oferta, documento, moneda, unidad }) {
             <p>{formatearNumero(oferta.contenidoTotalOfrecido)} {oferta.unidadBaseOfrecida} ({formatearNumero(oferta.cantidadEmpaquesOfrecida)} empaques)</p>
           )}
           {oferta.precioPorEmpaque != null && <p>Por empaque {documento?.moneda} {formatearNumero(oferta.precioPorEmpaque)}</p>}
-          {oferta.totalLinea != null && <p>Total de línea {documento?.moneda} {formatearNumero(oferta.totalLinea)} · {oferta.baseTotalLinea}</p>}
+          {oferta.totalLinea != null && <p>Total de línea {documento?.moneda} {formatearNumero(oferta.totalLinea)} · {etiquetaCotizacion(oferta.baseTotalLinea)}</p>}
         </details>
       )}
     </div>

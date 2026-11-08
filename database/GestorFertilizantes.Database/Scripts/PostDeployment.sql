@@ -21,3 +21,13 @@ DROP PROCEDURE IF EXISTS dbo.SP_Compra_AlertasPorProducto;
 DROP PROCEDURE IF EXISTS dbo.SP_Compra_EvaluarCompra;
 DROP PROCEDURE IF EXISTS dbo.SP_Compra_HistorialPreciosPorProducto;
 DROP PROCEDURE IF EXISTS dbo.SP_Compra_ResumenInteligentePrecios;
+
+-- Cada compra histórica conserva su IdCompra y sus referencias presupuestarias.
+-- No se agrupan documentos antiguos por coincidencias de proveedor y fecha.
+INSERT dbo.ComprasCabecera(IdProveedor,FechaCompra,Moneda,Observaciones,IdCompraMigrada)
+SELECT c.IdProveedor,c.FechaCompra,c.Moneda,c.Observaciones,c.IdCompra
+FROM dbo.Compras c WHERE c.IdCompraCabecera IS NULL
+AND NOT EXISTS(SELECT 1 FROM dbo.ComprasCabecera h WHERE h.IdCompraMigrada=c.IdCompra);
+UPDATE c SET IdCompraCabecera=h.IdCompraCabecera,NumeroLinea=1
+FROM dbo.Compras c JOIN dbo.ComprasCabecera h ON h.IdCompraMigrada=c.IdCompra
+WHERE c.IdCompraCabecera IS NULL;

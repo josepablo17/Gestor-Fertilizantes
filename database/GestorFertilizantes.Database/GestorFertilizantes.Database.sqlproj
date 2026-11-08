@@ -5,7 +5,7 @@
     <ModelCollation>1033, CI</ModelCollation>
     <DefaultCollation>SQL_Latin1_General_CP1_CI_AS</DefaultCollation>
     <CompatibilityMode>160</CompatibilityMode>
-    <DacVersion>1.0.2.0</DacVersion>
+    <DacVersion>1.0.4.0</DacVersion>
     <SqlServerVerification>True</SqlServerVerification>
     <TreatTSqlWarningsAsErrors>True</TreatTSqlWarningsAsErrors>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>

@@ -1,20 +1,14 @@
 import { useCallback, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Campo from "../../../componentes/comunes/Campo.jsx";
 import Pagina, { EstadoConsulta, EstadoVacio, Mensajes, Tarjeta } from "../../../componentes/comunes/Pagina.jsx";
 import useConsulta from "../../../hooks/useConsulta.js";
 import useOperacion from "../../../hooks/useOperacion.js";
-import { fechaLocal } from "../../../utils/datosApi.js";
-import { crearFinca, crearPresupuesto, crearRubro, listarPresupuestos, obtenerCatalogos } from "../api/presupuestosApi.js";
-import useIdOperacion from "../hooks/useIdOperacion.js";
-import { fechaCorta, importePositivo, monedaVisible, monedas, motivoValido } from "../utils/presupuesto.js";
+import { crearFinca, crearRubro, listarPresupuestos, obtenerCatalogos } from "../api/presupuestosApi.js";
+import { fechaCorta, monedaVisible, monedas } from "../utils/presupuesto.js";
+import FormularioPresupuesto from "../componentes/FormularioPresupuesto.jsx";
 
 const estados = ["Borrador", "Aprobado", "Cerrado"].map((value) => ({ value, label: value }));
-const rubrosActivos = (rubros) => rubros.filter((r) => r.activo)
-  .map((r) => ({ value: r.idRubroPresupuesto, label: r.nombre }));
-const fincasActivas = (fincas) => fincas.filter((f) => f.activa)
-  .map((f) => ({ value: f.idFinca, label: f.nombre }));
-const partidaNueva = () => ({ clave: crypto.randomUUID(), idRubroPresupuesto: "", monto: "" });
 
 export default function Presupuestos() {
   const [filtros, setFiltros] = useState({ idFinca: "", moneda: "", estado: "" });
@@ -83,58 +77,4 @@ function FormularioCatalogo({ tipo, guardar, alGuardar, datos }) {
       <Mensajes {...operacion} />
     </form>
   </details>;
-}
-
-function FormularioPresupuesto({ catalogos }) {
-  const [datos, setDatos] = useState(() => ({
-    nombre: "", fechaInicio: fechaLocal(), fechaFin: "", moneda: "CRC", idFinca: "", motivo: "",
-  }));
-  const [partidas, setPartidas] = useState(() => [partidaNueva()]);
-  const operacion = useOperacion();
-  const { conOperacion } = useIdOperacion();
-  const navegar = useNavigate();
-  const asignar = (campo) => (valor) => setDatos((actual) => ({ ...actual, [campo]: valor }));
-  const asignarPartida = (clave, campo) => (valor) =>
-    setPartidas((actual) => actual.map((p) => p.clave === clave ? { ...p, [campo]: valor } : p));
-  const rubros = rubrosActivos(catalogos.rubros);
-
-  return <Tarjeta titulo="Nuevo presupuesto">
-    {rubros.length === 0 && <p>Registra un rubro antes de crear el presupuesto.</p>}
-    <form className="form" onSubmit={(e) => {
-      e.preventDefault();
-      operacion.ejecutar(async () => {
-        const id = await crearPresupuesto(conOperacion({
-          ...datos, nombre: datos.nombre.trim(), motivo: motivoValido(datos.motivo), idFinca: datos.idFinca || null,
-          partidas: partidas.map((p) => ({ idRubroPresupuesto: p.idRubroPresupuesto, monto: importePositivo(p.monto) })),
-        }));
-        navegar(`/presupuestos/${id}`);
-      });
-    }}>
-      <fieldset disabled={operacion.ocupado} className="form presupuesto-distribucion">
-        <legend>Datos del presupuesto</legend>
-        <div className="form-row form-row--3">
-          <Campo etiqueta="Nombre del presupuesto" valor={datos.nombre} cambiar={asignar("nombre")} maxLength={150} required />
-          <Campo etiqueta="Finca (opcional, vacío para presupuesto general)" valor={datos.idFinca} cambiar={asignar("idFinca")}
-            opciones={fincasActivas(catalogos.fincas)} />
-          <Campo etiqueta="Moneda" valor={datos.moneda} cambiar={asignar("moneda")} opciones={monedas} required />
-          <Campo etiqueta="Fecha de inicio" valor={datos.fechaInicio} cambiar={asignar("fechaInicio")} type="date" required />
-          <Campo etiqueta="Fecha de fin" valor={datos.fechaFin} cambiar={asignar("fechaFin")} type="date" min={datos.fechaInicio} required />
-          <Campo etiqueta="Motivo de creación" valor={datos.motivo} cambiar={asignar("motivo")} maxLength={500} required />
-        </div>
-        {partidas.map((p, i) => <div className="form-row form-row--3" key={p.clave}>
-          <Campo etiqueta={`Rubro ${i + 1}`} valor={p.idRubroPresupuesto} cambiar={asignarPartida(p.clave, "idRubroPresupuesto")} required
-            opciones={rubros.map((r) => ({ ...r, disabled: partidas.some((otra) => otra.clave !== p.clave && otra.idRubroPresupuesto === String(r.value)) }))} />
-          <Campo etiqueta={`Monto inicial ${i + 1}`} valor={p.monto} cambiar={asignarPartida(p.clave, "monto")} formatoNumerico="decimal" required />
-          {partidas.length > 1 && <div className="form-actions"><button type="button" className="btn btn--secondary"
-            onClick={() => setPartidas(partidas.filter((otra) => otra.clave !== p.clave))}>Quitar partida {i + 1}</button></div>}
-        </div>)}
-        <div className="form-actions">
-          <button type="button" className="btn btn--secondary" disabled={partidas.length >= Math.min(rubros.length, 100)}
-            onClick={() => setPartidas([...partidas, partidaNueva()])}>Agregar partida</button>
-          <button className="btn btn--primary" disabled={!rubros.length}>Crear borrador</button>
-        </div>
-      </fieldset>
-      <Mensajes {...operacion} />
-    </form>
-  </Tarjeta>;
 }

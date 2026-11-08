@@ -29,8 +29,8 @@ Las siguientes rutas son relativas a `/api/respuestas-cotizacion/{idRespuesta}`:
 | Corregir cabecera | `PUT /cabecera` | `motivo` y objeto completo `cabecera`. |
 | Corregir línea | `PUT /lineas/{idLinea}` | `motivo` y objeto completo `linea`. |
 | Agregar línea | `POST /lineas` | `motivo` y objeto `linea`, para ofertas adicionales o alternativas. |
-| Confirmar una línea | `POST /lineas/{idLinea}/revision` | `motivo`. |
-| Conciliar importes | `POST /conciliacion` | `estadoConciliacion` (`Conciliada` o `ConDiferencias`), `motivo` y `tolerancia` opcional (de 0 a 1; por defecto 0.01). |
+| Confirmar una línea | `POST /lineas/{idLinea}/revision` | Acepta `{}`. La observación `motivo` es opcional y la acción queda registrada. |
+| Conciliar importes | `POST /conciliacion` | `estadoConciliacion` (`Conciliada` o `ConDiferencias`). El `motivo` es obligatorio al aceptar diferencias y opcional si cuadra. La `tolerancia` es opcional (de 0 a 1; por defecto 0.01). |
 | Finalizar la revisión | `POST /validacion` | Sin cuerpo. |
 | Cancelar un borrador | `POST /cancelacion` | `motivo`. Conserva el historial y el archivo. |
 | Revisar una versión finalizada | `POST /revisiones` | Sin cuerpo. Devuelve un nuevo borrador sobre el mismo archivo y extracción. |
@@ -57,6 +57,14 @@ Ejemplo de ajuste de línea solicitada; usar el identificador de la solicitud de
 
 Para una oferta solicitada, la presentación se toma de la copia de la solicitud. Una alternativa requiere que el renglón la permita, un `motivoAlternativa` y la selección explícita de una presentación de catálogo para completar la revisión. Una adicional no tiene `idSolicitudDetalle`. Se admite guardar una línea cotizada incompleta como borrador, pero para confirmarla deben constar número, descripción, presentación, cantidad, precio, total y base.
 
-Corregir cualquier dato de cabecera o de línea reinicia la conciliación. Corregir una línea también reinicia su confirmación. Para validar, completar fecha, moneda y los datos de ambas partes (`datosClienteOriginal`, `datosProveedorOriginal`), confirmar todos los renglones y conciliar los importes de cabecera. Declarar los ceros solo cuando corresponda. La conciliación controla `total = subtotal - descuento + iva + otrosCargos` y no reparte ajustes globales entre líneas.
+Guardar la cabecera conserva la conciliación cuando solo cambian datos de contacto, fechas u observaciones. Si cambian importes, se comprueban con una tolerancia de 0.01. Una cabecera completa que cuadra queda conciliada y una discrepancia o un importe faltante queda pendiente. Cambiar una moneda ya definida requiere una nueva comprobación. Corregir importes o moneda de una cabecera conciliada exige el motivo de la corrección.
+
+Corregir una línea reinicia su confirmación y la conciliación. Para validar, completar fecha, moneda y los datos de ambas partes (`datosClienteOriginal`, `datosProveedorOriginal`), confirmar todos los renglones y comprobar los importes de cabecera. Declarar los ceros solo cuando corresponda. La conciliación controla `total = subtotal - descuento + iva + otrosCargos`.
+
+El formulario muestra identificación e importes primero y agrupa las condiciones comerciales y los contactos en secciones opcionales. Completar nombres desde la solicitud requiere confirmar su coincidencia con el PDF. La comprobación manual se realiza con **Comprobar importes**. **Justificar diferencias** exige una explicación. La conciliación se consulta desde SQL al recargar o regresar desde la comparación.
+
+La cabecera enumera los campos que faltan para validar y actualiza la lista mientras se edita. Un importe vacío sigue pendiente; un cero confirmado es válido. Número de proforma, vencimiento y datos de contacto permanecen opcionales. El resumen distingue los datos de cabecera, los renglones por revisar y la comprobación de importes; permite seguir guardando borradores incompletos. Los estados se presentan con etiquetas legibles, como **Pendiente de envío** y **En revisión**, conservando los valores del contrato de la API.
+
+Al marcar `Conciliada`, la observación es opcional. SQL comprueba la cabecera dentro de la tolerancia indicada y registra la comprobación en el historial. Para aceptar `ConDiferencias` es obligatorio explicar la discrepancia.
 
 Los PDF entrantes se guardan dentro de `Documentos__RutaRaiz`, junto a los archivos de salida, en una subcarpeta `recibidos` de cada destinatario. Respaldar toda la carpeta junto con SQL. El registro del documento, la extracción y el borrador se hace en una transacción SQL. Si la confirmación queda incierta, verificar en SQL antes de retirar el archivo del disco.

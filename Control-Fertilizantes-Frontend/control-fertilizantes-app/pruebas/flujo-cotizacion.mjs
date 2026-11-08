@@ -19,7 +19,6 @@ const marca = `Marca ${clave}`;
 const producto = `Producto ${clave}`;
 const proveedor = `Proveedor ${clave}`;
 const otroProveedor = `Proveedor externo ${clave}`;
-const numero = `SOL-FRONT-${clave}`;
 
 const abrir = (ruta) => pagina.goto(new URL(ruta, origen).href);
 const boton = (name) => pagina.getByRole("button", { name, exact: true });
@@ -140,7 +139,8 @@ try {
   console.log("OK: reintento, paginación, filtros sin coincidencias y una sola recarga al desactivar.");
 
   await abrir("/solicitudes/nueva");
-  await campo("Número de solicitud").fill(numero);
+  await visible("El número de solicitud se asignará automáticamente al guardar el borrador.");
+  assert.equal(await campo("Número de solicitud").count(), 0);
   await campo("Fecha de solicitud").fill("2026-04-01");
   await campo("Nombre del cliente").fill("Finca E2E");
   await boton("Agregar renglón").click();
@@ -153,15 +153,29 @@ try {
   await pagina.waitForURL((url) => /^\/solicitudes\/\d+$/.test(url.pathname));
   const solicitud = rutaActual();
   const idSolicitud = solicitud.split("/").pop();
+  const numero = (await json(`/solicitudes-cotizacion/${idSolicitud}`)).numeroSolicitud;
+  assert.match(numero, /^SOL-[0-9]{6,}$/);
+  await abrir("/solicitudes");
+  const abrirSolicitud = enlace(`Abrir solicitud ${numero} versión 1`);
+  await abrirSolicitud.waitFor();
+  assert.notEqual(await abrirSolicitud.evaluate((elemento) => getComputedStyle(elemento).backgroundColor), "rgba(0, 0, 0, 0)");
+  await abrirSolicitud.click();
+  await pagina.waitForURL((url) => url.pathname === solicitud);
   await enlace("Editar borrador").click();
+  await visible(`Solicitud ${numero} · versión 1`);
+  assert.equal(await campo("Número de solicitud").count(), 0);
   await campo("Observaciones de la solicitud").fill("Prueba de edición antes de emitir.");
   await boton("Guardar borrador").click();
   await pagina.waitForURL((url) => url.pathname === solicitud);
+  assert.equal((await json(`/solicitudes-cotizacion/${idSolicitud}`)).numeroSolicitud, numero);
   await confirmar("Emitir solicitud", "Emitir");
   await pagina.getByText(/^Estado: Emitida/).waitFor();
 
   const tarjeta = (nombre) => pagina.locator("section.card").filter({ has: pagina.getByRole("heading", { name: nombre, exact: true }) });
   const primera = tarjeta(proveedor);
+  await primera.getByText(/^Estado: Pendiente de envío ·/).waitFor();
+  await tarjeta(otroProveedor).getByText(/^Estado: Pendiente de envío ·/).waitFor();
+  assert.equal(await pagina.getByText(/PendienteEnvio/).count(), 0);
   const descarga = pagina.waitForEvent("download");
   await primera.getByRole("button", { name: "Generar y descargar PDF", exact: true }).click();
   const archivo = await descarga;
@@ -193,18 +207,67 @@ try {
   await externa.getByRole("button", { name: "Cargar proforma", exact: true }).click();
   await pagina.waitForURL((url) => /^\/respuestas\/\d+$/.test(url.pathname));
   await pagina.getByText(/^Captura manual/).waitFor();
+  const respuestaManual = rutaActual().split("/").pop();
+  const pendientesCabecera = pagina.getByRole("region", { name: "Datos de cabecera pendientes", exact: true });
+  await pendientesCabecera.waitFor();
+  assert.deepEqual(await pendientesCabecera.getByRole("listitem").allTextContents(), [
+    "Fecha de proforma", "Moneda", "Subtotal", "Descuento global", "IVA global",
+    "Otros cargos o transporte", "Total del documento", "Cliente según el documento", "Proveedor según el documento",
+  ]);
+  assert.equal(await boton("Validar respuesta").isDisabled(), true);
+  await boton("Editar cabecera").click();
+  await campo("Fecha de proforma").fill("2026-04-02");
+  await boton("Guardar cabecera").click();
+  await visible("Cabecera guardada.");
+  const cabeceraParcial = (await json("/respuestas-cotizacion/" + respuestaManual)).cabecera;
+  assert.equal(cabeceraParcial.fechaProforma, "2026-04-02");
+  assert.equal(cabeceraParcial.moneda, null);
+  assert.equal(cabeceraParcial.iva, null);
+  await pagina.reload();
+  await pendientesCabecera.waitFor();
+  assert.equal(await pendientesCabecera.getByRole("listitem").count(), 8);
+  assert.equal(await pendientesCabecera.getByText("Fecha de proforma", { exact: true }).count(), 0);
+  assert.equal(await boton("Validar respuesta").isDisabled(), true);
+  await boton("Editar cabecera").click();
+  await campo("Moneda").selectOption("CRC");
+  await campo("Subtotal").fill("100");
+  await campo("Total del documento").fill("100");
+  assert.equal(await pendientesCabecera.getByRole("listitem").count(), 5);
+  await boton("Confirmar que no hay descuentos, IVA ni otros cargos").click();
+  assert.deepEqual(await pendientesCabecera.getByRole("listitem").allTextContents(), [
+    "Cliente según el documento", "Proveedor según el documento",
+  ]);
+  await boton("Confirmar que estos nombres coinciden con el PDF").click();
+  assert.equal(await pendientesCabecera.count(), 0);
+  await boton("Guardar cabecera").click();
+  await visible("Cabecera guardada.");
+  const manualGuardada = await json("/respuestas-cotizacion/" + respuestaManual);
+  assert.equal(manualGuardada.cabecera.datosClienteOriginal.nombre, "Finca E2E");
+  assert.equal(manualGuardada.cabecera.datosProveedorOriginal.nombre, otroProveedor);
+  assert.equal(manualGuardada.cabecera.numeroProforma, null);
+  assert.equal(manualGuardada.cabecera.fechaVencimiento, null);
+  assert.equal(manualGuardada.cabecera.iva, 0);
+  assert.equal(manualGuardada.respuesta.estadoConciliacion, "Conciliada");
+  assert.equal(await pendientesCabecera.count(), 0);
+  assert.equal(await boton("Validar respuesta").isDisabled(), true);
+  await visible("Confirma la revisión de 1 renglón pendiente.");
+  console.log("OK: estados legibles y campos pendientes de cabecera; ceros confirmados y datos opcionales.");
   console.log("OK: borrador, emisión, descarga, envío explícito y recepción de ambos formatos.");
 
   await abrir(respuesta);
   await boton("Editar cabecera").click();
   const cabecera = {
     "Número de proforma": `PRO-${clave}`, "Fecha de proforma": "2026-04-02", "Fecha de vencimiento": "2026-04-30",
-    "Moneda (ej. CRC)": "CRC", "Subtotal": "200", "Descuento global": "10", "IVA global": "0",
+    "Subtotal": "200", "Descuento global": "10", "IVA global": "0",
     "Otros cargos o transporte": "5", "Total del documento": "195",
-    "Cliente según el documento: Nombre": "Finca E2E", "Proveedor según el documento: Nombre": proveedor,
-    "Motivo del ajuste de cabecera": "Transcripción verificada.",
   };
+  assert.equal(await campo("Nombre del negocio").count(), 0);
+  assert.equal(await campo("Tipo de documento").count(), 0);
+  await campo("Moneda").selectOption("CRC");
+  if (!(await campo("Descuento global").isVisible())) await boton("Ver descuentos, impuestos y cargos").click();
   for (const [nombre, valor] of Object.entries(cabecera)) await campo(nombre).fill(valor);
+  const confirmarNombres = boton("Confirmar que estos nombres coinciden con el PDF");
+  if (await confirmarNombres.isVisible()) await confirmarNombres.click();
   await boton("Guardar cabecera").click();
   await boton("Editar renglón 1").click();
   await campo("Estado de la oferta").selectOption("Cotizada");
@@ -215,19 +278,57 @@ try {
   await campo("Motivo del ajuste de renglón").fill("Precio y cantidad confirmados.");
   await boton("Guardar renglón").click();
   await boton("Revisar renglón 1").click();
-  await campo("Motivo de revisión del renglón").fill("Contrastado con el PDF.");
-  await boton("Confirmar revisión").click();
   await visible("Renglón revisado.");
-  await boton("Conciliar importes").click();
-  await campo("Motivo de la conciliación").fill("200 menos 10 más 5 son 195.");
-  await boton("Guardar conciliación").click();
+  await boton("Justificar diferencias").click();
+  assert.equal(await campo("Justificación de las diferencias").getAttribute("required"), "");
+  assert.equal(await boton("Aceptar diferencias").isDisabled(), true);
+  await boton("Ocultar justificación").click();
+  await boton("Comprobar importes").click();
   await visible("Conciliación registrada.");
+  const respuestaUrl = "/respuestas-cotizacion/" + respuesta.split("/").pop();
+  const comprobada = await json(respuestaUrl);
+  assert.equal(comprobada.respuesta.estadoConciliacion, "Conciliada");
+  assert.ok(comprobada.historial.some((cambio) => cambio.motivo === "Renglón marcado como revisado."));
+
+  await enlace("Comparar ofertas").click();
+  await enlace("Volver a la solicitud").click();
+  await tarjeta(proveedor).getByRole("button", { name: "Ver respuestas", exact: true }).click();
+  await tarjeta(proveedor).getByRole("link").filter({ hasText: "PRO-" + clave }).click();
+  await pagina.waitForURL((url) => url.pathname === respuesta);
+  await visible("Importes comprobados");
+  await pagina.reload();
+  await visible("Importes comprobados");
+  const consultaGuardada = await pagina.request.get(new URL("/api" + respuestaUrl, origen).href);
+  assert.match(consultaGuardada.headers()["cache-control"], /no-store/);
+  assert.equal((await consultaGuardada.json()).data.respuesta.justificacionConciliacion, comprobada.respuesta.justificacionConciliacion);
+
+  await boton("Editar cabecera").click();
+  await pagina.getByText("Información adicional (opcional)", { exact: true }).click();
+  await campo("Vendedor").fill("Contacto actualizado");
+  const actualizacion = pagina.waitForResponse((r) => r.request().method() === "PUT" && new URL(r.url()).pathname.endsWith("/cabecera"));
+  await boton("Guardar cabecera").click();
+  assert.ok((await actualizacion).ok());
+  await visible("Cabecera guardada.");
+  const contacto = await json(respuestaUrl);
+  assert.equal(contacto.respuesta.estadoConciliacion, "Conciliada");
+  assert.equal(contacto.respuesta.justificacionConciliacion, comprobada.respuesta.justificacionConciliacion);
+  await pagina.reload();
+  await visible("Importes comprobados");
   await confirmar("Validar respuesta", "Validar");
   await visible("Respuesta validada.");
   const idProducto = (await json("/Producto/ListarProducto")).find((item) => item.nombre === producto).idProducto;
   const presentacion = (await json("/PresentacionProducto/ListarPresentacionesProducto"))
     .find((item) => item.idProducto === idProducto);
   const { idPresentacionProducto } = presentacion;
+  const productoOriginal = (await json("/Producto/ListarProducto")).find((item) => item.idProducto === idProducto);
+  const segundoProducto = `Producto secundario ${clave}`;
+  const altaSegundo = await pagina.request.post(new URL("/api/Producto/InsertarProducto", origen).href,
+    { data: { nombre: segundoProducto, idProductoBase: productoOriginal.idProductoBase } });
+  assert.ok(altaSegundo.ok(), await altaSegundo.text());
+  const idSegundo = (await json("/Producto/ListarProducto")).find((item) => item.nombre === segundoProducto).idProducto;
+  const altaPresentacionSegunda = await pagina.request.post(new URL("/api/PresentacionProducto/InsertarPresentacionProducto", origen).href,
+    { data: { idProducto: idSegundo, idUnidadMedida: presentacion.idUnidadMedida, descripcion: "Bolsa secundaria", cantidad: 5 } });
+  assert.ok(altaPresentacionSegunda.ok(), await altaPresentacionSegunda.text());
   const urlCompra = new URL("/api/Compra/InsertarCompra", origen).href;
   const datosCompra = { idProducto, idPresentacionProducto, idProveedor: anterior.idProveedor,
     fechaCompra: new Date(Date.now() - 86400000).toISOString().slice(0, 10),
@@ -279,6 +380,18 @@ try {
     await boton("Guardar finca").click();
     await pagina.getByLabel("Filtrar por finca").getByRole("option", { name: nombre }).waitFor({ state: "attached" });
   }
+  const rubroExtra = `Otros insumos ${clave}`;
+  const altaRubroExtra = await pagina.request.post(new URL("/api/presupuestos/rubros", origen).href,
+    { data: { codigo: `E-${clave}`, nombre: rubroExtra } });
+  assert.ok(altaRubroExtra.ok(), await altaRubroExtra.text());
+
+  async function guardarBorradorPresupuesto(ruta) {
+    const respuesta = pagina.waitForResponse((r) => r.request().method() === "PUT" && new URL(r.url()).pathname === `/api${ruta}/borrador`);
+    await boton("Guardar borrador").click();
+    const guardada = await respuesta;
+    assert.equal(guardada.status(), 200, await guardada.text());
+    await boton("Guardar borrador").waitFor({ state: "detached" });
+  }
 
   async function crearPresupuesto(finca) {
     await abrir("/presupuestos");
@@ -289,10 +402,44 @@ try {
     await campo("Fecha de fin").fill("2026-04-30");
     await campo("Motivo de creación").fill("Ciclo de pruebas");
     await seleccionar("Rubro 1", rubro);
-    await campo("Monto inicial 1").fill("500");
+    await campo("Monto inicial 1").fill("400");
     await boton("Crear borrador").click();
     await pagina.waitForURL((url) => /^\/presupuestos\/\d+$/.test(url.pathname));
     const ruta = rutaActual();
+    const original = await json(ruta);
+    await boton("Editar borrador").click();
+    assert.equal(await campo("Motivo de creación").count(), 0);
+    await campo("Nombre del presupuesto").fill(`Ciclo revisado ${finca}`);
+    await campo("Monto inicial 1").fill("500");
+    await boton("Agregar partida").click();
+    await seleccionar("Rubro 2", rubroExtra);
+    await campo("Monto inicial 2").fill("100");
+    await guardarBorradorPresupuesto(ruta);
+    const editado = await json(ruta);
+    assert.equal(editado.presupuesto.estado, "Borrador");
+    assert.equal(editado.presupuesto.nombre, `Ciclo revisado ${finca}`);
+    assert.notEqual(editado.presupuesto.version, original.presupuesto.version);
+    assert.equal(editado.partidas[0].montoInicial, 500);
+    assert.equal(editado.partidas.length, 2);
+    assert.equal(editado.partidas[0].idPartidaPresupuesto, original.partidas[0].idPartidaPresupuesto);
+    assert.equal(editado.partidas[0].aprobado, 0);
+    assert.equal(editado.movimientos.length, 0);
+    const desactualizada = await pagina.request.put(new URL(`/api${ruta}/borrador`, origen).href, { data: {
+      idOperacion: randomUUID(), version: original.presupuesto.version, nombre: "No debe sobrescribirse",
+      idFinca: editado.presupuesto.idFinca, fechaInicio: "2026-04-01", fechaFin: "2026-04-30", moneda: "CRC",
+      partidas: editado.partidas.map((p) => ({ idRubroPresupuesto: p.idRubroPresupuesto, monto: 999 })),
+    } });
+    assert.equal(desactualizada.status(), 409, await desactualizada.text());
+    await pagina.reload();
+    await boton("Editar borrador").click();
+    assert.equal(await campo("Monto inicial 1").inputValue(), "500");
+    await boton("Quitar partida 2").click();
+    await guardarBorradorPresupuesto(ruta);
+    assert.equal((await json(ruta)).partidas.length, 1);
+    await boton("Editar borrador").click();
+    await campo("Monto inicial 1").fill("999");
+    await boton("Cancelar edición").click();
+    assert.equal((await json(ruta)).partidas[0].montoInicial, 500);
     await boton("Aprobar presupuesto").click();
     await campo("Motivo de la operación").fill("Presupuesto revisado");
     await boton("Confirmar").click();
@@ -300,17 +447,28 @@ try {
     const detalle = await json(ruta);
     assert.equal(detalle.presupuesto.estado, "Aprobado");
     assert.equal(detalle.partidas[0].disponible, 500);
+    assert.equal(await boton("Editar borrador").count(), 0);
     return { ruta, id: detalle.partidas[0].idPartidaPresupuesto };
   }
 
   const norte = await crearPresupuesto(fincaNorte);
   const sur = await crearPresupuesto(fincaSur);
-  await boton("Ajustar").click();
-  await campo("Importe del ajuste").fill("25,0001");
-  await campo("Motivo de la operación").fill("Ajuste planificado");
+  await boton("Cambiar monto").click();
+  await campo("Motivo del ajuste").fill("Ajuste planificado");
+  assert.equal(await boton("Confirmar").isDisabled(), true);
+  await campo("Nuevo monto aprobado").fill("525,0001");
+  await pagina.getByRole("region", { name: "Vista previa del ajuste" }).getByText("Aumento: CRC 25", { exact: true }).waitFor();
+  const envioMonto = pagina.waitForRequest((r) => new URL(r.url()).pathname.endsWith(`/partidas/${sur.id}/monto`) && r.method() === "POST");
   await boton("Confirmar").click();
   await pagina.getByRole("cell", { name: "Ajuste planificado", exact: true }).waitFor();
-  assert.equal((await json(sur.ruta)).partidas[0].disponible, 525.0001);
+  const ampliado = await json(sur.ruta);
+  assert.equal(ampliado.partidas[0].disponible, 525.0001);
+  assert.equal(ampliado.partidas[0].montoInicial, 500);
+  assert.equal(ampliado.movimientos.find((m) => m.motivo === "Ajuste planificado").cambioAprobado, 25.0001);
+  const repetidoMonto = await pagina.request.post(new URL(`/api/presupuestos/partidas/${sur.id}/monto`, origen).href,
+    { data: (await envioMonto).postDataJSON() });
+  assert.equal(repetidoMonto.status(), 409, await repetidoMonto.text());
+  assert.equal((await json(sur.ruta)).partidas[0].aprobado, 525.0001);
 
   await abrir(`${solicitud}/comparacion`);
   await campo("Base de precio").selectOption("Bruto");
@@ -334,6 +492,28 @@ try {
   assert.equal(detalleNorte.partidas[0].comprometido, 100);
   assert.equal(detalleSur.partidas[0].comprometido, 95);
 
+  await abrir(sur.ruta);
+  await boton("Cambiar monto").click();
+  await campo("Nuevo monto aprobado").fill("94,9999");
+  await campo("Motivo del ajuste").fill("No debe consumir la reserva");
+  await visible("La reducción no puede consumir dinero ya reservado o gastado.");
+  assert.equal(await boton("Confirmar").isDisabled(), true);
+  const montoImposible = await pagina.request.post(new URL(`/api/presupuestos/partidas/${sur.id}/monto`, origen).href,
+    { data: { idOperacion: randomUUID(), motivo: "Comprobar protección de reserva", nuevoMonto: "94.9999", montoAprobadoEsperado: "525.0001" } });
+  assert.equal(montoImposible.status(), 409, await montoImposible.text());
+  await campo("Nuevo monto aprobado").fill("500");
+  await campo("Motivo del ajuste").fill("Reducción revisada");
+  await pagina.getByRole("region", { name: "Vista previa del ajuste" }).getByText("Reducción: CRC 25", { exact: true }).waitFor();
+  await boton("Confirmar").click();
+  await pagina.getByRole("cell", { name: "Reducción revisada", exact: true }).waitFor();
+  assert.equal((await json(sur.ruta)).partidas[0].disponible, 405);
+  await boton("Cambiar monto").click();
+  await campo("Nuevo monto aprobado").fill("525,0001");
+  await campo("Motivo del ajuste").fill("Restaurar monto planificado");
+  await boton("Confirmar").click();
+  await pagina.getByRole("cell", { name: "Restaurar monto planificado", exact: true }).waitFor();
+  console.log("OK: edición de borrador, cancelación, conflicto de versión, nuevo monto con vista previa y protección de reservas.");
+
   const fechaCompraPresupuesto = "2026-04-17";
   const compraInvalida = await pagina.request.post(urlCompra, { data: { ...datosCompra, moneda: "CRC",
     fechaCompra: fechaCompraPresupuesto, precioTotal: 180, observaciones: `Fallida ${clave}`,
@@ -346,15 +526,24 @@ try {
   assert.equal((await json(norte.ruta)).partidas[0].comprometido, 100);
 
   await abrir("/compras/nuevo");
-  await seleccionar("Producto", producto);
   await seleccionar("Proveedor", proveedor);
-  await seleccionar("Presentación", /Saco de prueba/);
   await campo("Fecha de compra").fill(fechaCompraPresupuesto);
-  await campo("Cantidad comprada").fill("2");
-  await campo("Precio total").fill("180");
   await campo("Moneda").selectOption("CRC");
-  await campo("Observaciones").fill(`Presupuesto ${clave}`);
-  await campo("Imputar esta compra a presupuesto").check();
+  await campo("Número de factura (opcional)").fill(`FAC-${clave}`);
+  await campo("Observaciones de la compra (opcional)").fill(`Presupuesto ${clave}`);
+  await seleccionar("Producto del renglón 1", producto);
+  await seleccionar("Presentación del renglón 1", /Saco de prueba/);
+  await campo("Empaques del renglón 1").fill("2");
+  await campo("Importe del renglón 1").fill("180");
+  await boton("Agregar producto").click();
+  await seleccionar("Producto del renglón 2", segundoProducto);
+  await seleccionar("Presentación del renglón 2", /Bolsa secundaria/);
+  await campo("Empaques del renglón 2").fill("3");
+  await campo("Importe del renglón 2").fill("60");
+  await boton("Agregar producto").click();
+  await boton("Quitar renglón 3").click();
+  assert.equal(await campo("Producto del renglón 3").count(), 0);
+  await campo("Imputar el renglón 1 a presupuesto").check();
   await seleccionar("Partida 1", new RegExp(fincaNorte));
   await seleccionar("Compromiso 1 (opcional)", new RegExp(`#${compromiso}`));
   await campo("Importe 1").fill("100");
@@ -363,18 +552,55 @@ try {
   await seleccionar("Compromiso 2 (opcional)", new RegExp(`#${compromiso}`));
   await campo("Importe 2").fill("80");
   await campo("Motivo de la imputación").fill("Compra entregada a las fincas");
-  const guardarCompra = pagina.waitForRequest((peticion) => peticion.url() === urlCompra && peticion.method() === "POST");
-  await confirmar("Guardar compra", "Aceptar");
-  await pagina.waitForURL((url) => url.pathname === "/compras");
-  const repeticion = await pagina.request.post(urlCompra, { data: (await guardarCompra).postDataJSON() });
-  assert.equal(repeticion.status(), 409, await repeticion.text());
-  const comprasCoincidentes = (await json("/Compra/ListarCompra")).filter((c) => c.observaciones === `Presupuesto ${clave}`);
-  assert.equal(comprasCoincidentes.length, 1);
-  const [nuevaCompra] = comprasCoincidentes;
+  const urlDocumento = new URL("/api/compras-documento", origen).href;
+  const guardarCompra = pagina.waitForRequest((peticion) => peticion.url() === urlDocumento && peticion.method() === "POST");
+  await boton("Guardar compra").click();
+  await pagina.waitForURL((url) => /^\/compras\/\d+$/.test(url.pathname));
+  const rutaDocumento = rutaActual();
+  const compraDocumento = await json("/compras-documento/" + rutaDocumento.split("/").pop());
+  assert.equal(compraDocumento.lineas.length, 2);
+  assert.equal(compraDocumento.total, 240);
+  assert.equal(compraDocumento.lineas[0].presentacion, "Saco de prueba");
+  assert.equal(compraDocumento.lineas[0].cantidadPresentacion, 25);
+  assert.equal(compraDocumento.lineas[0].unidadMedida, "KG");
+  assert.equal(compraDocumento.lineas[1].presentacion, "Bolsa secundaria");
+  assert.equal(compraDocumento.lineas[1].cantidadPresentacion, 5);
+  assert.equal(compraDocumento.lineas[1].unidadMedida, "KG");
+  await visible(compraDocumento.numeroCompra);
+  await visible("Saco de prueba · 25 KG");
+  await visible("Bolsa secundaria · 5 KG");
+  const cuerpoDocumento = (await guardarCompra).postDataJSON();
+  const repeticion = await pagina.request.post(urlDocumento, { data: cuerpoDocumento });
+  assert.equal(repeticion.status(), 201, await repeticion.text());
+  assert.equal((await repeticion.json()).data.idCompraCabecera, compraDocumento.idCompraCabecera);
+  const [nuevaCompra] = compraDocumento.lineas;
   assert.ok(nuevaCompra);
   assert.equal((await json(`/presupuestos/compras/${nuevaCompra.idCompra}`)).length, 2);
   assert.equal((await json(sur.ruta)).partidas[0].ejecutado, 80);
   assert.equal((await json(sur.ruta)).partidas[0].comprometido, 15);
+
+  const fallidaMultiple = structuredClone(cuerpoDocumento);
+  fallidaMultiple.idOperacion = randomUUID();
+  fallidaMultiple.numeroFactura = `FALLIDA-${clave}`;
+  fallidaMultiple.lineas[0].imputacionPresupuesto = { motivo: "Probar rollback conjunto", distribucion: [{ idPartidaPresupuesto: norte.id, monto: 180 }] };
+  fallidaMultiple.lineas[1].idPresentacionProducto = idPresentacionProducto;
+  const falloMultiple = await pagina.request.post(urlDocumento, { data: fallidaMultiple });
+  assert.equal(falloMultiple.status(), 400, await falloMultiple.text());
+  assert.equal((await json(`/compras-documento?busqueda=FALLIDA-${clave}`)).totalRegistros, 0);
+  assert.equal((await json(norte.ruta)).partidas[0].ejecutado, 100);
+  assert.equal((await json(sur.ruta)).partidas[0].ejecutado, 80);
+  await boton("Editar renglón 2").click();
+  await campo("Importe del renglón 2").fill("75");
+  await boton("Guardar renglón").click();
+  await boton("Editar renglón 2").waitFor();
+  const corregida = await json("/compras-documento/" + compraDocumento.idCompraCabecera);
+  assert.equal(corregida.total, 255);
+  assert.equal(corregida.lineas[0].precioTotal, 180);
+  assert.equal(corregida.lineas[0].idCompra, nuevaCompra.idCompra);
+  const conflicto = await pagina.request.put(new URL(`/api/compras-documento/${compraDocumento.idCompraCabecera}/cabecera`, origen).href,
+    { data: { ...cuerpoDocumento, lineas: undefined, idOperacion: undefined, version: compraDocumento.version } });
+  assert.equal(conflicto.status(), 409, await conflicto.text());
+  console.log("OK: compra con dos productos, reintento sin duplicación, rollback presupuestario y edición con control de versión.");
 
   await abrir(`/compras/editar/${nuevaCompra.idCompra}`);
   await boton("Revertir distribución").click();
@@ -394,6 +620,11 @@ try {
   await campo("Motivo de la operación").fill("Ciclo finalizado");
   await boton("Confirmar").click();
   await pagina.getByText(/CRC · Cerrado/).waitFor();
+  assert.equal(await boton("Editar borrador").count(), 0);
+  assert.equal(await boton("Cambiar monto").count(), 0);
+  const cerradoMonto = await pagina.request.post(new URL(`/api/presupuestos/partidas/${sur.id}/monto`, origen).href,
+    { data: { idOperacion: randomUUID(), motivo: "No debe modificar un presupuesto cerrado", nuevoMonto: 700, montoAprobadoEsperado: "525.0001" } });
+  assert.equal(cerradoMonto.status(), 409, await cerradoMonto.text());
   console.log("OK: presupuesto, reserva de oferta para dos fincas, compra atómica, reversión y cierre.");
 
   const compraFraccionaria = await pagina.request.post(urlCompra, { data: { ...datosCompra, cantidadComprada: 2.5 } });
@@ -407,10 +638,24 @@ try {
     fechaLimite: fechaPosterior, idCompraLimite: ultimaCompra });
   assert.equal((await json(`/Compra/ObtenerUltimoPrecio?${consulta}`)).idCompra, idCompra);
   await abrir("/compras");
-  await pagina.getByPlaceholder("Buscar producto...").fill(producto);
-  await pagina.locator(`a[href="/compras/editar/${idCompra}"]`).click();
-  await pagina.waitForURL((url) => url.pathname === `/compras/editar/${idCompra}`);
+  await campo("Buscar compras").fill(producto);
+  await boton("Buscar").click();
+  const compraHistorica = await json(`/Compra/ObtenerCompra/${idCompra}`);
+  const compraListado = (await json("/Compra/ListarCompra")).find((c) => c.idCompra === idCompra);
+  const compraHistorial = (await json(`/Compra/HistorialPorProducto/${idProducto}`)).find((c) => c.idCompra === idCompra);
+  for (const c of [compraHistorica, compraListado, compraHistorial]) {
+    assert.ok(c, "La compra debe aparecer en detalle, listado e historial.");
+    assert.equal(c.presentacion, "Saco de prueba");
+    assert.equal(c.cantidadPresentacion, 25);
+    assert.equal(c.unidadMedida, "KG");
+  }
+  await pagina.locator(`a[href="/compras/${compraHistorica.idCompraCabecera}"]`).click();
+  await pagina.waitForURL((url) => url.pathname === `/compras/${compraHistorica.idCompraCabecera}`);
+  await boton("Editar renglón 1").waitFor();
+  await abrir(`/compras/editar/${idCompra}`);
   await campo("Precio total").waitFor();
+  assert.equal(await campo("Presentación").locator("option:checked").textContent(), "Saco de prueba · 25 KG");
+  console.log("OK: presentación, contenido y unidad completos en compras anteriores, documentos nuevos y selector.");
   const referencia = tarjeta("Referencia de compras");
   const formato = (currency, precio) => new Intl.NumberFormat("es-CR", { style: "currency", currency,
     minimumFractionDigits: 0, maximumFractionDigits: 1 }).format(precio);

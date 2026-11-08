@@ -593,7 +593,7 @@
   },
   {
     "Name": "Respuesta: corregir cabecera conserva documento e importacion",
-    "Sql": "SET @Cabecera=JSON_MODIFY(@Cabecera,'$.observaciones',N'Dato corregido'); EXEC dbo.usp_Proforma_ActualizarCabecera @Q,@Cabecera,N'Correccion manual';\n IF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@Q AND Observaciones=N'Dato corregido' AND IdDocumentoOrigen=@DocumentoRecibido AND IdImportacionDocumento=@Importacion AND EstadoConciliacion='Pendiente') THROW 51901,N'Cabecera altero evidencia',1;",
+    "Sql": "SET @Cabecera=JSON_MODIFY(@Cabecera,'$.observaciones',N'Dato corregido'); EXEC dbo.usp_Proforma_ActualizarCabecera @Q,@Cabecera,N'Correccion manual';\n IF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@Q AND Observaciones=N'Dato corregido' AND IdDocumentoOrigen=@DocumentoRecibido AND IdImportacionDocumento=@Importacion AND EstadoConciliacion='Conciliada') THROW 51901,N'Cabecera altero evidencia',1;",
     "Setup": "",
     "BeforeEmit": ""
   },
@@ -743,5 +743,315 @@
     "Setup": "",
     "BeforeEmit": "",
     "UsaPresupuesto": true
+  },
+  {
+    "Name": "Solicitud: número automático evita los números históricos y se conserva al editar",
+    "Sql": "DECLARE @Reservado bigint=NEXT VALUE FOR dbo.SecNumeroSolicitud;\nSET @Reservado+=1;\nDECLARE @Historico nvarchar(50)=N'SOL-'+RIGHT(N'000000'+CONVERT(nvarchar(20),@Reservado),6);\nINSERT dbo.SolicitudesCotizacion(NumeroSolicitud,FechaSolicitud) VALUES(@Historico,'20260401');\nDECLARE @SolicitudAuto bigint,@NumeroAuto nvarchar(50);\nEXEC dbo.usp_Solicitud_GuardarBorrador @FechaSolicitud='20260401',@LineasJson=N'[]',@ProveedoresJson=N'[]',@IdSolicitudCotizacion=@SolicitudAuto OUTPUT;\nSELECT @NumeroAuto=NumeroSolicitud FROM dbo.SolicitudesCotizacion WHERE IdSolicitudCotizacion=@SolicitudAuto;\nIF TRY_CONVERT(bigint,SUBSTRING(@NumeroAuto,5,20))<>@Reservado+1 THROW 51901,N'No evitó la numeración histórica',1;\nEXEC dbo.usp_Solicitud_GuardarBorrador @FechaSolicitud='20260402',@LineasJson=N'[]',@ProveedoresJson=N'[]',@IdSolicitudCotizacion=@SolicitudAuto OUTPUT;\nIF NOT EXISTS(SELECT 1 FROM dbo.SolicitudesCotizacion WHERE IdSolicitudCotizacion=@SolicitudAuto AND NumeroSolicitud=@NumeroAuto AND FechaSolicitud='20260402') THROW 51901,N'La edición cambió el número',1;",
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Solicitud: editar un borrador no permite cambiar el número",
+    "Sql": "DECLARE @SolicitudAuto bigint;\nEXEC dbo.usp_Solicitud_GuardarBorrador @FechaSolicitud='20260401',@LineasJson=N'[]',@ProveedoresJson=N'[]',@IdSolicitudCotizacion=@SolicitudAuto OUTPUT;\nEXEC dbo.usp_Solicitud_GuardarBorrador @NumeroSolicitud=N'OTRO',@FechaSolicitud='20260401',@LineasJson=N'[]',@ProveedoresJson=N'[]',@IdSolicitudCotizacion=@SolicitudAuto OUTPUT;",
+    "Errors": [
+      52010
+    ],
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Solicitud: rol de aplicación obtiene un número sin permisos directos de secuencia",
+    "Sql": "CREATE USER [SolicitudNumeracionPrueba] WITHOUT LOGIN;\nALTER ROLE [rol_gestor_api] ADD MEMBER [SolicitudNumeracionPrueba];\nDECLARE @SolicitudAuto bigint;\nEXECUTE AS USER=N'SolicitudNumeracionPrueba';\nBEGIN TRY\n EXEC dbo.usp_Solicitud_GuardarBorrador @FechaSolicitud='20260401',@LineasJson=N'[]',@ProveedoresJson=N'[]',@IdSolicitudCotizacion=@SolicitudAuto OUTPUT;\nEND TRY BEGIN CATCH\n REVERT;\n THROW;\nEND CATCH;\nREVERT;\nIF NOT EXISTS(SELECT 1 FROM dbo.SolicitudesCotizacion WHERE IdSolicitudCotizacion=@SolicitudAuto AND NumeroSolicitud LIKE N'SOL-%') THROW 51901,N'No generó el número con la cuenta limitada',1;",
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Conciliación: cabecera que cuadra registra comprobación sin motivo manual",
+    "Sql": "EXEC dbo.usp_Proforma_Conciliar @IdProformaProveedor=@Q,@EstadoConciliacion='Conciliada';\nIF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@Q AND EstadoConciliacion='Conciliada' AND JustificacionConciliacion LIKE N'%Comprobacion aritmetica de cabecera%') THROW 51901,N'No registró la comprobación',1;\nIF NOT EXISTS(SELECT 1 FROM dbo.CambiosCotizacion WHERE IdProformaProveedor=@Q AND Motivo LIKE N'%Comprobacion aritmetica de cabecera%') THROW 51901,N'No registró la auditoría',1;",
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Conciliación: aceptar diferencias requiere justificación",
+    "Sql": "UPDATE dbo.ProformasProveedor SET Total=201 WHERE IdProformaProveedor=@Q;\nEXEC dbo.usp_Proforma_Conciliar @IdProformaProveedor=@Q,@EstadoConciliacion='ConDiferencias';",
+    "Errors": [
+      52000
+    ],
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Conciliación: omitir el motivo no permite declarar conciliada una cabecera incorrecta",
+    "Sql": "UPDATE dbo.ProformasProveedor SET Total=201 WHERE IdProformaProveedor=@Q;\nEXEC dbo.usp_Proforma_Conciliar @IdProformaProveedor=@Q,@EstadoConciliacion='Conciliada';",
+    "Errors": [
+      52000
+    ],
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Cabecera: guardar sin cambios conserva la conciliación y su justificación",
+    "Sql": "EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada',N'Comprobación previamente confirmada',0;\nDECLARE @Justificacion nvarchar(1000)=(SELECT JustificacionConciliacion FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@Q);\nEXEC dbo.usp_Proforma_ActualizarCabecera @Q,@Cabecera;\nIF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@Q AND EstadoConciliacion='Conciliada' AND JustificacionConciliacion=@Justificacion) THROW 51901,N'Guardar sin cambios borró la conciliación',1;",
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Cabecera: cambios de contacto conservan las diferencias justificadas",
+    "Sql": "SET @Cabecera=JSON_MODIFY(@Cabecera,'$.total',201);\nUPDATE dbo.ProformasProveedor SET Total=201 WHERE IdProformaProveedor=@Q;\nEXEC dbo.usp_Proforma_Conciliar @Q,'ConDiferencias',N'Diferencia verificada con el proveedor';\nDECLARE @Justificacion nvarchar(1000)=(SELECT JustificacionConciliacion FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@Q);\nSET @Cabecera=JSON_MODIFY(@Cabecera,'$.telefono',N'2222-2222');\nEXEC dbo.usp_Proforma_ActualizarCabecera @Q,@Cabecera;\nIF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@Q AND EstadoConciliacion='ConDiferencias' AND JustificacionConciliacion=@Justificacion AND Telefono=N'2222-2222') THROW 51901,N'Un contacto invalidó la conciliación',1;",
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Cabecera: captura inicial completa comprueba los importes sin motivo manual",
+    "Sql": "EXEC dbo.usp_Proforma_ActualizarCabecera @Q,@Cabecera;\nIF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@Q AND EstadoConciliacion='Conciliada' AND JustificacionConciliacion LIKE N'%Comprobación automática%') THROW 51901,N'No comprobó los importes al guardar',1;",
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Cabecera: corregir importes conciliados requiere motivo",
+    "Sql": "EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada';\nSET @Cabecera=JSON_MODIFY(@Cabecera,'$.subtotal',210);\nSET @Cabecera=JSON_MODIFY(@Cabecera,'$.total',210);\nEXEC dbo.usp_Proforma_ActualizarCabecera @Q,@Cabecera;",
+    "Errors": [
+      52000
+    ],
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Cabecera: corrección monetaria recalcula sin heredar la justificación anterior",
+    "Sql": "EXEC dbo.usp_Proforma_Conciliar @Q,'ConDiferencias',N'Justificación anterior';\nSET @Cabecera=JSON_MODIFY(@Cabecera,'$.subtotal',210);\nSET @Cabecera=JSON_MODIFY(@Cabecera,'$.total',210);\nEXEC dbo.usp_Proforma_ActualizarCabecera @Q,@Cabecera,N'Proveedor corrigió sus importes';\nIF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@Q AND EstadoConciliacion='Conciliada' AND Total=210 AND JustificacionConciliacion NOT LIKE N'%Justificación anterior%') THROW 51901,N'No recalculó la corrección',1;",
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Cabecera: discrepancia monetaria deja pendiente la comprobación",
+    "Sql": "EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada';\nSET @Cabecera=JSON_MODIFY(@Cabecera,'$.total',210);\nEXEC dbo.usp_Proforma_ActualizarCabecera @Q,@Cabecera,N'Importe leído del PDF';\nIF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@Q AND EstadoConciliacion='Pendiente' AND JustificacionConciliacion IS NULL) THROW 51901,N'Aceptó una discrepancia sin justificar',1;",
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Cabecera: cambiar moneda requiere nueva comprobación aunque los importes cuadren",
+    "Sql": "EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada';\nSET @Cabecera=JSON_MODIFY(@Cabecera,'$.moneda',N'USD');\nEXEC dbo.usp_Proforma_ActualizarCabecera @Q,@Cabecera,N'Moneda corregida contra el PDF';\nIF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@Q AND EstadoConciliacion='Pendiente' AND Moneda=N'USD') THROW 51901,N'No solicitó comprobar la moneda',1;",
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Revisión: un clic registra la confirmación sin duplicar auditoría al repetir",
+    "Sql": "EXEC dbo.usp_Proforma_Conciliar @Q,'Conciliada';\nEXEC dbo.usp_Proforma_RevisarLinea @QD;\nDECLARE @CantidadAuditoria bigint=(SELECT COUNT_BIG(*) FROM dbo.CambiosCotizacion WHERE IdProformaProveedorDetalle=@QD);\nEXEC dbo.usp_Proforma_RevisarLinea @QD;\nIF (SELECT COUNT_BIG(*) FROM dbo.CambiosCotizacion WHERE IdProformaProveedorDetalle=@QD)<>@CantidadAuditoria THROW 51901,N'Revisar de nuevo duplicó el historial',1;\nIF NOT EXISTS(SELECT 1 FROM dbo.CambiosCotizacion WHERE IdProformaProveedorDetalle=@QD AND Motivo=N'Renglón marcado como revisado.') THROW 51901,N'No registró la revisión',1;\nIF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@Q AND EstadoConciliacion='Conciliada') THROW 51901,N'Revisar borró la conciliación',1;",
+    "Setup": "",
+    "BeforeEmit": ""
+  },
+  {
+    "Name": "Compra con varios productos e historial por presentación",
+    "Sql": "\nDECLARE @LineasDoc nvarchar(max)=(SELECT * FROM\n (SELECT @P AS idProducto,@PP AS idPresentacionProducto,2 AS cantidadComprada,100 AS precioTotal\n  UNION ALL SELECT @OtroProducto,@OtraPresentacion,3,150) l FOR JSON PATH);\nDECLARE @OpDoc uniqueidentifier=NEWID(),@CabDoc bigint,@VerDoc binary(8),@RenglonDoc bigint;\nEXEC dbo.usp_Compra_RegistrarDocumento @Proveedor,'20260401',N'CRC',@LineasDoc,@OpDoc,N'FAC-PRUEBA';\nSELECT @CabDoc=IdCompraCabecera,@VerDoc=Version FROM dbo.ComprasCabecera WHERE IdOperacion=@OpDoc;\nSELECT @RenglonDoc=IdCompra FROM dbo.Compras WHERE IdCompraCabecera=@CabDoc AND NumeroLinea=1;\n\nIF (SELECT COUNT(*) FROM dbo.Compras WHERE IdCompraCabecera=@CabDoc)<>2 OR\n (SELECT SUM(PrecioTotal) FROM dbo.Compras WHERE IdCompraCabecera=@CabDoc)<>250 THROW 51901,N'No agrupó la compra',1;\nIF NOT EXISTS(SELECT 1 FROM dbo.vw_ComprasAnalisis WHERE IdCompra=@RenglonDoc AND IdCompraCabecera=@CabDoc AND PrecioUnitarioCalculado=50)\n THROW 51901,N'No conserva el historial por renglón',1;\n"
+  },
+  {
+    "Name": "Reintentar una compra devuelve el documento sin duplicar renglones",
+    "Sql": "\nDECLARE @LineasDoc nvarchar(max)=(SELECT * FROM\n (SELECT @P AS idProducto,@PP AS idPresentacionProducto,2 AS cantidadComprada,100 AS precioTotal\n  UNION ALL SELECT @OtroProducto,@OtraPresentacion,3,150) l FOR JSON PATH);\nDECLARE @OpDoc uniqueidentifier=NEWID(),@CabDoc bigint,@VerDoc binary(8),@RenglonDoc bigint;\nEXEC dbo.usp_Compra_RegistrarDocumento @Proveedor,'20260401',N'CRC',@LineasDoc,@OpDoc,N'FAC-PRUEBA';\nSELECT @CabDoc=IdCompraCabecera,@VerDoc=Version FROM dbo.ComprasCabecera WHERE IdOperacion=@OpDoc;\nSELECT @RenglonDoc=IdCompra FROM dbo.Compras WHERE IdCompraCabecera=@CabDoc AND NumeroLinea=1;\n\nEXEC dbo.usp_Compra_RegistrarDocumento @Proveedor,'20260401',N'CRC',@LineasDoc,@OpDoc,N'FAC-PRUEBA';\nIF (SELECT COUNT(*) FROM dbo.ComprasCabecera WHERE IdOperacion=@OpDoc)<>1 OR\n (SELECT COUNT(*) FROM dbo.Compras WHERE IdCompraCabecera=@CabDoc)<>2 THROW 51901,N'Duplicó la compra',1;\n"
+  },
+  {
+    "Name": "Una operación de compra no se reutiliza con otros datos",
+    "Setup": "\nDECLARE @LineasDoc nvarchar(max)=(SELECT * FROM\n (SELECT @P AS idProducto,@PP AS idPresentacionProducto,2 AS cantidadComprada,100 AS precioTotal\n  UNION ALL SELECT @OtroProducto,@OtraPresentacion,3,150) l FOR JSON PATH);\nDECLARE @OpDoc uniqueidentifier=NEWID(),@CabDoc bigint,@VerDoc binary(8),@RenglonDoc bigint;\nEXEC dbo.usp_Compra_RegistrarDocumento @Proveedor,'20260401',N'CRC',@LineasDoc,@OpDoc,N'FAC-PRUEBA';\nSELECT @CabDoc=IdCompraCabecera,@VerDoc=Version FROM dbo.ComprasCabecera WHERE IdOperacion=@OpDoc;\nSELECT @RenglonDoc=IdCompra FROM dbo.Compras WHERE IdCompraCabecera=@CabDoc AND NumeroLinea=1;\n",
+    "Sql": "EXEC dbo.usp_Compra_RegistrarDocumento @Proveedor,'20260401',N'CRC',@LineasDoc,@OpDoc,N'FACTURA-DISTINTA';",
+    "Errors": [
+      52009
+    ]
+  },
+  {
+    "Name": "Cabecera común actualiza todos sus renglones y conserva sus identificadores",
+    "Sql": "\nDECLARE @LineasDoc nvarchar(max)=(SELECT * FROM\n (SELECT @P AS idProducto,@PP AS idPresentacionProducto,2 AS cantidadComprada,100 AS precioTotal\n  UNION ALL SELECT @OtroProducto,@OtraPresentacion,3,150) l FOR JSON PATH);\nDECLARE @OpDoc uniqueidentifier=NEWID(),@CabDoc bigint,@VerDoc binary(8),@RenglonDoc bigint;\nEXEC dbo.usp_Compra_RegistrarDocumento @Proveedor,'20260401',N'CRC',@LineasDoc,@OpDoc,N'FAC-PRUEBA';\nSELECT @CabDoc=IdCompraCabecera,@VerDoc=Version FROM dbo.ComprasCabecera WHERE IdOperacion=@OpDoc;\nSELECT @RenglonDoc=IdCompra FROM dbo.Compras WHERE IdCompraCabecera=@CabDoc AND NumeroLinea=1;\n\nEXEC dbo.usp_Compra_ActualizarCabecera @CabDoc,@VerDoc,@OtroProveedor,'20260402',N'USD',N'CORREGIDA';\nIF (SELECT COUNT(*) FROM dbo.Compras WHERE IdCompraCabecera=@CabDoc AND IdProveedor=@OtroProveedor AND FechaCompra='20260402' AND Moneda=N'USD')<>2\n OR NOT EXISTS(SELECT 1 FROM dbo.Compras WHERE IdCompra=@RenglonDoc AND IdCompraCabecera=@CabDoc)\n THROW 51901,N'La cabecera y los renglones difieren',1;\n"
+  },
+  {
+    "Name": "Editar un renglón conserva la agrupación y los otros productos",
+    "Sql": "\nDECLARE @LineasDoc nvarchar(max)=(SELECT * FROM\n (SELECT @P AS idProducto,@PP AS idPresentacionProducto,2 AS cantidadComprada,100 AS precioTotal\n  UNION ALL SELECT @OtroProducto,@OtraPresentacion,3,150) l FOR JSON PATH);\nDECLARE @OpDoc uniqueidentifier=NEWID(),@CabDoc bigint,@VerDoc binary(8),@RenglonDoc bigint;\nEXEC dbo.usp_Compra_RegistrarDocumento @Proveedor,'20260401',N'CRC',@LineasDoc,@OpDoc,N'FAC-PRUEBA';\nSELECT @CabDoc=IdCompraCabecera,@VerDoc=Version FROM dbo.ComprasCabecera WHERE IdOperacion=@OpDoc;\nSELECT @RenglonDoc=IdCompra FROM dbo.Compras WHERE IdCompraCabecera=@CabDoc AND NumeroLinea=1;\n\nEXEC dbo.usp_Compra_ActualizarRenglon @CabDoc,@RenglonDoc,@VerDoc,@P,@PP,4,120,N'Corregido';\nIF (SELECT SUM(PrecioTotal) FROM dbo.Compras WHERE IdCompraCabecera=@CabDoc)<>270\n OR NOT EXISTS(SELECT 1 FROM dbo.Compras WHERE IdCompra=@RenglonDoc AND CantidadComprada=4 AND PrecioTotal=120)\n THROW 51901,N'No conservó los renglones al corregir',1;\n"
+  },
+  {
+    "Name": "Una edición desactualizada de compra se rechaza",
+    "Setup": "\nDECLARE @LineasDoc nvarchar(max)=(SELECT * FROM\n (SELECT @P AS idProducto,@PP AS idPresentacionProducto,2 AS cantidadComprada,100 AS precioTotal\n  UNION ALL SELECT @OtroProducto,@OtraPresentacion,3,150) l FOR JSON PATH);\nDECLARE @OpDoc uniqueidentifier=NEWID(),@CabDoc bigint,@VerDoc binary(8),@RenglonDoc bigint;\nEXEC dbo.usp_Compra_RegistrarDocumento @Proveedor,'20260401',N'CRC',@LineasDoc,@OpDoc,N'FAC-PRUEBA';\nSELECT @CabDoc=IdCompraCabecera,@VerDoc=Version FROM dbo.ComprasCabecera WHERE IdOperacion=@OpDoc;\nSELECT @RenglonDoc=IdCompra FROM dbo.Compras WHERE IdCompraCabecera=@CabDoc AND NumeroLinea=1;\n\nEXEC dbo.usp_Compra_ActualizarRenglon @CabDoc,@RenglonDoc,@VerDoc,@P,@PP,4,120;\n",
+    "Sql": "EXEC dbo.usp_Compra_ActualizarCabecera @CabDoc,@VerDoc,@Proveedor,'20260401',N'CRC';",
+    "Errors": [
+      52009
+    ]
+  },
+  {
+    "Name": "La ruta de edición no acepta un renglón ajeno",
+    "Setup": "\nDECLARE @LineasDoc nvarchar(max)=(SELECT * FROM\n (SELECT @P AS idProducto,@PP AS idPresentacionProducto,2 AS cantidadComprada,100 AS precioTotal\n  UNION ALL SELECT @OtroProducto,@OtraPresentacion,3,150) l FOR JSON PATH);\nDECLARE @OpDoc uniqueidentifier=NEWID(),@CabDoc bigint,@VerDoc binary(8),@RenglonDoc bigint;\nEXEC dbo.usp_Compra_RegistrarDocumento @Proveedor,'20260401',N'CRC',@LineasDoc,@OpDoc,N'FAC-PRUEBA';\nSELECT @CabDoc=IdCompraCabecera,@VerDoc=Version FROM dbo.ComprasCabecera WHERE IdOperacion=@OpDoc;\nSELECT @RenglonDoc=IdCompra FROM dbo.Compras WHERE IdCompraCabecera=@CabDoc AND NumeroLinea=1;\n",
+    "Sql": "DECLARE @Ajeno bigint=@RenglonDoc+9000000; EXEC dbo.usp_Compra_ActualizarRenglon @CabDoc,@Ajeno,@VerDoc,@P,@PP,2,100;",
+    "Errors": [
+      52004
+    ]
+  },
+  {
+    "Name": "La edición individual no cambia la cabecera compartida",
+    "Setup": "\nDECLARE @LineasDoc nvarchar(max)=(SELECT * FROM\n (SELECT @P AS idProducto,@PP AS idPresentacionProducto,2 AS cantidadComprada,100 AS precioTotal\n  UNION ALL SELECT @OtroProducto,@OtraPresentacion,3,150) l FOR JSON PATH);\nDECLARE @OpDoc uniqueidentifier=NEWID(),@CabDoc bigint,@VerDoc binary(8),@RenglonDoc bigint;\nEXEC dbo.usp_Compra_RegistrarDocumento @Proveedor,'20260401',N'CRC',@LineasDoc,@OpDoc,N'FAC-PRUEBA';\nSELECT @CabDoc=IdCompraCabecera,@VerDoc=Version FROM dbo.ComprasCabecera WHERE IdOperacion=@OpDoc;\nSELECT @RenglonDoc=IdCompra FROM dbo.Compras WHERE IdCompraCabecera=@CabDoc AND NumeroLinea=1;\n",
+    "Sql": "EXEC dbo.SP_Compra_Actualizar @RenglonDoc,@P,@OtroProveedor,@PP,'20260401',2,100,N'CRC';",
+    "Errors": [
+      52010
+    ]
+  },
+  {
+    "Name": "Una presentación ajena en el segundo producto rechaza la compra",
+    "Setup": "\nDECLARE @LineasDoc nvarchar(max)=(SELECT * FROM\n (SELECT @P AS idProducto,@PP AS idPresentacionProducto,2 AS cantidadComprada,100 AS precioTotal\n  UNION ALL SELECT @OtroProducto,@OtraPresentacion,3,150) l FOR JSON PATH);\nDECLARE @OpDoc uniqueidentifier=NEWID(),@CabDoc bigint,@VerDoc binary(8),@RenglonDoc bigint;\nEXEC dbo.usp_Compra_RegistrarDocumento @Proveedor,'20260401',N'CRC',@LineasDoc,@OpDoc,N'FAC-PRUEBA';\nSELECT @CabDoc=IdCompraCabecera,@VerDoc=Version FROM dbo.ComprasCabecera WHERE IdOperacion=@OpDoc;\nSELECT @RenglonDoc=IdCompra FROM dbo.Compras WHERE IdCompraCabecera=@CabDoc AND NumeroLinea=1;\n",
+    "Sql": "DECLARE @Mal nvarchar(max)=JSON_MODIFY(@LineasDoc,'$[1].idPresentacionProducto',@PP),@OpMal uniqueidentifier=NEWID(); EXEC dbo.usp_Compra_RegistrarDocumento @Proveedor,'20260401',N'CRC',@Mal,@OpMal;",
+    "Errors": [
+      52000
+    ]
+  },
+  {
+    "Name": "Empaques fraccionarios no se aceptan en una compra conjunta",
+    "Setup": "\nDECLARE @LineasDoc nvarchar(max)=(SELECT * FROM\n (SELECT @P AS idProducto,@PP AS idPresentacionProducto,2 AS cantidadComprada,100 AS precioTotal\n  UNION ALL SELECT @OtroProducto,@OtraPresentacion,3,150) l FOR JSON PATH);\nDECLARE @OpDoc uniqueidentifier=NEWID(),@CabDoc bigint,@VerDoc binary(8),@RenglonDoc bigint;\nEXEC dbo.usp_Compra_RegistrarDocumento @Proveedor,'20260401',N'CRC',@LineasDoc,@OpDoc,N'FAC-PRUEBA';\nSELECT @CabDoc=IdCompraCabecera,@VerDoc=Version FROM dbo.ComprasCabecera WHERE IdOperacion=@OpDoc;\nSELECT @RenglonDoc=IdCompra FROM dbo.Compras WHERE IdCompraCabecera=@CabDoc AND NumeroLinea=1;\n",
+    "Sql": "DECLARE @Mal nvarchar(max)=JSON_MODIFY(@LineasDoc,'$[1].cantidadComprada',2.5),@OpMal uniqueidentifier=NEWID(); EXEC dbo.usp_Compra_RegistrarDocumento @Proveedor,'20260401',N'CRC',@Mal,@OpMal;",
+    "Errors": [
+      52000
+    ]
+  },
+  {
+    "Name": "Importes de una compra conjunta no se redondean silenciosamente",
+    "Setup": "\nDECLARE @LineasDoc nvarchar(max)=(SELECT * FROM\n (SELECT @P AS idProducto,@PP AS idPresentacionProducto,2 AS cantidadComprada,100 AS precioTotal\n  UNION ALL SELECT @OtroProducto,@OtraPresentacion,3,150) l FOR JSON PATH);\nDECLARE @OpDoc uniqueidentifier=NEWID(),@CabDoc bigint,@VerDoc binary(8),@RenglonDoc bigint;\nEXEC dbo.usp_Compra_RegistrarDocumento @Proveedor,'20260401',N'CRC',@LineasDoc,@OpDoc,N'FAC-PRUEBA';\nSELECT @CabDoc=IdCompraCabecera,@VerDoc=Version FROM dbo.ComprasCabecera WHERE IdOperacion=@OpDoc;\nSELECT @RenglonDoc=IdCompra FROM dbo.Compras WHERE IdCompraCabecera=@CabDoc AND NumeroLinea=1;\n",
+    "Sql": "DECLARE @Mal nvarchar(max)=JSON_MODIFY(@LineasDoc,'$[1].precioTotal',100.12345),@OpMal uniqueidentifier=NEWID(); EXEC dbo.usp_Compra_RegistrarDocumento @Proveedor,'20260401',N'CRC',@Mal,@OpMal;",
+    "Errors": [
+      52000
+    ]
+  },
+  {
+    "Name": "Compra conjunta distribuye el presupuesto por producto",
+    "UsaPresupuesto": true,
+    "Sql": "\nDECLARE @ImputacionDoc nvarchar(max)=(SELECT N'Entrega a finca Norte' AS motivo,\n JSON_QUERY((SELECT @PartidaNorte AS idPartidaPresupuesto,100 AS monto FOR JSON PATH)) AS distribucion FOR JSON PATH,WITHOUT_ARRAY_WRAPPER);\nDECLARE @LineasDoc nvarchar(max)=(SELECT l.idProducto,l.idPresentacionProducto,l.cantidadComprada,l.precioTotal,JSON_QUERY(l.imputacionPresupuesto) AS imputacionPresupuesto FROM\n (SELECT @P AS idProducto,@PP AS idPresentacionProducto,2 AS cantidadComprada,100 AS precioTotal,JSON_QUERY(@ImputacionDoc) AS imputacionPresupuesto\n UNION ALL SELECT @OtroProducto,@OtraPresentacion,3,150,NULL) l FOR JSON PATH);\nDECLARE @OpDoc uniqueidentifier=NEWID(),@CabDoc bigint;\nEXEC dbo.usp_Compra_RegistrarDocumento @Proveedor,'20261016',N'CRC',@LineasDoc,@OpDoc;\nSELECT @CabDoc=IdCompraCabecera FROM dbo.ComprasCabecera WHERE IdOperacion=@OpDoc;\nIF NOT EXISTS(SELECT 1 FROM dbo.vw_SaldosPresupuesto WHERE IdPartidaPresupuesto=@PartidaNorte AND Ejecutado=100)\n OR (SELECT COUNT(*) FROM dbo.Compras WHERE IdCompraCabecera=@CabDoc)<>2 THROW 51901,N'No imputó por producto',1;\nEXEC dbo.usp_Compra_RegistrarDocumento @Proveedor,'20261016',N'CRC',@LineasDoc,@OpDoc;\nIF (SELECT SUM(CambioEjecutado) FROM dbo.MovimientosPresupuesto WHERE IdPartidaPresupuesto=@PartidaNorte)<>100\n THROW 51901,N'Duplicó la ejecución del presupuesto',1;\n"
+  },
+  {
+    "Name": "Presupuesto: editar borrador conserva identificadores y aprueba los montos corregidos",
+    "UsaPresupuesto": true,
+    "Sql": "\nDECLARE @BorradorEd bigint,@OpCrearEd uniqueidentifier=NEWID(),@OpEditarEd uniqueidentifier=NEWID();\nDECLARE @VersionEd uniqueidentifier,@PartidaEd bigint,@PartidasEd nvarchar(max)=(SELECT @Rubro AS idRubroPresupuesto,100 AS monto FOR JSON PATH);\nEXEC dbo.usp_Presupuesto_Crear N'Borrador a corregir','20270101','20271231',N'CRC',@PartidasEd,@OpCrearEd,N'Plan inicial',@BorradorEd OUTPUT,@FincaNorte;\nSET @VersionEd=@OpCrearEd;\nSELECT @PartidaEd=IdPartidaPresupuesto FROM dbo.PartidasPresupuesto WHERE IdPresupuesto=@BorradorEd;\n\nSET @PartidasEd=(SELECT @Rubro AS idRubroPresupuesto,125.0001 AS monto FOR JSON PATH);\nEXEC dbo.usp_Presupuesto_EditarBorrador @BorradorEd,@VersionEd,N'Plan final','20270201','20271130',N'USD',@PartidasEd,@OpEditarEd,@FincaSur;\nIF NOT EXISTS(SELECT 1 FROM dbo.Presupuestos WHERE IdPresupuesto=@BorradorEd AND Nombre=N'Plan final' AND Moneda='USD'\n AND IdFinca=@FincaSur AND FechaInicio='20270201' AND IdOperacionCreacion=@OpCrearEd AND IdOperacionEdicion=@OpEditarEd)\n THROW 51901,N'No conservó o corrigió la cabecera',1;\nIF NOT EXISTS(SELECT 1 FROM dbo.PartidasPresupuesto WHERE IdPartidaPresupuesto=@PartidaEd AND MontoInicial=125.0001)\n OR EXISTS(SELECT 1 FROM dbo.MovimientosPresupuesto WHERE IdPartidaPresupuesto=@PartidaEd) THROW 51901,N'El borrador registró gasto o cambió la partida',1;\nDECLARE @AprobarEd uniqueidentifier=NEWID();\nEXEC dbo.usp_Presupuesto_Aprobar @BorradorEd,@AprobarEd,N'Aprobar plan corregido';\nIF NOT EXISTS(SELECT 1 FROM dbo.vw_SaldosPresupuesto WHERE IdPartidaPresupuesto=@PartidaEd AND Aprobado=125.0001 AND Disponible=125.0001)\n THROW 51901,N'No aprobó el monto corregido',1;\n"
+  },
+  {
+    "Name": "Presupuesto: agregar y retirar partidas de un borrador conserva las que continúan",
+    "UsaPresupuesto": true,
+    "Sql": "\nDECLARE @BorradorEd bigint,@OpCrearEd uniqueidentifier=NEWID(),@OpEditarEd uniqueidentifier=NEWID();\nDECLARE @VersionEd uniqueidentifier,@PartidaEd bigint,@PartidasEd nvarchar(max)=(SELECT @Rubro AS idRubroPresupuesto,100 AS monto FOR JSON PATH);\nEXEC dbo.usp_Presupuesto_Crear N'Borrador a corregir','20270101','20271231',N'CRC',@PartidasEd,@OpCrearEd,N'Plan inicial',@BorradorEd OUTPUT,@FincaNorte;\nSET @VersionEd=@OpCrearEd;\nSELECT @PartidaEd=IdPartidaPresupuesto FROM dbo.PartidasPresupuesto WHERE IdPresupuesto=@BorradorEd;\n\nDECLARE @RubroEd int;\nEXEC dbo.usp_RubroPresupuesto_Guardar N'ED-OTROS',N'Otros insumos',@RubroEd OUTPUT;\nSET @PartidasEd=(SELECT * FROM (SELECT @Rubro AS idRubroPresupuesto,150 AS monto UNION ALL SELECT @RubroEd,50) l FOR JSON PATH);\nEXEC dbo.usp_Presupuesto_EditarBorrador @BorradorEd,@VersionEd,N'Dos partidas','20270101','20271231',N'CRC',@PartidasEd,@OpEditarEd,@FincaNorte;\nIF (SELECT COUNT(*) FROM dbo.PartidasPresupuesto WHERE IdPresupuesto=@BorradorEd)<>2 THROW 51901,N'No agregó partida',1;\nSET @VersionEd=@OpEditarEd; SET @OpEditarEd=NEWID();\nSET @PartidasEd=(SELECT @Rubro AS idRubroPresupuesto,175 AS monto FOR JSON PATH);\nEXEC dbo.usp_Presupuesto_EditarBorrador @BorradorEd,@VersionEd,N'Una partida','20270101','20271231',N'CRC',@PartidasEd,@OpEditarEd,@FincaNorte;\nIF (SELECT COUNT(*) FROM dbo.PartidasPresupuesto WHERE IdPresupuesto=@BorradorEd)<>1 OR\n NOT EXISTS(SELECT 1 FROM dbo.PartidasPresupuesto WHERE IdPartidaPresupuesto=@PartidaEd AND MontoInicial=175)\n THROW 51901,N'No conservó la partida original',1;\n"
+  },
+  {
+    "Name": "Presupuesto: un borrador desactualizado no sobrescribe la edición anterior",
+    "UsaPresupuesto": true,
+    "Setup": "\nDECLARE @BorradorEd bigint,@OpCrearEd uniqueidentifier=NEWID(),@OpEditarEd uniqueidentifier=NEWID();\nDECLARE @VersionEd uniqueidentifier,@PartidaEd bigint,@PartidasEd nvarchar(max)=(SELECT @Rubro AS idRubroPresupuesto,100 AS monto FOR JSON PATH);\nEXEC dbo.usp_Presupuesto_Crear N'Borrador a corregir','20270101','20271231',N'CRC',@PartidasEd,@OpCrearEd,N'Plan inicial',@BorradorEd OUTPUT,@FincaNorte;\nSET @VersionEd=@OpCrearEd;\nSELECT @PartidaEd=IdPartidaPresupuesto FROM dbo.PartidasPresupuesto WHERE IdPresupuesto=@BorradorEd;\n\nSET @PartidasEd=(SELECT @Rubro AS idRubroPresupuesto,150 AS monto FOR JSON PATH);\nEXEC dbo.usp_Presupuesto_EditarBorrador @BorradorEd,@VersionEd,N'Plan corregido','20270101','20271231',N'CRC',@PartidasEd,@OpEditarEd,@FincaNorte;\n",
+    "Sql": "EXEC dbo.usp_Presupuesto_EditarBorrador @BorradorEd,@VersionEd,N'Sobrescribir','20270101','20271231',N'CRC',@PartidasEd,@OpCrearEd,@FincaNorte;",
+    "Errors": [
+      52009
+    ]
+  },
+  {
+    "Name": "Presupuesto: un presupuesto aprobado no admite editar sus datos iniciales",
+    "UsaPresupuesto": true,
+    "Setup": "\nDECLARE @BorradorEd bigint,@OpCrearEd uniqueidentifier=NEWID(),@OpEditarEd uniqueidentifier=NEWID();\nDECLARE @VersionEd uniqueidentifier,@PartidaEd bigint,@PartidasEd nvarchar(max)=(SELECT @Rubro AS idRubroPresupuesto,100 AS monto FOR JSON PATH);\nEXEC dbo.usp_Presupuesto_Crear N'Borrador a corregir','20270101','20271231',N'CRC',@PartidasEd,@OpCrearEd,N'Plan inicial',@BorradorEd OUTPUT,@FincaNorte;\nSET @VersionEd=@OpCrearEd;\nSELECT @PartidaEd=IdPartidaPresupuesto FROM dbo.PartidasPresupuesto WHERE IdPresupuesto=@BorradorEd;\nDECLARE @AprobarEd uniqueidentifier=NEWID(); EXEC dbo.usp_Presupuesto_Aprobar @BorradorEd,@AprobarEd,N'Aprobado';",
+    "Sql": "\nSET @PartidasEd=(SELECT @Rubro AS idRubroPresupuesto,150 AS monto FOR JSON PATH);\nEXEC dbo.usp_Presupuesto_EditarBorrador @BorradorEd,@VersionEd,N'Plan corregido','20270101','20271231',N'CRC',@PartidasEd,@OpEditarEd,@FincaNorte;\n",
+    "Errors": [
+      52010
+    ]
+  },
+  {
+    "Name": "Presupuesto: un presupuesto cerrado no admite editar el borrador",
+    "UsaPresupuesto": true,
+    "Setup": "\nDECLARE @BorradorEd bigint,@OpCrearEd uniqueidentifier=NEWID(),@OpEditarEd uniqueidentifier=NEWID();\nDECLARE @VersionEd uniqueidentifier,@PartidaEd bigint,@PartidasEd nvarchar(max)=(SELECT @Rubro AS idRubroPresupuesto,100 AS monto FOR JSON PATH);\nEXEC dbo.usp_Presupuesto_Crear N'Borrador a corregir','20270101','20271231',N'CRC',@PartidasEd,@OpCrearEd,N'Plan inicial',@BorradorEd OUTPUT,@FincaNorte;\nSET @VersionEd=@OpCrearEd;\nSELECT @PartidaEd=IdPartidaPresupuesto FROM dbo.PartidasPresupuesto WHERE IdPresupuesto=@BorradorEd;\nDECLARE @AprobarEd uniqueidentifier=NEWID(),@CerrarEd uniqueidentifier=NEWID(); EXEC dbo.usp_Presupuesto_Aprobar @BorradorEd,@AprobarEd,N'Aprobado'; EXEC dbo.usp_Presupuesto_Cerrar @BorradorEd,@CerrarEd,N'Cerrado';",
+    "Sql": "\nSET @PartidasEd=(SELECT @Rubro AS idRubroPresupuesto,150 AS monto FOR JSON PATH);\nEXEC dbo.usp_Presupuesto_EditarBorrador @BorradorEd,@VersionEd,N'Plan corregido','20270101','20271231',N'CRC',@PartidasEd,@OpEditarEd,@FincaNorte;\n",
+    "Errors": [
+      52010
+    ]
+  },
+  {
+    "Name": "Presupuesto: borrador no acepta partidas vacías",
+    "UsaPresupuesto": true,
+    "Setup": "\nDECLARE @BorradorEd bigint,@OpCrearEd uniqueidentifier=NEWID(),@OpEditarEd uniqueidentifier=NEWID();\nDECLARE @VersionEd uniqueidentifier,@PartidaEd bigint,@PartidasEd nvarchar(max)=(SELECT @Rubro AS idRubroPresupuesto,100 AS monto FOR JSON PATH);\nEXEC dbo.usp_Presupuesto_Crear N'Borrador a corregir','20270101','20271231',N'CRC',@PartidasEd,@OpCrearEd,N'Plan inicial',@BorradorEd OUTPUT,@FincaNorte;\nSET @VersionEd=@OpCrearEd;\nSELECT @PartidaEd=IdPartidaPresupuesto FROM dbo.PartidasPresupuesto WHERE IdPresupuesto=@BorradorEd;\n",
+    "Sql": "EXEC dbo.usp_Presupuesto_EditarBorrador @BorradorEd,@VersionEd,N'Vacío','20270101','20271231',N'CRC',N'[]',@OpEditarEd,@FincaNorte;",
+    "Errors": [
+      52000
+    ]
+  },
+  {
+    "Name": "Presupuesto: borrador rechaza un rubro repetido",
+    "UsaPresupuesto": true,
+    "Setup": "\nDECLARE @BorradorEd bigint,@OpCrearEd uniqueidentifier=NEWID(),@OpEditarEd uniqueidentifier=NEWID();\nDECLARE @VersionEd uniqueidentifier,@PartidaEd bigint,@PartidasEd nvarchar(max)=(SELECT @Rubro AS idRubroPresupuesto,100 AS monto FOR JSON PATH);\nEXEC dbo.usp_Presupuesto_Crear N'Borrador a corregir','20270101','20271231',N'CRC',@PartidasEd,@OpCrearEd,N'Plan inicial',@BorradorEd OUTPUT,@FincaNorte;\nSET @VersionEd=@OpCrearEd;\nSELECT @PartidaEd=IdPartidaPresupuesto FROM dbo.PartidasPresupuesto WHERE IdPresupuesto=@BorradorEd;\n",
+    "Sql": "SET @PartidasEd=(SELECT * FROM (SELECT @Rubro AS idRubroPresupuesto,100 AS monto UNION ALL SELECT @Rubro,200) l FOR JSON PATH); EXEC dbo.usp_Presupuesto_EditarBorrador @BorradorEd,@VersionEd,N'Duplicado','20270101','20271231',N'CRC',@PartidasEd,@OpEditarEd,@FincaNorte;",
+    "Errors": [
+      52009
+    ]
+  },
+  {
+    "Name": "Presupuesto: borrador rechaza un rubro inactivo",
+    "UsaPresupuesto": true,
+    "Setup": "\nDECLARE @BorradorEd bigint,@OpCrearEd uniqueidentifier=NEWID(),@OpEditarEd uniqueidentifier=NEWID();\nDECLARE @VersionEd uniqueidentifier,@PartidaEd bigint,@PartidasEd nvarchar(max)=(SELECT @Rubro AS idRubroPresupuesto,100 AS monto FOR JSON PATH);\nEXEC dbo.usp_Presupuesto_Crear N'Borrador a corregir','20270101','20271231',N'CRC',@PartidasEd,@OpCrearEd,N'Plan inicial',@BorradorEd OUTPUT,@FincaNorte;\nSET @VersionEd=@OpCrearEd;\nSELECT @PartidaEd=IdPartidaPresupuesto FROM dbo.PartidasPresupuesto WHERE IdPresupuesto=@BorradorEd;\nUPDATE dbo.RubrosPresupuesto SET Activo=0 WHERE IdRubroPresupuesto=@Rubro;",
+    "Sql": "\nSET @PartidasEd=(SELECT @Rubro AS idRubroPresupuesto,150 AS monto FOR JSON PATH);\nEXEC dbo.usp_Presupuesto_EditarBorrador @BorradorEd,@VersionEd,N'Plan corregido','20270101','20271231',N'CRC',@PartidasEd,@OpEditarEd,@FincaNorte;\n",
+    "Errors": [
+      52000
+    ]
+  },
+  {
+    "Name": "Presupuesto: nuevo monto registra solo la diferencia y conserva el monto inicial",
+    "UsaPresupuesto": true,
+    "Sql": "\nDECLARE @OperacionMonto uniqueidentifier=NEWID();\nEXEC dbo.usp_Presupuesto_EstablecerMonto @PartidaNorte,1250000.0001,1000000,@OperacionMonto,N'Ampliar al nuevo total';\nIF NOT EXISTS(SELECT 1 FROM dbo.vw_SaldosPresupuesto WHERE IdPartidaPresupuesto=@PartidaNorte AND MontoInicial=1000000 AND Aprobado=1250000.0001 AND Disponible=1250000.0001)\n OR NOT EXISTS(SELECT 1 FROM dbo.MovimientosPresupuesto WHERE IdOperacion=@OperacionMonto AND CambioAprobado=250000.0001)\n THROW 51901,N'Confundió nuevo total con diferencia',1;\n"
+  },
+  {
+    "Name": "Presupuesto: monto aprobado desactualizado impide sobrescribir otro ajuste",
+    "UsaPresupuesto": true,
+    "Setup": "DECLARE @OperacionMonto uniqueidentifier=NEWID(); EXEC dbo.usp_Presupuesto_EstablecerMonto @PartidaNorte,1250000,1000000,@OperacionMonto,N'Primer ajuste'; SET @OperacionMonto=NEWID();",
+    "Sql": "EXEC dbo.usp_Presupuesto_EstablecerMonto @PartidaNorte,1500000,1000000,@OperacionMonto,N'Ajuste desactualizado';",
+    "Errors": [
+      52009
+    ]
+  },
+  {
+    "Name": "Presupuesto: repetir un cambio de monto no duplica la ampliación",
+    "UsaPresupuesto": true,
+    "Setup": "DECLARE @OperacionMonto uniqueidentifier=NEWID(); EXEC dbo.usp_Presupuesto_EstablecerMonto @PartidaNorte,1250000,1000000,@OperacionMonto,N'Primer ajuste';",
+    "Sql": "EXEC dbo.usp_Presupuesto_EstablecerMonto @PartidaNorte,1250000,1000000,@OperacionMonto,N'Primer ajuste';",
+    "Errors": [
+      52009
+    ]
+  },
+  {
+    "Name": "Presupuesto: nuevo total no puede reducirse por debajo de reservas y gastos",
+    "UsaPresupuesto": true,
+    "Setup": "\nDECLARE @ReservaEd bigint,@OpReservaEd uniqueidentifier=NEWID();\nDECLARE @DistribEd nvarchar(max)=(SELECT @PartidaNorte AS idPartidaPresupuesto,200000 AS monto FOR JSON PATH);\nEXEC dbo.usp_Compromiso_Registrar '20261016',N'CRC',@DistribEd,@OpReservaEd,N'Reserva para proteger',@ReservaEd OUTPUT;\nSET @DistribEd=(SELECT @PartidaNorte AS idPartidaPresupuesto,300000 AS monto FOR JSON PATH);\nDECLARE @OpCompraEd uniqueidentifier=NEWID();\nEXEC dbo.SP_Compra_Insertar @P,@Proveedor,@PP,'20261016',1,300000,N'CRC',NULL,@DistribEd,@OpCompraEd,N'Compra ejecutada';\n",
+    "Sql": "DECLARE @OperacionMonto uniqueidentifier=NEWID(); EXEC dbo.usp_Presupuesto_EstablecerMonto @PartidaNorte,499999.9999,1000000,@OperacionMonto,N'Reducción imposible';",
+    "Errors": [
+      52010
+    ]
+  },
+  {
+    "Name": "Presupuesto: reducción al importe ya utilizado deja disponible cero",
+    "UsaPresupuesto": true,
+    "Sql": "\nDECLARE @ReservaEd bigint,@OpReservaEd uniqueidentifier=NEWID();\nDECLARE @DistribEd nvarchar(max)=(SELECT @PartidaNorte AS idPartidaPresupuesto,200000 AS monto FOR JSON PATH);\nEXEC dbo.usp_Compromiso_Registrar '20261016',N'CRC',@DistribEd,@OpReservaEd,N'Reserva para proteger',@ReservaEd OUTPUT;\nSET @DistribEd=(SELECT @PartidaNorte AS idPartidaPresupuesto,300000 AS monto FOR JSON PATH);\nDECLARE @OpCompraEd uniqueidentifier=NEWID();\nEXEC dbo.SP_Compra_Insertar @P,@Proveedor,@PP,'20261016',1,300000,N'CRC',NULL,@DistribEd,@OpCompraEd,N'Compra ejecutada';\n\nDECLARE @OperacionMonto uniqueidentifier=NEWID();\nEXEC dbo.usp_Presupuesto_EstablecerMonto @PartidaNorte,500000,1000000,@OperacionMonto,N'Ajustar al importe utilizado';\nIF NOT EXISTS(SELECT 1 FROM dbo.vw_SaldosPresupuesto WHERE IdPartidaPresupuesto=@PartidaNorte AND Disponible=0 AND Comprometido=200000 AND Ejecutado=300000)\n THROW 51901,N'Alteró reservas o gasto al reducir',1;\n"
+  },
+  {
+    "Name": "Presupuesto: nuevo monto cero es válido cuando no hay reservas ni gasto",
+    "UsaPresupuesto": true,
+    "Sql": "\nDECLARE @OperacionMonto uniqueidentifier=NEWID();\nEXEC dbo.usp_Presupuesto_EstablecerMonto @PartidaNorte,0,1000000,@OperacionMonto,N'Retirar asignación no utilizada';\nIF NOT EXISTS(SELECT 1 FROM dbo.vw_SaldosPresupuesto WHERE IdPartidaPresupuesto=@PartidaNorte AND Aprobado=0 AND Disponible=0 AND MontoInicial=1000000)\n THROW 51901,N'No permitió dejar la asignación en cero',1;\n"
+  },
+  {
+    "Name": "Presupuesto: nuevo monto igual al actual no registra ajuste vacío",
+    "UsaPresupuesto": true,
+    "Sql": "DECLARE @OperacionMonto uniqueidentifier=NEWID(); EXEC dbo.usp_Presupuesto_EstablecerMonto @PartidaNorte,1000000,1000000,@OperacionMonto,N'Sin cambio';",
+    "Errors": [
+      52000
+    ]
+  },
+  {
+    "Name": "Presupuesto: un borrador no admite el cambio de monto aprobado",
+    "UsaPresupuesto": true,
+    "Setup": "\nDECLARE @BorradorEd bigint,@OpCrearEd uniqueidentifier=NEWID(),@OpEditarEd uniqueidentifier=NEWID();\nDECLARE @VersionEd uniqueidentifier,@PartidaEd bigint,@PartidasEd nvarchar(max)=(SELECT @Rubro AS idRubroPresupuesto,100 AS monto FOR JSON PATH);\nEXEC dbo.usp_Presupuesto_Crear N'Borrador a corregir','20270101','20271231',N'CRC',@PartidasEd,@OpCrearEd,N'Plan inicial',@BorradorEd OUTPUT,@FincaNorte;\nSET @VersionEd=@OpCrearEd;\nSELECT @PartidaEd=IdPartidaPresupuesto FROM dbo.PartidasPresupuesto WHERE IdPresupuesto=@BorradorEd;\n",
+    "Sql": "EXEC dbo.usp_Presupuesto_EstablecerMonto @PartidaEd,150,0,@OpEditarEd,N'No está aprobado';",
+    "Errors": [
+      52010
+    ]
+  },
+  {
+    "Name": "Presupuesto: un presupuesto cerrado conserva el monto aprobado",
+    "UsaPresupuesto": true,
+    "Setup": "DECLARE @CerrarMonto uniqueidentifier=NEWID(); EXEC dbo.usp_Presupuesto_Cerrar @PresNorte,@CerrarMonto,N'Cerrado';",
+    "Sql": "DECLARE @OperacionMonto uniqueidentifier=NEWID(); EXEC dbo.usp_Presupuesto_EstablecerMonto @PartidaNorte,1250000,1000000,@OperacionMonto,N'No debe cambiar';",
+    "Errors": [
+      52010
+    ]
+  },
+  {
+    "Name": "Presupuesto: cuenta limitada puede editar borrador y establecer monto",
+    "UsaPresupuesto": true,
+    "Sql": "\nDECLARE @BorradorEd bigint,@OpCrearEd uniqueidentifier=NEWID(),@OpEditarEd uniqueidentifier=NEWID();\nDECLARE @VersionEd uniqueidentifier,@PartidaEd bigint,@PartidasEd nvarchar(max)=(SELECT @Rubro AS idRubroPresupuesto,100 AS monto FOR JSON PATH);\nEXEC dbo.usp_Presupuesto_Crear N'Borrador a corregir','20270101','20271231',N'CRC',@PartidasEd,@OpCrearEd,N'Plan inicial',@BorradorEd OUTPUT,@FincaNorte;\nSET @VersionEd=@OpCrearEd;\nSELECT @PartidaEd=IdPartidaPresupuesto FROM dbo.PartidasPresupuesto WHERE IdPresupuesto=@BorradorEd;\n\nCREATE USER EditorPresupuestoPrueba WITHOUT LOGIN;\nALTER ROLE rol_gestor_api ADD MEMBER EditorPresupuestoPrueba;\nEXECUTE AS USER=N'EditorPresupuestoPrueba';\nBEGIN TRY\n EXEC dbo.usp_Presupuesto_EditarBorrador @BorradorEd,@VersionEd,N'Plan revisado','20270101','20271231',N'CRC',@PartidasEd,@OpEditarEd,@FincaNorte;\n DECLARE @AprobarEd uniqueidentifier=NEWID(),@MontoEd uniqueidentifier=NEWID();\n EXEC dbo.usp_Presupuesto_Aprobar @BorradorEd,@AprobarEd,N'Aprobado';\n EXEC dbo.usp_Presupuesto_EstablecerMonto @PartidaEd,150,100,@MontoEd,N'Ampliado';\nEND TRY BEGIN CATCH\n REVERT; THROW;\nEND CATCH;\nREVERT;\nIF NOT EXISTS(SELECT 1 FROM dbo.vw_SaldosPresupuesto WHERE IdPartidaPresupuesto=@PartidaEd AND Aprobado=150)\n THROW 51901,N'No guardó con cuenta limitada',1;\n"
   }
 ]

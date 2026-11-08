@@ -2,6 +2,20 @@ CREATE ROLE [rol_gestor_api] AUTHORIZATION [dbo];
 GO
 -- Solo contratos publicos; sin permisos de tablas, esquema o administracion.
 GO
+GRANT EXECUTE ON OBJECT::dbo.usp_Presupuesto_EditarBorrador TO rol_gestor_api;
+GO
+GRANT EXECUTE ON OBJECT::dbo.usp_Presupuesto_EstablecerMonto TO rol_gestor_api;
+GO
+GRANT EXECUTE ON OBJECT::dbo.usp_Compra_RegistrarDocumento TO rol_gestor_api;
+GO
+GRANT EXECUTE ON OBJECT::dbo.usp_Compra_ListarDocumentos TO rol_gestor_api;
+GO
+GRANT EXECUTE ON OBJECT::dbo.usp_Compra_ObtenerDocumento TO rol_gestor_api;
+GO
+GRANT EXECUTE ON OBJECT::dbo.usp_Compra_ActualizarCabecera TO rol_gestor_api;
+GO
+GRANT EXECUTE ON OBJECT::dbo.usp_Compra_ActualizarRenglon TO rol_gestor_api;
+GO
 GRANT EXECUTE ON OBJECT::[dbo].[SP_Compra_Actualizar] TO [rol_gestor_api];
 GO
 GRANT EXECUTE ON OBJECT::[dbo].[SP_Compra_HistorialPorProducto] TO [rol_gestor_api];

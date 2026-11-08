@@ -89,6 +89,8 @@ public static class RegistroDependencias
 
     private static void AgregarCompras(IServiceCollection servicios)
     {
+        servicios.AddScoped<ICompraDocumentoRepositorio, CompraDocumentoRepositorio>();
+        servicios.AddScoped<CompraDocumentoServicio>();
         servicios.AddScoped<ICompraRepositorio, CompraRepositorio>();
         servicios.AddScoped<ICompraServicio, CompraServicio>();
         servicios.AddScoped<IPresupuestoRepositorio, PresupuestoRepositorio>();

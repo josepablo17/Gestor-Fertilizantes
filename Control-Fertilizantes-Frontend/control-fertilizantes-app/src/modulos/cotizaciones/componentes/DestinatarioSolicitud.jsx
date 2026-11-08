@@ -6,6 +6,7 @@ import useConsulta from "../../../hooks/useConsulta.js";
 import useOperacion from "../../../hooks/useOperacion.js";
 import { mostrarConfirmacion } from "../../../utils/alertas.js";
 import { fechaHora } from "../../../utils/datosApi.js";
+import { etiquetaCotizacion } from "../utils/etiquetasCotizacion.js";
 import Campo from "../../../componentes/comunes/Campo.jsx";
 import Paginador from "../../../componentes/comunes/Paginador.jsx";
 import { EstadoConsulta, EstadoVacio, Mensajes, Tarjeta } from "../../../componentes/comunes/Pagina.jsx";
@@ -56,7 +57,7 @@ export default function DestinatarioSolicitud({ solicitud, destino, refrescar })
   }
 
   return <Tarjeta titulo={destino.nombreProveedor}>
-    <p>Estado: {destino.estado} · Envío: {fechaHora(destino.fechaEnvio)} · Respuestas: {destino.cantidadRespuestas}</p>
+    <p>Estado: {etiquetaCotizacion(destino.estado)} · Envío: {fechaHora(destino.fechaEnvio)} · Respuestas: {destino.cantidadRespuestas}</p>
     <div className="form-actions">
       {(vigente || destino.idDocumentoGenerado) && <button className="btn btn--secondary" disabled={operacion.ocupado}
         onClick={descargar}>{destino.idDocumentoGenerado ? "Descargar PDF de solicitud" : "Generar y descargar PDF"}</button>}
@@ -91,7 +92,7 @@ function RespuestasDestinatario({ id, idDestino }) {
       {estado.datos.elementos.length === 0 ? <EstadoVacio mensaje="No hay respuestas en esta página." /> : <ul>
         {estado.datos.elementos.map((r) => <li key={r.idProformaProveedor}>
           <Link to={`/respuestas/${r.idProformaProveedor}`}>
-            {r.numeroProforma || "Proforma sin número"} · versión {r.versionRespuesta} · {r.estado}
+            {r.numeroProforma || "Proforma sin número"} · versión {r.versionRespuesta} · {etiquetaCotizacion(r.estado)}
           </Link>
         </li>)}
       </ul>}

@@ -5,8 +5,6 @@ namespace Control_Fertilizantes_Backend.Modulos.SolicitudesCotizacion.DTOs.Entra
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public class SolicitudGuardarBorradorDTO
 {
-    [Required(ErrorMessage = "El campo {0} es obligatorio."), StringLength(50, ErrorMessage = "{0} admite hasta {1} caracteres.")]
-    public string NumeroSolicitud { get; set; } = string.Empty;
     [Required(ErrorMessage = "El campo {0} es obligatorio.")] public DateOnly? FechaSolicitud { get; set; }
     public DateOnly? FechaLimiteRespuesta { get; set; }
     public ClienteSolicitudDTO? DatosCliente { get; set; }

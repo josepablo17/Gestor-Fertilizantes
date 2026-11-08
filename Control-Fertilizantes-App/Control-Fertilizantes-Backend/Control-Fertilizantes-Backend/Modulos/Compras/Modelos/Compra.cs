@@ -3,14 +3,15 @@ namespace Control_Fertilizantes_Backend.Modulos.Compras.Modelos
     public class Compra
     {
         public int IdCompra { get; set; }
+        public long? IdCompraCabecera { get; set; }
         public int IdProducto { get; set; }
         public string? NombreProducto { get; set; }
         public int IdProveedor { get; set; }
         public string? NombreProveedor { get; set; }
         public int IdPresentacionProducto { get; set; }
-        public string Presentacion { get; set; } = string.Empty;
-        public decimal CantidadPresentacion { get; set; }
-        public string UnidadMedida { get; set; } = string.Empty;
+        public string NombrePresentacion { get; set; } = string.Empty;
+        public decimal ContenidoEmpaque { get; set; }
+        public string CodigoUnidad { get; set; } = string.Empty;
         public DateTime FechaCompra { get; set; }
         public decimal CantidadComprada { get; set; }
         public decimal PrecioTotal { get; set; }

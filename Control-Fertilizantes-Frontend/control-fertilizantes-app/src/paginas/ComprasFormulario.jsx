@@ -24,6 +24,8 @@ export default function CompraFormulario() {
       acciones={<Link className="btn btn--secondary" to="/compras">Volver al listado</Link>}>
       <Tarjeta>
         <EstadoConsulta estado={estado}>
+          {estado.datos?.idCompraCabecera && <p>Este renglón pertenece a una compra.
+            {" "}<Link to={`/compras/${estado.datos.idCompraCabecera}`}>Ver todos sus productos y editar los datos generales</Link>.</p>}
           <FormularioCompra compraEditar={estado.datos} onCompraGuardada={volver} onCancelarEdicion={volver} />
         </EstadoConsulta>
       </Tarjeta>

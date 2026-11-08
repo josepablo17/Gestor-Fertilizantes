@@ -29,18 +29,18 @@ export const generarSolicitudPdf = (id, destino) => post(`${destinatario(id, des
 export const descargarSolicitudPdf = (id, destino) => solicitar(`${destinatario(id, destino)}/documento`, { pdf: true });
 export const registrarEnvio = (id, destino, datos = {}) => post(`${destinatario(id, destino)}/envios`, datos);
 export const listarRespuestas = (id, destino, filtros, signal) =>
-  solicitar(`${destinatario(id, destino)}/respuestas${consulta(filtros)}`, { signal });
+  solicitar(`${destinatario(id, destino)}/respuestas${consulta(filtros)}`, { signal, cache: "no-store" });
 export function recibirRespuesta(id, destino, archivo) {
   const datos = new FormData();
   datos.append("archivo", archivo);
   return post(`${destinatario(id, destino)}/respuestas`, datos);
 }
-export const obtenerRespuesta = (id, signal) => solicitar(respuesta(id), { signal });
+export const obtenerRespuesta = (id, signal) => solicitar(respuesta(id), { signal, cache: "no-store" });
 export const descargarRespuestaPdf = (id, signal) => solicitar(`${respuesta(id)}/documento`, { pdf: true, signal });
 export const ajustarCabecera = (id, datos) => put(`${respuesta(id)}/cabecera`, datos);
 export const guardarLineaRespuesta = (id, linea, datos) =>
   linea ? put(`${respuesta(id)}/lineas/${linea}`, datos) : post(`${respuesta(id)}/lineas`, datos);
-export const confirmarLinea = (id, linea, motivo) => post(`${respuesta(id)}/lineas/${linea}/revision`, { motivo });
+export const confirmarLinea = (id, linea, motivo) => post(`${respuesta(id)}/lineas/${linea}/revision`, motivo ? { motivo } : {});
 export const conciliarRespuesta = (id, datos) => post(`${respuesta(id)}/conciliacion`, datos);
 export const validarRespuesta = (id) => post(`${respuesta(id)}/validacion`);
 export const cancelarRespuesta = (id, motivo) => post(`${respuesta(id)}/cancelacion`, { motivo });

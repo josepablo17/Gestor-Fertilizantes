@@ -1,6 +1,6 @@
 
 CREATE   PROCEDURE dbo.usp_Proforma_Conciliar
- @IdProformaProveedor int,@EstadoConciliacion varchar(20),@Motivo nvarchar(1000),@Tolerancia decimal(18,4)=0.01
+ @IdProformaProveedor int,@EstadoConciliacion varchar(20),@Motivo nvarchar(1000)=NULL,@Tolerancia decimal(18,4)=0.01
 AS
 BEGIN
  SET NOCOUNT ON;
@@ -13,14 +13,15 @@ BEGIN
 
  IF NOT EXISTS(SELECT 1 FROM dbo.ProformasProveedor WITH(UPDLOCK,HOLDLOCK) WHERE IdProformaProveedor=@IdProformaProveedor AND Estado IN('Borrador','EnRevision')) THROW 52010,N'La respuesta no existe o esta finalizada.',1;
  IF @EstadoConciliacion IS NULL OR @EstadoConciliacion NOT IN('Conciliada','ConDiferencias') THROW 52000,N'Estado de conciliacion invalido.',1;
- IF NULLIF(LTRIM(RTRIM(@Motivo)),N'') IS NULL THROW 52000,N'Documente la revision de importes.',1;
+ SET @Motivo=NULLIF(LTRIM(RTRIM(@Motivo)),N'');
+ IF @EstadoConciliacion='ConDiferencias' AND @Motivo IS NULL THROW 52000,N'Justifique las diferencias antes de aceptar la conciliacion.',1;
  IF @Tolerancia IS NULL OR @Tolerancia<0 OR @Tolerancia>1 THROW 52000,N'Tolerancia fuera del rango 0 a 1.',1;
  IF EXISTS(SELECT 1 FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@IdProformaProveedor AND
  (Subtotal IS NULL OR Descuento IS NULL OR IVA IS NULL OR Total IS NULL OR OtrosCargos IS NULL)) THROW 52000,N'Complete los importes de cabecera; no se asumen ceros.',1;
  IF @EstadoConciliacion='Conciliada' AND EXISTS(SELECT 1 FROM dbo.ProformasProveedor WHERE IdProformaProveedor=@IdProformaProveedor
  AND ABS(Total-(Subtotal-Descuento+IVA+OtrosCargos))>@Tolerancia)
  THROW 52000,N'La cabecera no cuadra dentro de la tolerancia. Revise los importes o justifique las diferencias.',1;
- DECLARE @MotivoRegistro nvarchar(1000)=LEFT(CONCAT(N'Tolerancia=',CONVERT(nvarchar(40),@Tolerancia),N'; ',@Motivo),1000);
+ DECLARE @MotivoRegistro nvarchar(1000)=LEFT(CONCAT(N'Tolerancia=',CONVERT(nvarchar(40),@Tolerancia),N'; ',COALESCE(@Motivo,N'Comprobacion aritmetica de cabecera dentro de la tolerancia.')),1000);
  EXEC sys.sp_set_session_context @key=N'MotivoCambio',@value=@MotivoRegistro;
  UPDATE dbo.ProformasProveedor SET EstadoConciliacion=@EstadoConciliacion,JustificacionConciliacion=@MotivoRegistro,FechaModificacion=SYSUTCDATETIME() WHERE IdProformaProveedor=@IdProformaProveedor;
 
